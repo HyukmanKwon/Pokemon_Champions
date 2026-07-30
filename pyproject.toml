@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pokemon-champions"
+version = "0.1.0"
+description = "포켓몬 챔피언스 (레귤레이션 M-B) 데이터베이스 · 계산기 · 배틀 도우미"
+requires-python = ">=3.10"
+dependencies = [
+    "psycopg2-binary>=2.9",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+# 웹 인터페이스를 쓸 때만 필요하다. CLI·계산기는 이것 없이 돈다.
+web = ["fastapi>=0.110", "uvicorn>=0.29"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+pokemon-cli = "pokemon_champions.interfaces.cli:main"
+
+[tool.setuptools.packages.find]
+# src/ 만 훑는다. scripts/ 와 tests/ 는 배포 패키지에 들어가지 않는다.
+where = ["src"]
+
+[tool.setuptools.package-data]
+"pokemon_champions.interfaces.api" = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

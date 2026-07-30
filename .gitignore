@@ -1,5 +1,15 @@
 __pycache__/
 *.pyc
 .DS_Store
-core/database/cache/
-core/web_static/images/
+.env
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# 재생성 가능한 데이터. overrides/ 는 사람이 확정한 값이라 커밋한다.
+data/cache/
+data/images/
+data/sql/
+data/my_team.json
