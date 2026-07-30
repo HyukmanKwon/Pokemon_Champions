@@ -1,11 +1,18 @@
-"""PokeAPI를 통해 포켓몬 정보를 가져오는 파일"""
+"""포챔스 사용 가능 포켓몬(pokemon_M_B)을 PokeAPI에서 받아,
+pokemons 테이블용 03_pokemons.sql 을 생성한다.
+
+can_mega / is_mega 는 API가 주는 값이 아니라 pokemon_M_B 안에서 계산한다.
+`gengar-mega` 가 목록에 있으면 `gengar` 의 can_mega 가 TRUE 가 되는 식이다.
+그래서 포챔스에서 못 쓰는 메가는 목록에서 빼는 것만으로 반영된다.
+"""
+import re
+
+import requests
 
 import db
-import requests 
-import psycopg2 #postgreSQL 연동
+import schema
 import translation
-
-import time
+from parse_utils import render, mogrify_rows
 
 pokemon_M_B = [
     # ===== 1세대 (기본 29, 폼 26) =====
@@ -56,12 +63,12 @@ pokemon_M_B = [
     # ===== 6세대 (기본 32, 폼 13) =====
     "chesnaught", "delphox", "greninja", "diggersby", "talonflame", "vivillon",
     "pyroar-male", "flabebe", "floette", "florges", "pangoro", "furfrou",
-    "meowstic-male", "aegislash-shield", "aromatisse", "slurpuff", "malamar", "barbaracle",
+    "meowstic-male","meowstic-female", "aegislash-shield", "aromatisse", "slurpuff", "malamar", "barbaracle",
     "dragalge", "clawitzer", "heliolisk", "tyrantrum", "aurorus", "sylveon",
     "hawlucha", "dedenne", "goodra", "klefki", "trevenant", "gourgeist-average",
-    "avalugg", "noivern",
+    "avalugg", "noivern", "floette-eternal", "meowstic-male-mega","meowstic-female-mega",
     # -- 6세대 폼 --
-    "avalugg-hisui", "barbaracle-mega", "chesnaught-mega", "delphox-mega", "dragalge-mega", "floette-eternal",
+    "avalugg-hisui", "barbaracle-mega", "chesnaught-mega", "delphox-mega", "dragalge-mega", "floette-mega",
     "goodra-hisui", "greninja-mega", "hawlucha-mega", "malamar-mega",
     "pyroar-mega",
     # ===== 7세대 (기본 17, 폼 5) =====
@@ -79,88 +86,104 @@ pokemon_M_B = [
     # ===== 9세대 (기본 23, 폼 2) =====
     "meowscarada", "skeledirge", "quaquaval", "maushold-family-of-four", "garganacl", "armarouge",
     "ceruledge", "bellibolt", "toedscruel", "scovillain", "espathra", "tinkaton",
-    "palafin-zero", "orthworm", "glimmora", "houndstone", "annihilape", "farigiraf",
+    "palafin-zero", "palafin-hero", "orthworm", "glimmora", "houndstone", "annihilape", "farigiraf",
     "kingambit", "gholdengo", "sinistcha", "archaludon", "hydrapple",
     # -- 9세대 폼 --
     "glimmora-mega", "scovillain-mega",
 ]
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/pokemon"
-DB_CONFIG = db.DB_CONFIG       #db.py에 정의된 DB_CONFIG
 
-conn = psycopg2.connect(**DB_CONFIG)
-cur = conn.cursor()
+FILENAME = "03_pokemons.sql"
+TABLE = "pokemons"
+COLUMNS = ["id", "name", "ko_name", "type1", "type2",
+           "ability1", "ability2", "ability3", "height", "weight",
+           "h", "a", "b", "c", "d", "s", "can_mega", "is_mega"]
+DDL = schema.POKEMONS
+USES_API = True   # 생성 시 PokeAPI를 호출하는가
 
-def fetch_pokemon(name):  #pokemon_id를 받아 url을 생성후, API를 받아옴
+# charizard-mega-x -> ("charizard", "x") / gengar-mega -> ("gengar", None)
+MEGA_RE = re.compile(r"^(.*)-mega(?:-([xy]))?$")
+
+
+def split_mega(name):
+    """메가폼 이름을 (베이스, 변형) 으로 쪼갠다. 메가폼이 아니면 (None, None)."""
+    m = MEGA_RE.match(name)
+    if m is None:
+        return None, None
+    return m.group(1), m.group(2)
+
+
+def mega_bases(names):
+    """목록 안에서 메가폼을 가진 베이스 이름의 집합."""
+    return {split_mega(n)[0] for n in names if split_mega(n)[0] is not None}
+
+def fetch_pokemon(name):  #포켓몬 이름을 받아 url을 생성후, API를 받아옴
     url = f"{POKEAPI_BASE}/{name}"
     resp = requests.get(url, timeout=10)
     if resp.status_code != 200: #이름 못 찾음
         return None
-    return requests.get(url).json()
+    return resp.json()
 
-def parse_pokemon(data):        #필요한 정보를 parsing해서 반환
+def parse_pokemon(data, bases=()):        #필요한 정보를 parsing해서 반환
     stats = {s["stat"]["name"]: s["base_stat"] for s in data["stats"]}          # key : values
     types = {t["slot"]: t["type"]["name"] for t in data["types"]}
     abilities = {a["slot"]: a["ability"]["name"] for a in data["abilities"]}
+
+    base_ko = translation.fetch_korean_name(data)          # 한국어 기본 이름
+    ko_name = translation.build_korean_name(data, base_ko)
+
     return {
-        "POKEMON_ID": data["id"],
-        "NAME": data["name"],
-        "TYPE1": types.get(1),
-        "TYPE2": types.get(2),
-        "ABILITY1": abilities.get(1),   #key가 1인 값을 가져온다.
-        "ABILITY2": abilities.get(2),
-        "ABILITY3": abilities.get(3),
-        "HEIGHT": data["height"] / 10,   # 17 → 1.7 (m)
-        "WEIGHT": data["weight"] / 10,   # 905 → 90.5 (kg)
-        "H": stats["hp"],
-        "A": stats["attack"],
-        "B": stats["defense"],
-        "C": stats["special-attack"],
-        "D": stats["special-defense"],
-        "S": stats["speed"],
-        "TOTAL": stats["hp"] + stats["attack"] + stats["defense"]
-               + stats["special-attack"] + stats["special-defense"] + stats["speed"],
+        "id": data["id"],
+        "name": data["name"],
+        "ko_name": ko_name,
+        "type1": types.get(1),
+        "type2": types.get(2),
+        "ability1": abilities.get(1),   #key가 1인 값을 가져온다.
+        "ability2": abilities.get(2),
+        "ability3": abilities.get(3),
+        "height": data["height"] / 10,   # 17 → 1.7 (m)
+        "weight": data["weight"] / 10,   # 905 → 90.5 (kg)
+        "h": stats["hp"],
+        "a": stats["attack"],
+        "b": stats["defense"],
+        "c": stats["special-attack"],
+        "d": stats["special-defense"],
+        "s": stats["speed"],
+        "can_mega": data["name"] in bases,
+        "is_mega": split_mega(data["name"])[0] is not None,
     }
 
-def insert_pokemon_infor():
+def build(conn):
+    """03_pokemons.sql 전문을 만들어 돌려준다. (pokemon_M_B 개수만큼 API 호출)"""
+    cur = conn.cursor()
+    bases = mega_bases(pokemon_M_B)        # 메가폼을 가진 베이스 이름들
     failed = []
-    for n in pokemon_M_B:    #pokemon_M_B에 있는 이름을 받아 차례대로 저장
-        data = fetch_pokemon(n) #data에서 받아오기
-        if data is None:                 # 실패하면 기록하고 다음으로
+    values = []                            # 완성된 행들을 여기 모음
+    for n in pokemon_M_B:
+        data = fetch_pokemon(n)
+        if data is None:
             failed.append(n)
             print(f"{n} - failed")
             continue
-        p = parse_pokemon(data) #p에 포켓몬 정보 받기
-        cur.execute(            #정보 담아 SQL로 변환
-            """
-            INSERT INTO pokemon (POKEMON_ID, NAME, TYPE1, TYPE2, ABILITY1, ABILITY2, ABILITY3,
-            HEIGHT, WEIGHT, H, A, B, C, D, S, TOTAL)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (name) DO UPDATE SET
-            type1   = EXCLUDED.type1,
-            type2   = EXCLUDED.type2,
-            h = EXCLUDED.h, a = EXCLUDED.a, b = EXCLUDED.b,
-            c = EXCLUDED.c, d = EXCLUDED.d, s = EXCLUDED.s,
-            ability1 = EXCLUDED.ability1,
-            ability2 = EXCLUDED.ability2,
-            ability3 = EXCLUDED.ability3,
-            height = EXCLUDED.height,
-            weight = EXCLUDED.weight,
-            total  = EXCLUDED.total
-            """,
-            (p["POKEMON_ID"], p["NAME"], p["TYPE1"], p["TYPE2"], 
-             p["ABILITY1"], p["ABILITY2"], p["ABILITY3"],
-             p["HEIGHT"], p["WEIGHT"], 
-             p["H"], p["A"], p["B"], p["C"], p["D"], p["S"], p["TOTAL"]),
-        )
-        conn.commit()           #하나씩 저장
-        print(f"{p['NAME']} - save complete")  
-    print(f"\n 실패: {len(failed)}개 - {failed}")  
- 
+        p = parse_pokemon(data, bases)
+        values.append(tuple(p[c] for c in COLUMNS))
+        print(f"{p['name']} - collected")
+    print(f"\n성공: {len(values)}개")
+    print(f"\n실패: {len(failed)}개 - {failed}")
+
+    # 베이스가 목록에 없는 메가폼은 mega_evolutions(10단계)에서 빠진다
+    orphans = sorted(bases - set(pokemon_M_B))
+    if orphans:
+        print(f"베이스가 목록에 없는 메가: {len(orphans)}개 - {orphans}")
+    return render(schema.POKEMONS, TABLE, COLUMNS,
+                  mogrify_rows(cur, values, len(COLUMNS)))
 
 def main():
-    insert_pokemon_infor()
-    translation.get_korean_name()
+    conn = db.connect()
+    db.SQL_DIR.mkdir(exist_ok=True)
+    (db.SQL_DIR / FILENAME).write_text(build(conn), encoding="utf-8")
+    print(f"{FILENAME} 생성 완료")
     conn.close()
 
 if __name__ == "__main__":

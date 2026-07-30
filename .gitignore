@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.DS_Store
+core/database/cache/
+core/web_static/images/

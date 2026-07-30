@@ -1,0 +1,14 @@
+{
+  "reviewed": [
+    "brick-break",
+    "toxic-thread"
+  ],
+  "values": {
+    "brick-break": {
+      "ko_name": "깨트리기"
+    },
+    "toxic-thread": {
+      "ko_name": "독독실"
+    }
+  }
+}

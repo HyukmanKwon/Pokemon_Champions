@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>내 포켓몬 팀</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f5f7;
+    --card-bg: #ffffff;
+    --border: #d8d8dc;
+    --text: #1c1c1e;
+    --muted: #6b6b70;
+    --accent: #3b6fe0;
+    --error: #d0342c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --card-bg: #2a2a2d;
+      --border: #3d3d40;
+      --text: #f2f2f2;
+      --muted: #a0a0a5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  }
+  h1 { font-size: 1.3rem; margin: 0 0 20px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .name { margin: 0; font-size: 1.1rem; }
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .type-badges { display: flex; gap: 4px; }
+  .type-badges img { height: 18px; }
+  .sprite-wrap { text-align: center; margin-bottom: 10px; }
+  .sprite-wrap img { max-width: 140px; max-height: 140px; }
+  .move-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+  .move-row img { height: 16px; }
+
+  .stat-block { margin-bottom: 10px; }
+  .stat-title {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .stat-title .total { color: var(--text); font-weight: 600; }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2px;
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 6px 2px;
+  }
+  .stat-grid div { text-align: center; }
+  .stat-grid .label { font-size: 0.68rem; color: var(--muted); }
+  .stat-grid .value { font-size: 0.85rem; }
+
+  .line {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+  .line .label { color: var(--muted); margin-right: 4px; }
+  .ability-line .effect {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .edit { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .field { margin-bottom: 8px; }
+  .field label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .field input {
+    width: 100%;
+    padding: 5px 7px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.85rem;
+  }
+  .sp-input-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .sp-input-row input { text-align: center; padding: 5px 2px; }
+  .moves-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .error {
+    color: var(--error);
+    font-size: 0.78rem;
+    min-height: 1.1em;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+<h1>내 포켓몬 팀</h1>
+<div id="grid" class="grid"></div>
+
+<script>
+const grid = document.getElementById("grid");
+const STAT_LABELS = ["체력", "공격", "방어", "특수공격", "특수방어", "스피드"];
+const STAT_KEYS = ["h", "a", "b", "c", "d", "s"];
+
+function statGrid(stats) {
+  const labels = STAT_KEYS.map(k => `<div class="label">${STAT_LABELS[STAT_KEYS.indexOf(k)]}</div>`).join("");
+  const values = STAT_KEYS.map(k => `<div class="value">${stats[k]}</div>`).join("");
+  return `<div class="stat-grid">${labels}${values}</div>`;
+}
+
+function card(slot) {
+  const el = document.createElement("div");
+  el.className = "card";
+  el.dataset.index = slot.index;
+  el.innerHTML = `
+    <div class="info"></div>
+    <div class="edit">
+      <div class="field">
+        <label>이름</label>
+        <input data-field="ko_name" type="text">
+      </div>
+      <div class="field">
+        <label>SP (H A B C D S)</label>
+        <div class="sp-input-row">
+          ${[0,1,2,3,4,5].map(i => `<input data-field="sp_values" data-sp="${i}" type="number" min="0">`).join("")}
+        </div>
+      </div>
+      <div class="field">
+        <label>성격</label>
+        <input data-field="ko_nature" type="text">
+      </div>
+      <div class="field">
+        <label>특성</label>
+        <input data-field="ability" type="text">
+      </div>
+      <div class="field">
+        <label>도구</label>
+        <input data-field="item" type="text">
+      </div>
+      <div class="field">
+        <label>기술 (최대 4개)</label>
+        <div class="moves-input-row">
+          ${[0,1,2,3].map(i => `<input data-field="moves" data-move="${i}" type="text">`).join("")}
+        </div>
+      </div>
+      <div class="error"></div>
+    </div>
+  `;
+  fill(el, slot);
+
+  el.querySelectorAll("[data-field]").forEach(input => {
+    input.addEventListener("change", () => onEdit(el, input.dataset.field));
+  });
+
+  return el;
+}
+
+function typeBadge(type) {
+  return type.icon ? `<img src="${type.icon}" alt="${type.name}">` : type.name;
+}
+
+function fill(el, slot) {
+  el.querySelector(".info").innerHTML = `
+    <div class="header-row">
+      <h2 class="name">${slot.name}</h2>
+      <div class="type-badges">${slot.types.map(typeBadge).join("")}</div>
+    </div>
+    ${slot.sprite ? `<div class="sprite-wrap"><img src="${slot.sprite}" alt="${slot.name}"></div>` : ""}
+
+    <div class="stat-block">
+      <div class="stat-title">종족값 <span class="total">합계 ${slot.base.total}</span></div>
+      ${statGrid(slot.base)}
+    </div>
+
+    <div class="stat-block">
+      <div class="stat-title">SP 투자량 <span class="total">합계 ${slot.sp.total}</span></div>
+      ${statGrid(slot.sp)}
+    </div>
+
+    <div class="stat-block">
+      <div class="stat-title">실제 능력치</div>
+      ${statGrid(slot.stats)}
+    </div>
+
+    <div class="line nature-line">
+      <span class="label">성격</span>${slot.nature.name}
+      (올라간 능력치 ${slot.nature.up || "없음"} / 내려간 능력치 ${slot.nature.down || "없음"})
+    </div>
+    <div class="line ability-line">
+      <span class="label">특성</span>${slot.ability.name}
+      <span class="effect">${slot.ability.effect}</span>
+    </div>
+    <div class="line item-line"><span class="label">지닌 도구</span>${slot.item}</div>
+    <div class="line condition-line"><span class="label">상태</span>${slot.condition}</div>
+
+    <div class="stat-block">
+      <div class="stat-title">기술</div>
+      ${slot.moves.length ? slot.moves.map(m => `
+        <div class="move-row">
+          <span>${m.name}</span>
+          ${m.icon ? `<img src="${m.icon}" alt="${m.type}">` : `<span>${m.type}</span>`}
+        </div>
+      `).join("") : `<div class="move-row">없음</div>`}
+    </div>
+  `;
+
+  el.querySelector('[data-field="ko_name"]').value = slot.spec.ko_name;
+  el.querySelector('[data-field="ko_nature"]').value = slot.spec.ko_nature;
+  el.querySelector('[data-field="ability"]').value = slot.spec.ability;
+  el.querySelector('[data-field="item"]').value = slot.spec.item || "";
+  el.querySelectorAll('[data-sp]').forEach(input => {
+    input.value = slot.spec.sp_values[+input.dataset.sp];
+  });
+  el.querySelectorAll('[data-move]').forEach(input => {
+    input.value = slot.spec.moves[+input.dataset.move] || "";
+  });
+  el.querySelector(".error").textContent = "";
+}
+
+function valueFor(el, field) {
+  if (field === "sp_values") {
+    return [...el.querySelectorAll('[data-sp]')].map(i => parseInt(i.value || "0", 10));
+  }
+  if (field === "moves") {
+    return [...el.querySelectorAll('[data-move]')].map(i => i.value.trim()).filter(Boolean);
+  }
+  return el.querySelector(`[data-field="${field}"]`).value;
+}
+
+async function onEdit(el, field) {
+  const index = el.dataset.index;
+  const body = {};
+  body[field] = valueFor(el, field);
+
+  const res = await fetch(`/api/team/${index}`, {
+    method: "PATCH",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+
+  if (!res.ok) {
+    el.querySelector(".error").textContent = data.detail || "수정 실패";
+    return;
+  }
+  fill(el, data);
+}
+
+async function load() {
+  const res = await fetch("/api/team");
+  const slots = await res.json();
+  grid.innerHTML = "";
+  slots.forEach(slot => grid.appendChild(card(slot)));
+}
+
+load();
+</script>
+</body>
+</html>
