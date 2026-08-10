@@ -1,14 +1,2516 @@
 {
   "reviewed": [
+    "accelerock",
+    "acid-armor",
+    "acid-spray",
+    "acrobatics",
+    "acupressure",
+    "aerial-ace",
+    "after-you",
+    "agility",
+    "air-cutter",
+    "air-slash",
+    "alluring-voice",
+    "ally-switch",
+    "amnesia",
+    "ancient-power",
+    "apple-acid",
+    "aqua-cutter",
+    "aqua-jet",
+    "aqua-ring",
+    "aqua-step",
+    "aqua-tail",
+    "armor-cannon",
+    "aromatic-mist",
+    "assurance",
+    "attract",
+    "aura-sphere",
+    "aura-wheel",
+    "aurora-veil",
+    "avalanche",
+    "axe-kick",
+    "baby-doll-eyes",
+    "baneful-bunker",
+    "barb-barrage",
+    "baton-pass",
+    "beak-blast",
+    "beat-up",
+    "belch",
+    "belly-drum",
+    "bind",
+    "bite",
+    "bitter-blade",
+    "bitter-malice",
+    "blast-burn",
+    "blaze-kick",
+    "blizzard",
+    "block",
+    "body-press",
+    "body-slam",
+    "bone-rush",
+    "boomburst",
+    "bounce",
+    "brave-bird",
+    "breaking-swipe",
     "brick-break",
-    "toxic-thread"
+    "brutal-swing",
+    "bug-bite",
+    "bug-buzz",
+    "bulk-up",
+    "bulldoze",
+    "bullet-punch",
+    "bullet-seed",
+    "burn-up",
+    "burning-jealousy",
+    "calm-mind",
+    "ceaseless-edge",
+    "charge",
+    "charge-beam",
+    "charm",
+    "chilling-water",
+    "chilly-reception",
+    "circle-throw",
+    "clanging-scales",
+    "clangorous-soul",
+    "clear-smog",
+    "close-combat",
+    "coaching",
+    "coil",
+    "comeuppance",
+    "confuse-ray",
+    "copycat",
+    "corrosive-gas",
+    "cosmic-power",
+    "cotton-guard",
+    "cotton-spore",
+    "counter",
+    "covet",
+    "crabhammer",
+    "cross-chop",
+    "cross-poison",
+    "crunch",
+    "crush-claw",
+    "curse",
+    "dark-pulse",
+    "darkest-lariat",
+    "dazzling-gleam",
+    "decorate",
+    "defog",
+    "destiny-bond",
+    "detect",
+    "dig",
+    "dire-claw",
+    "disable",
+    "discharge",
+    "dive",
+    "double-edge",
+    "double-hit",
+    "double-shock",
+    "double-team",
+    "draco-meteor",
+    "dragon-cheer",
+    "dragon-claw",
+    "dragon-dance",
+    "dragon-darts",
+    "dragon-pulse",
+    "dragon-rush",
+    "dragon-tail",
+    "drain-punch",
+    "draining-kiss",
+    "drill-peck",
+    "drill-run",
+    "dual-wingbeat",
+    "dynamic-punch",
+    "earth-power",
+    "earthquake",
+    "eerie-impulse",
+    "eerie-spell",
+    "electric-terrain",
+    "electrify",
+    "electro-ball",
+    "electro-shot",
+    "electroweb",
+    "encore",
+    "endeavor",
+    "endure",
+    "energy-ball",
+    "entrainment",
+    "eruption",
+    "expanding-force",
+    "explosion",
+    "extrasensory",
+    "extreme-speed",
+    "facade",
+    "fairy-lock",
+    "fake-out",
+    "fake-tears",
+    "feather-dance",
+    "feint",
+    "fell-stinger",
+    "fickle-beam",
+    "fiery-dance",
+    "final-gambit",
+    "fire-blast",
+    "fire-fang",
+    "fire-lash",
+    "fire-punch",
+    "fire-spin",
+    "first-impression",
+    "fissure",
+    "flail",
+    "flame-charge",
+    "flamethrower",
+    "flare-blitz",
+    "flash-cannon",
+    "flatter",
+    "fling",
+    "flip-turn",
+    "flower-trick",
+    "fly",
+    "flying-press",
+    "focus-blast",
+    "focus-energy",
+    "focus-punch",
+    "follow-me",
+    "forests-curse",
+    "foul-play",
+    "freeze-dry",
+    "frenzy-plant",
+    "frost-breath",
+    "future-sight",
+    "gastro-acid",
+    "giga-drain",
+    "giga-impact",
+    "gigaton-hammer",
+    "glare",
+    "grass-knot",
+    "grassy-glide",
+    "grassy-terrain",
+    "grav-apple",
+    "gravity",
+    "growth",
+    "guard-split",
+    "guard-swap",
+    "guillotine",
+    "gunk-shot",
+    "gyro-ball",
+    "hammer-arm",
+    "hard-press",
+    "haze",
+    "head-smash",
+    "headlong-rush",
+    "heal-bell",
+    "heal-pulse",
+    "healing-wish",
+    "heat-crash",
+    "heat-wave",
+    "heavy-slam",
+    "helping-hand",
+    "hex",
+    "high-horsepower",
+    "high-jump-kick",
+    "horn-drill",
+    "horn-leech",
+    "howl",
+    "hurricane",
+    "hydro-cannon",
+    "hydro-pump",
+    "hyper-beam",
+    "hyper-voice",
+    "hypnosis",
+    "ice-beam",
+    "ice-fang",
+    "ice-hammer",
+    "ice-punch",
+    "ice-shard",
+    "ice-spinner",
+    "icicle-crash",
+    "icicle-spear",
+    "icy-wind",
+    "imprison",
+    "infernal-parade",
+    "inferno",
+    "infestation",
+    "ingrain",
+    "instruct",
+    "iron-defense",
+    "iron-head",
+    "iron-tail",
+    "jet-punch",
+    "kings-shield",
+    "knock-off",
+    "kowtow-cleave",
+    "lash-out",
+    "last-resort",
+    "last-respects",
+    "lava-plume",
+    "leaf-blade",
+    "leaf-storm",
+    "leech-life",
+    "leech-seed",
+    "life-dew",
+    "light-of-ruin",
+    "light-screen",
+    "liquidation",
+    "lock-on",
+    "low-kick",
+    "low-sweep",
+    "lumina-crash",
+    "lunge",
+    "mach-punch",
+    "magic-powder",
+    "magic-room",
+    "magnet-rise",
+    "magnetic-flux",
+    "make-it-rain",
+    "matcha-gotcha",
+    "mean-look",
+    "mega-kick",
+    "megahorn",
+    "memento",
+    "metal-burst",
+    "metal-sound",
+    "meteor-beam",
+    "meteor-mash",
+    "milk-drink",
+    "minimize",
+    "mirror-coat",
+    "misty-explosion",
+    "misty-terrain",
+    "moonblast",
+    "moonlight",
+    "morning-sun",
+    "mortal-spin",
+    "mountain-gale",
+    "mud-shot",
+    "mud-slap",
+    "muddy-water",
+    "mystical-fire",
+    "nasty-plot",
+    "night-daze",
+    "night-shade",
+    "night-slash",
+    "no-retreat",
+    "noble-roar",
+    "nuzzle",
+    "outrage",
+    "overheat",
+    "pain-split",
+    "parabolic-charge",
+    "parting-shot",
+    "payback",
+    "perish-song",
+    "petal-blizzard",
+    "petal-dance",
+    "phantom-force",
+    "pin-missile",
+    "play-rough",
+    "pluck",
+    "poison-fang",
+    "poison-jab",
+    "poison-powder",
+    "pollen-puff",
+    "poltergeist",
+    "population-bomb",
+    "pounce",
+    "power-gem",
+    "power-shift",
+    "power-split",
+    "power-swap",
+    "power-trick",
+    "power-trip",
+    "power-whip",
+    "protect",
+    "psych-up",
+    "psychic",
+    "psychic-fangs",
+    "psychic-noise",
+    "psychic-terrain",
+    "psycho-cut",
+    "psyshield-bash",
+    "psyshock",
+    "quash",
+    "quick-attack",
+    "quick-guard",
+    "quiver-dance",
+    "rage-fist",
+    "rage-powder",
+    "raging-bull",
+    "raging-fury",
+    "rain-dance",
+    "rapid-spin",
+    "razor-shell",
+    "recover",
+    "recycle",
+    "reflect",
+    "reflect-type",
+    "rest",
+    "reversal",
+    "revival-blessing",
+    "rising-voltage",
+    "roar",
+    "rock-blast",
+    "rock-polish",
+    "rock-slide",
+    "rock-tomb",
+    "rock-wrecker",
+    "role-play",
+    "roost",
+    "round",
+    "sacred-sword",
+    "safeguard",
+    "salt-cure",
+    "sand-tomb",
+    "sandstorm",
+    "scald",
+    "scale-shot",
+    "scary-face",
+    "scorching-sands",
+    "screech",
+    "seed-bomb",
+    "seismic-toss",
+    "self-destruct",
+    "shadow-ball",
+    "shadow-claw",
+    "shadow-punch",
+    "shadow-sneak",
+    "shed-tail",
+    "sheer-cold",
+    "shell-side-arm",
+    "shell-smash",
+    "shelter",
+    "simple-beam",
+    "sing",
+    "skill-swap",
+    "skitter-smack",
+    "sky-attack",
+    "slack-off",
+    "sleep-powder",
+    "sleep-talk",
+    "sludge-bomb",
+    "sludge-wave",
+    "smack-down",
+    "smart-strike",
+    "snap-trap",
+    "snarl",
+    "snore",
+    "snowscape",
+    "soak",
+    "soft-boiled",
+    "solar-beam",
+    "solar-blade",
+    "sparkling-aria",
+    "speed-swap",
+    "spicy-extract",
+    "spikes",
+    "spiky-shield",
+    "spirit-break",
+    "spirit-shackle",
+    "spit-up",
+    "spite",
+    "spore",
+    "stealth-rock",
+    "steel-beam",
+    "steel-roller",
+    "steel-wing",
+    "sticky-web",
+    "stockpile",
+    "stomping-tantrum",
+    "stone-axe",
+    "stone-edge",
+    "stored-power",
+    "storm-throw",
+    "strength-sap",
+    "string-shot",
+    "struggle",
+    "struggle-bug",
+    "stuff-cheeks",
+    "stun-spore",
+    "substitute",
+    "sucker-punch",
+    "sunny-day",
+    "super-fang",
+    "supercell-slam",
+    "superpower",
+    "surf",
+    "swagger",
+    "swallow",
+    "sweet-kiss",
+    "sweet-scent",
+    "switcheroo",
+    "swords-dance",
+    "synthesis",
+    "syrup-bomb",
+    "tail-slap",
+    "tailwind",
+    "taunt",
+    "tearful-look",
+    "teatime",
+    "teeter-dance",
+    "temper-flare",
+    "terrain-pulse",
+    "thief",
+    "thrash",
+    "throat-chop",
+    "thunder",
+    "thunder-fang",
+    "thunder-punch",
+    "thunder-wave",
+    "thunderbolt",
+    "tickle",
+    "tidy-up",
+    "topsy-turvy",
+    "torch-song",
+    "torment",
+    "toxic",
+    "toxic-spikes",
+    "toxic-thread",
+    "trailblaze",
+    "transform",
+    "tri-attack",
+    "trick",
+    "trick-or-treat",
+    "trick-room",
+    "triple-arrows",
+    "triple-axel",
+    "trop-kick",
+    "twin-beam",
+    "u-turn",
+    "upper-hand",
+    "uproar",
+    "vacuum-wave",
+    "venoshock",
+    "volt-switch",
+    "volt-tackle",
+    "water-pulse",
+    "water-shuriken",
+    "water-spout",
+    "waterfall",
+    "wave-crash",
+    "weather-ball",
+    "whirlpool",
+    "whirlwind",
+    "wide-guard",
+    "wild-charge",
+    "will-o-wisp",
+    "wish",
+    "wonder-room",
+    "wood-hammer",
+    "worry-seed",
+    "wrap",
+    "x-scissor",
+    "yawn",
+    "zap-cannon",
+    "zen-headbutt"
   ],
   "values": {
+    "accelerock": {
+      "description": "재빠른 스피드로 상대에게 부딪쳐서 공격한다. 반드시 선제공격할 수 있다.",
+      "ko_name": "액셀록"
+    },
+    "acid-armor": {
+      "description": "세포의 변화로 액체가 되어 자신의 방어를 크게 올린다.",
+      "ko_name": "녹기"
+    },
+    "acid-spray": {
+      "description": "상대를 녹이는 액체를 토해내서 공격한다. 상대의 특수방어를 크게 떨어뜨린다.",
+      "ko_name": "애시드봄"
+    },
+    "acrobatics": {
+      "description": "경쾌하게 상대를 공격한다. 자신이 도구를 지니고 있지 않을 때 큰 데미지를 준다.",
+      "ko_name": "애크러뱃"
+    },
+    "acupressure": {
+      "description": "경혈을 눌러 몸을 활성화시킨다. 능력 중 하나를 크게 올린다.",
+      "ko_name": "경혈찌르기"
+    },
+    "aerial-ace": {
+      "description": "재빠른 움직임으로 상대를 농락해 벤다. 공격은 반드시 명중한다.",
+      "ko_name": "제비반환"
+    },
+    "after-you": {
+      "description": "상대의 행동을 도와서 자신이 행동한 뒤에 바로 움직일 수 있도록 한다.",
+      "ko_name": "당신먼저"
+    },
+    "agility": {
+      "description": "힘을 빼고 몸을 가볍게 해서 고속으로 움직인다. 자신의 스피드를 크게 올린다.",
+      "ko_name": "고속이동"
+    },
+    "air-cutter": {
+      "description": "날카로운 바람으로 상대를 베어 공격한다. 급소에 맞기 쉽다.",
+      "ko_name": "에어커터"
+    },
+    "air-slash": {
+      "description": "하늘까지 베어 가르는 공기의 칼날로 공격한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "에어슬래시"
+    },
+    "alluring-voice": {
+      "description": "천사와도 같은 노랫소리로 상대를 공격한다.그 턴에 능력이 올라간 포켓몬을 혼란 상태로 만든다.",
+      "ko_name": "매혹의보이스"
+    },
+    "ally-switch": {
+      "description": "이상한 힘으로 순간이동하여 자신과 같은 편의 위치를 바꾼다.",
+      "ko_name": "사이드체인지"
+    },
+    "amnesia": {
+      "description": "머리를 비워서 순간적으로 무언가를 잊어버림으로써 자신의 특수방어를 크게 올린다.",
+      "ko_name": "망각술"
+    },
+    "ancient-power": {
+      "description": "원시의 힘으로 공격한다. 자신의 모든 능력이 오를 때가 있다.",
+      "ko_name": "원시의힘"
+    },
+    "apple-acid": {
+      "description": "새콤한 사과에서 만들어 낸 산성 액체로 공격한다. 상대의 특수방어를 떨어뜨린다.",
+      "ko_name": "사과산"
+    },
+    "aqua-cutter": {
+      "description": "압력을 가한 물을 칼날처럼 분사해서 상대를 베어 가른다. 급소에 맞기 쉽다.",
+      "ko_name": "아쿠아커터"
+    },
+    "aqua-jet": {
+      "description": "눈에 보이지 않는 굉장한 속도로 상대에게 돌진한다. 반드시 선제공격할 수 있다.",
+      "ko_name": "아쿠아제트"
+    },
+    "aqua-ring": {
+      "description": "자신의 몸 주변을 물로 만든 베일로 덮는다. 매 턴 HP를 회복한다.",
+      "ko_name": "아쿠아링"
+    },
+    "aqua-step": {
+      "description": "물 흐르듯 민첩하고 경쾌한 발재간으로 상대를 농락하여 데미지를 준다.자신의 스피드를 올린다.",
+      "ko_name": "아쿠아스텝"
+    },
+    "aqua-tail": {
+      "description": "세차게 날뛰는 거친 파도와 같이 큰 꼬리를 흔들어서 상대를 공격한다.",
+      "ko_name": "아쿠아테일"
+    },
+    "armor-cannon": {
+      "description": "자신의 갑옷을 활활 타오르는 탄환으로 발사해서 공격한다. 자신의 방어와 특수방어가 떨어진다.",
+      "ko_name": "아머캐논"
+    },
+    "aromatic-mist": {
+      "description": "신비한 아로마 향으로 같은 편의 특수방어를 올린다.",
+      "ko_name": "아로마미스트"
+    },
+    "assurance": {
+      "description": "그 턴에 상대가 이미 데미지를 입었다면 기술의 위력은 2배가 된다.",
+      "ko_name": "승부굳히기"
+    },
+    "attract": {
+      "description": "수컷은 암컷을 암컷은 수컷을 유혹하여 헤롱헤롱하게 만든다. 상대가 기술을 쓰기 어려워진다.",
+      "ko_name": "헤롱헤롱"
+    },
+    "aura-sphere": {
+      "description": "몸속에서 파동의 힘을 끌어내 상대에게 쏜다. 공격은 반드시 명중한다.",
+      "ko_name": "파동탄"
+    },
+    "aura-wheel": {
+      "description": "볼주머니에 저장해둔 에너지로 공격하고 자신의 스피드를 올린다. 모르페코의 모습에 따라 타입이 바뀐다.",
+      "ko_name": "오라휠"
+    },
+    "aurora-veil": {
+      "description": "5턴 동안 물리와 특수 기술의 데미지를 약하게 한다. 싸라기눈일 때만 쓸 수 있다.",
+      "ko_name": "오로라베일"
+    },
+    "avalanche": {
+      "description": "상대로부터 기술을 받으면 그 상대에 대해서 기술의 위력이 2배가 된다.",
+      "ko_name": "눈사태"
+    },
+    "axe-kick": {
+      "description": "발꿈치를 들어 올린 뒤 내리찍어 공격한다. 상대를 혼란시킬 때가 있다.빗나가면 자신이 데미지를 입는다.",
+      "ko_name": "발꿈치찍기"
+    },
+    "baby-doll-eyes": {
+      "description": "초롱초롱한 눈동자로 상대를 바라보며 공격을 떨어뜨린다. 반드시 선제공격할 수 있다.",
+      "ko_name": "초롱초롱눈동자"
+    },
+    "baneful-bunker": {
+      "description": "상대의 공격을 막음과 동시에 접촉한 상대에게 독을 퍼뜨린다.",
+      "ko_name": "토치카"
+    },
+    "barb-barrage": {
+      "description": "무수히 많은 독침으로 공격한다. 상대를 독 상태로 만들 때가 있다. 상대가 상태 이상인 경우 위력이 2배가 된다.",
+      "ko_name": "독침천발"
+    },
+    "baton-pass": {
+      "description": "교대 포켓몬과 바뀐다. 능력 변화는 바뀐 포켓몬이 그대로 이어받는다.",
+      "ko_name": "배턴터치"
+    },
+    "beak-blast": {
+      "description": "먼저 부리를 가열시킨 다음 공격을 날린다. 가열 중에 만지면 화상을 입는다.",
+      "ko_name": "부리캐논"
+    },
+    "beat-up": {
+      "description": "같은 편 전원이 공격한다. 동료 포켓몬이 많을수록 기술의 공격 횟수가 증가한다.",
+      "ko_name": "집단구타"
+    },
+    "belch": {
+      "description": "상대를 향해 트림을 하여 데미지를 준다. 나무열매를 먹지 않으면 쓸 수 없다.",
+      "ko_name": "트림"
+    },
+    "belly-drum": {
+      "description": "자신의 HP를 최대 HP의 절반만큼 감소시켜 자신의 공격을 최대로 올린다.",
+      "ko_name": "배북"
+    },
+    "bind": {
+      "description": "긴 몸이나 덩굴 등을 써서 4-5턴 동안 상대를 조여 공격한다.",
+      "ko_name": "조이기"
+    },
+    "bite": {
+      "description": "날카롭고 뾰족한 이빨로 물어서 공격한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "물기"
+    },
+    "bitter-blade": {
+      "description": "현세의 미련을 칼끝에 담아 베어 버린다. 입힌 데미지의 절반에 해당하는 HP를 회복할 수 있다.",
+      "ko_name": "원념의칼"
+    },
+    "bitter-malice": {
+      "description": "동굴이 서늘해지는 원념으로 공격해서 상대를 동상 상태로 만들 때가 있다. 상대가 상태 이상인 경우 위력이 2배가 된다.",
+      "ko_name": "천추지한"
+    },
+    "blast-burn": {
+      "description": "폭발하는 불꽃으로 상대를 태워서 공격한다. 다음 턴은 움직일 수 없다.",
+      "ko_name": "블라스트번"
+    },
+    "blaze-kick": {
+      "description": "공격한 상대를 화상 상태로 만들 때가 있다. 급소에도 맞기 쉽다.",
+      "ko_name": "블레이즈킥"
+    },
+    "blizzard": {
+      "description": "세찬 눈보라를 상대에게 내뿜어 공격한다. 얼음 상태로 만들 때가 있다.",
+      "ko_name": "눈보라"
+    },
+    "block": {
+      "description": "양팔을 벌려 막아서서 상대의 도주로를 가로막아 도망칠 수 없게 한다.",
+      "ko_name": "블록"
+    },
+    "body-press": {
+      "description": "몸을 부딪쳐서 공격한다. 방어가 높을수록 주는 데미지가 올라간다.",
+      "ko_name": "바디프레스"
+    },
+    "body-slam": {
+      "description": "몸 전체로 상대를 덮쳐눌러 공격한다. 마비 상태로 만들 때가 있다.",
+      "ko_name": "누르기"
+    },
+    "bone-rush": {
+      "description": "단단한 뼈로 상대를 세게 때려서 공격한다. 2-5회 동안 연속으로 쓴다.",
+      "ko_name": "본러시"
+    },
+    "boomburst": {
+      "description": "무시무시한 폭음의 파괴력으로 주위에 있는 포켓몬을 공격한다.",
+      "ko_name": "폭음파"
+    },
+    "bounce": {
+      "description": "하늘 높이 뛰어올라 2턴째에 상대를 공격한다. 마비 상태로 만들 때가 있다.",
+      "ko_name": "뛰어오르기"
+    },
+    "brave-bird": {
+      "description": "날개를 접어 저공비행으로 돌격한다. 자신도 상당한 데미지를 입는다.",
+      "ko_name": "브레이브버드"
+    },
+    "breaking-swipe": {
+      "description": "강인한 꼬리를 세차게 휘둘러서 상대를 공격한다. 상대의 공격을 떨어뜨린다.",
+      "ko_name": "와이드브레이커"
+    },
     "brick-break": {
+      "description": "수도로 기세 좋게 내려쳐서 상대를 공격한다. 빛의장막이나 리플렉터 등도 파괴할 수 있다.",
       "ko_name": "깨트리기"
     },
+    "brutal-swing": {
+      "description": "자신의 몸을 세차게 휘둘러서 상대에게 데미지를 준다.",
+      "ko_name": "세차게휘두르기"
+    },
+    "bug-bite": {
+      "description": "물어서 공격한다. 상대가 나무열매를 지니고 있을 때 먹어서 나무열매의 효과를 받을 수 있다.",
+      "ko_name": "벌레먹기"
+    },
+    "bug-buzz": {
+      "description": "진동으로 음파를 일으켜서 공격한다. 상대의 특수방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "벌레의야단법석"
+    },
+    "bulk-up": {
+      "description": "몸에 힘을 담아 근육을 두껍게 해서 자신의 공격과 방어를 올린다.",
+      "ko_name": "벌크업"
+    },
+    "bulldoze": {
+      "description": "땅을 힘껏 밟아 자신의 주위에 있는 포켓몬을 공격한다. 상대의 스피드를 떨어뜨린다.",
+      "ko_name": "땅고르기"
+    },
+    "bullet-punch": {
+      "description": "탄환처럼 빠르고 단단한 펀치를 상대에게 날린다. 반드시 선제공격을 할 수 있다.",
+      "ko_name": "불릿펀치"
+    },
+    "bullet-seed": {
+      "description": "씨앗을 기세 좋게 상대에게 발사하여 공격한다. 2-5회 동안 연속으로 쓴다.",
+      "ko_name": "씨기관총"
+    },
+    "burn-up": {
+      "description": "전신의 불꽃을 모두 태워서 큰 데미지를 준다. 자신의 불꽃타입이 없어진다.",
+      "ko_name": "불사르기"
+    },
+    "burning-jealousy": {
+      "description": "질투의 에너지로 상대를 공격한다. 그 턴에 능력이 올라간 포켓몬을 화상 상태로 만든다.",
+      "ko_name": "질투의불꽃"
+    },
+    "calm-mind": {
+      "description": "조용히 정신을 통일하고 마음을 가라앉혀서 자신의 특수공격과 특수방어를 올린다.",
+      "ko_name": "명상"
+    },
+    "ceaseless-edge": {
+      "description": "조개껍질 검으로 급소를 노려 공격한다. 흩어진 조개껍질 파편으로 상대에게 여러 번 데미지를 준다.",
+      "ko_name": "비검천중파"
+    },
+    "charge": {
+      "description": "다음 턴에 쓸 전기타입 기술의 위력을 올린다. 자신의 특수방어도 올라간다.",
+      "ko_name": "충전"
+    },
+    "charge-beam": {
+      "description": "전격의 다발을 상대에게 발사한다. 전기를 모아서 자신의 특수공격을 올릴 때가 있다.",
+      "ko_name": "차지빔"
+    },
+    "charm": {
+      "description": "귀엽게 바라보고 방심을 유도하여 상대의 공격을 크게 떨어뜨린다.",
+      "ko_name": "애교부리기"
+    },
+    "chilling-water": {
+      "description": "상대의 기운이 빠질 정도로 차가운 물을 끼얹어서 공격한다. 상대의 공격을 떨어뜨린다.",
+      "ko_name": "찬물끼얹기"
+    },
+    "chilly-reception": {
+      "description": "자리를 얼어붙게 만드는 개그를 하고 교대 포켓몬과 교체한다. 5턴 동안 눈을 내리게 한다.",
+      "ko_name": "썰렁개그"
+    },
+    "circle-throw": {
+      "description": "상대를 내던져서 교대할 포켓몬을 끌어낸다. 야생의 경우에는 배틀이 끝난다.",
+      "ko_name": "배대뒤치기"
+    },
+    "clanging-scales": {
+      "description": "전신의 비늘을 비벼서 큰 소리를 내 공격한다. 공격 후 자신의 방어가 떨어진다.",
+      "ko_name": "스케일노이즈"
+    },
+    "clangorous-soul": {
+      "description": "자신의 HP를 조금 깎아서 모든 능력을 올린다.",
+      "ko_name": "소울비트"
+    },
+    "clear-smog": {
+      "description": "특수한 진흙 덩어리를 상대에게 내던져서 공격한다. 능력 변화를 원래대로 돌린다.",
+      "ko_name": "클리어스모그"
+    },
+    "close-combat": {
+      "description": "방어를 포기하고 상대 쪽으로 깊숙이 돌격한다. 자신의 방어와 특수방어가 떨어진다.",
+      "ko_name": "인파이트"
+    },
+    "coaching": {
+      "description": "적절한 지도를 통해서 같은 편 전원의 공격과 방어를 올린다.",
+      "ko_name": "코칭"
+    },
+    "coil": {
+      "description": "똬리를 틀어서 집중한다. 자신의 공격과 방어와 명중률을 올린다.",
+      "ko_name": "똬리틀기"
+    },
+    "comeuppance": {
+      "description": "기술을 쓰기 전에 마지막으로 받은 기술의 데미지를 늘려서 기술을 쓴 상대에게 돌려준다.",
+      "ko_name": "앙갚음"
+    },
+    "confuse-ray": {
+      "description": "이상한 빛을 상대에게 비춰 당황하게 한다. 상대를 혼란시킨다.",
+      "ko_name": "이상한빛"
+    },
+    "copycat": {
+      "description": "직전에 나온 기술을 흉내 내어 같은 기술을 쓴다. 기술이 나오지 않았으면 실패한다.",
+      "ko_name": "흉내쟁이"
+    },
+    "corrosive-gas": {
+      "description": "주위에 있는 모든 것을 강력한 산성 가스로 뒤덮어서 지니고 있는 도구를 녹여버린다.",
+      "ko_name": "부식가스"
+    },
+    "cosmic-power": {
+      "description": "우주로부터 신비한 힘을 손에 넣음으로써 자신의 방어와 특수방어를 올린다.",
+      "ko_name": "코스믹파워"
+    },
+    "cotton-guard": {
+      "description": "푹신푹신한 솜털로 자신의 몸을 둘러싸서 지킨다. 방어를 매우 크게 올린다.",
+      "ko_name": "코튼가드"
+    },
+    "cotton-spore": {
+      "description": "솜처럼 폭신폭신한 포자를 착 달라붙게 해서 상대의 스피드를 크게 떨어뜨린다.",
+      "ko_name": "목화포자"
+    },
+    "counter": {
+      "description": "상대로부터 받은 물리공격의 데미지를 2배로 만들어 같은 상대에게 돌려준다.",
+      "ko_name": "카운터"
+    },
+    "covet": {
+      "description": "귀엽게 애교 부리며 상대에게 다가가 지니고 있는 도구를 뺏는다.",
+      "ko_name": "탐내다"
+    },
+    "crabhammer": {
+      "description": "큰 집게를 상대에게 내리쳐서 공격한다. 급소에 맞기 쉽다.",
+      "ko_name": "집게해머"
+    },
+    "cross-chop": {
+      "description": "양손으로 당수를 상대에게 힘껏 쳐서 공격한다. 급소에 맞기 쉽다.",
+      "ko_name": "크로스촙"
+    },
+    "cross-poison": {
+      "description": "독 칼날로 상대를 베어 가른다. 독 상태로 만들 때가 있고 급소에도 맞기 쉽다.",
+      "ko_name": "크로스포이즌"
+    },
+    "crunch": {
+      "description": "날카로운 이빨로 상대를 깨물어 부숴서 공격한다. 상대의 방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "깨물어부수기"
+    },
+    "crush-claw": {
+      "description": "단단하고 날카로운 손톱으로 베어 갈라서 공격한다. 상대의 방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "브레이크클로"
+    },
+    "curse": {
+      "description": "기술을 쓰는 포켓몬이 고스트타입일 때와 그 이외의 타입일 때는 효과가 다르다.",
+      "ko_name": "저주"
+    },
+    "dark-pulse": {
+      "description": "몸에서 악의로 가득한 무서운 오라를 발한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "악의파동"
+    },
+    "darkest-lariat": {
+      "description": "양팔을 돌려 상대에게 부딪친다. 상대의 능력 변화에 상관없이 데미지를 준다.",
+      "ko_name": "DD래리어트"
+    },
+    "dazzling-gleam": {
+      "description": "강력한 빛을 내어 상대에게 데미지를 준다.",
+      "ko_name": "매지컬샤인"
+    },
+    "decorate": {
+      "description": "데코레이션을 해서 상대의 공격과 특수공격을 크게 올린다.",
+      "ko_name": "데코레이션"
+    },
+    "defog": {
+      "description": "강한 바람으로 상대의 리플렉터나 빛의장막 등을 제거한다. 회피율도 떨어뜨린다.",
+      "ko_name": "안개제거"
+    },
+    "destiny-bond": {
+      "description": "기술을 쓴 뒤 상대의 공격으로 기절했을 때 공격 상대도 기절하게 한다. 연속으로 쓰면 실패한다.",
+      "ko_name": "길동무"
+    },
+    "detect": {
+      "description": "상대의 공격을 전혀 받지 않는다. 연속으로 쓰면 실패하기 쉽다.",
+      "ko_name": "판별"
+    },
+    "dig": {
+      "description": "1턴째에 파고들어 2턴째에 상대를 공격한다.",
+      "ko_name": "구멍파기"
+    },
+    "dire-claw": {
+      "description": "치명적인 손톱으로 급소를 노려 공격한다. 상대를 독, 마비, 졸음 중 하나의 상태로 만들 때가 있다.",
+      "ko_name": "페이탈클로"
+    },
+    "disable": {
+      "description": "상대의 움직임을 막아 바로 전에 쓴 기술을 4턴 동안 사용할 수 없게 만든다.",
+      "ko_name": "사슬묶기"
+    },
+    "discharge": {
+      "description": "눈부신 전격으로 자신의 주위에 있는 포켓몬을 공격한다. 마비 상태로 만들 때가 있다.",
+      "ko_name": "방전"
+    },
+    "dive": {
+      "description": "1턴째에 잠수했다가 2턴째에 떠올라 공격한다.",
+      "ko_name": "다이빙"
+    },
+    "double-edge": {
+      "description": "목숨을 걸고 상대에게 돌진하여 공격을 한다. 자신도 상당한 데미지를 입는다.",
+      "ko_name": "이판사판태클"
+    },
+    "double-hit": {
+      "description": "꼬리 등을 써서 상대를 때려 공격한다. 2회 연속으로 데미지를 준다.",
+      "ko_name": "더블어택"
+    },
+    "double-shock": {
+      "description": "전신의 전기를 모두 방출해서 큰 데미지를 준다. 자신의 전기타입이 없어진다.",
+      "ko_name": "전광쌍격"
+    },
+    "double-team": {
+      "description": "재빠른 움직임으로 분신을 만들어 상대를 혼란시켜 회피율을 올린다.",
+      "ko_name": "그림자분신"
+    },
+    "draco-meteor": {
+      "description": "천공에서 운석을 상대에게 떨어뜨린다. 사용하면 반동으로 자신의 특수공격이 크게 떨어진다.",
+      "ko_name": "용성군"
+    },
+    "dragon-cheer": {
+      "description": "용의 북돋움으로 사기를 높여서 같은 편의 기술이 급소에 맞기 쉬워진다. 드래곤타입이면 더욱더 사기가 북돋는다.",
+      "ko_name": "드래곤옐"
+    },
+    "dragon-claw": {
+      "description": "날카롭고 뾰족한 거대한 발톱으로 상대를 베어 갈라서 공격한다.",
+      "ko_name": "드래곤클로"
+    },
+    "dragon-dance": {
+      "description": "신비롭고 힘센 춤을 격렬하게 춘다. 자신의 공격과 스피드를 올린다.",
+      "ko_name": "용의춤"
+    },
+    "dragon-darts": {
+      "description": "드라꼰으로 2번 공격한다. 상대가 2마리일 때는 각각 1번씩 공격한다.",
+      "ko_name": "드래곤애로"
+    },
+    "dragon-pulse": {
+      "description": "큰 입으로 충격파를 일으켜서 상대를 공격한다.",
+      "ko_name": "용의파동"
+    },
+    "dragon-rush": {
+      "description": "굉장한 살기로 위압하면서 몸통박치기한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "드래곤다이브"
+    },
+    "dragon-tail": {
+      "description": "상대를 튕겨내서 교대할 포켓몬을 끌어낸다. 야생의 경우에는 배틀이 끝난다.",
+      "ko_name": "드래곤테일"
+    },
+    "drain-punch": {
+      "description": "주먹으로 상대의 힘을 흡수한다. 입힌 데미지의 절반에 해당하는 HP를 회복할 수 있다.",
+      "ko_name": "드레인펀치"
+    },
+    "draining-kiss": {
+      "description": "키스로 상대의 HP를 흡수한다. 준 데미지의 반 이상 HP를 회복한다.",
+      "ko_name": "드레인키스"
+    },
+    "drill-peck": {
+      "description": "회전하면서 뾰족한 부리를 상대에게 꿰찔러 공격한다.",
+      "ko_name": "회전부리"
+    },
+    "drill-run": {
+      "description": "드릴처럼 몸을 회전시켜서 상대에게 몸통박치기한다. 급소에 맞기 쉽다.",
+      "ko_name": "드릴라이너"
+    },
+    "dual-wingbeat": {
+      "description": "날개를 상대에게 부딪쳐서 공격한다. 2회 연속으로 데미지를 준다.",
+      "ko_name": "더블윙"
+    },
+    "dynamic-punch": {
+      "description": "혼신의 힘으로 펀치를 날려서 공격한다. 상대를 반드시 혼란시킨다.",
+      "ko_name": "폭발펀치"
+    },
+    "earth-power": {
+      "description": "상대의 발밑에 대지의 힘을 방출한다. 상대의 특수방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "대지의힘"
+    },
+    "earthquake": {
+      "description": "지진의 충격으로 자신의 주위에 있는 포켓몬을 공격한다.",
+      "ko_name": "지진"
+    },
+    "eerie-impulse": {
+      "description": "몸에서 발생시킨 괴전파를 상대에게 쏘아 특수공격을 크게 떨어뜨린다.",
+      "ko_name": "괴전파"
+    },
+    "eerie-spell": {
+      "description": "강력한 사이코 파워로 공격한다. 상대가 마지막으로 사용한 기술의 PP를 3만큼 줄인다.",
+      "ko_name": "섬뜩한주문"
+    },
+    "electric-terrain": {
+      "description": "5턴 동안 일렉트릭필드로 만든다. 땅에 있는 포켓몬은 잠들지 않는다. 전기타입의 위력이 올라간다.",
+      "ko_name": "일렉트릭필드"
+    },
+    "electrify": {
+      "description": "상대가 기술을 쓰기 전에 송전하면 그 턴에 상대가 사용하는 기술은 전기타입이 된다.",
+      "ko_name": "송전"
+    },
+    "electro-ball": {
+      "description": "전기 덩어리를 상대에게 부딪쳐서 공격한다. 상대보다 스피드가 빠를수록 위력이 올라간다.",
+      "ko_name": "일렉트릭볼"
+    },
+    "electro-shot": {
+      "description": "1턴째에 전기를 모아서 특수공격을 올리고 2턴째에 고압의 전기를 발사한다. 비가 오는 날씨일 때는 바로 발사할 수 있다.",
+      "ko_name": "일렉트로빔"
+    },
+    "electroweb": {
+      "description": "전기 네트로 상대를 붙잡아서 공격한다. 상대의 스피드를 떨어뜨린다.",
+      "ko_name": "일렉트릭네트"
+    },
+    "encore": {
+      "description": "상대에게 앵콜시킨 기술을 3번 연속으로 쓰게 한다.",
+      "ko_name": "앙코르"
+    },
+    "endeavor": {
+      "description": "상대의 HP가 자신의 HP와 같아지도록 데미지를 준다.",
+      "ko_name": "죽기살기"
+    },
+    "endure": {
+      "description": "공격을 받아도 HP를 반드시 1만큼은 남긴다. 연속으로 쓰면 실패하기 쉽다.",
+      "ko_name": "버티기"
+    },
+    "energy-ball": {
+      "description": "자연으로부터 모은 생명의 힘을 발사한다. 상대의 특수방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "에너지볼"
+    },
+    "entrainment": {
+      "description": "이상한 리듬으로 춤춘다. 움직임을 흉내 내게 해서 자신과 상대의 특성을 똑같게 만든다.",
+      "ko_name": "동료만들기"
+    },
+    "eruption": {
+      "description": "분노를 폭발시켜 상대를 공격한다. 자신의 HP가 적을수록 기술의 위력이 떨어진다.",
+      "ko_name": "분화"
+    },
+    "expanding-force": {
+      "description": "사이코 파워로 상대를 공격한다. 사이코필드일 때는 위력이 오르며 모든 상대에게 데미지를 준다.",
+      "ko_name": "와이드포스"
+    },
+    "explosion": {
+      "description": "큰 폭발로 자신의 주위에 있는 포켓몬을 공격한다. 쓰고 나서는 기절한다.",
+      "ko_name": "대폭발"
+    },
+    "extrasensory": {
+      "description": "보이지 않는 이상한 힘을 보내어 공격한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "신통력"
+    },
+    "extreme-speed": {
+      "description": "눈에 보이지 않는 굉장한 속도로 상대에게 돌진하여 공격한다. 반드시 선제공격을 할 수 있다.",
+      "ko_name": "신속"
+    },
+    "facade": {
+      "description": "자신이 독, 마비, 화상 상태일 때 날리면 기술의 위력이 2배가 된다.",
+      "ko_name": "객기"
+    },
+    "fairy-lock": {
+      "description": "록을 걸어 다음 턴의 모든 포켓몬을 도망가지 못하게 한다.",
+      "ko_name": "페어리록"
+    },
+    "fake-out": {
+      "description": "선제공격으로 상대를 풀죽게 한다. 배틀에 나가서 바로 쓰지 않으면 성공할 수 없다.",
+      "ko_name": "속이기"
+    },
+    "fake-tears": {
+      "description": "우는 척을 하며 눈물을 흘린다. 난처하게 만들어 상대의 특수방어를 크게 떨어뜨린다.",
+      "ko_name": "거짓울음"
+    },
+    "feather-dance": {
+      "description": "깃털을 흩뿌려 상대의 몸에 휘감는다. 상대의 공격을 크게 떨어뜨린다.",
+      "ko_name": "깃털댄스"
+    },
+    "feint": {
+      "description": "방어나 판별 등을 하고 있는 상대에게 공격할 수 있다. 방어 효과를 해제시킨다.",
+      "ko_name": "페인트"
+    },
+    "fell-stinger": {
+      "description": "이 기술을 사용하여 상대를 쓰러뜨리면 공격이 매우 크게 오른다.",
+      "ko_name": "마지막일침"
+    },
+    "fickle-beam": {
+      "description": "광선을 발사해서 공격한다. 가끔 다른 머리도 협력해서 레이저를 발사하여 위력이 2배가 된다.",
+      "ko_name": "변덕레이저"
+    },
+    "fiery-dance": {
+      "description": "불꽃을 두른 날개를 쳐서 공격한다. 자신의 특수공격이 오를 때가 있다.",
+      "ko_name": "불꽃춤"
+    },
+    "final-gambit": {
+      "description": "목숨을 걸고 상대를 공격한다. 자신은 기절하게 되지만 상대에게 HP만큼의 데미지를 준다.",
+      "ko_name": "목숨걸기"
+    },
+    "fire-blast": {
+      "description": "큰 대자의 불꽃으로 상대를 불태운다. 화상 상태로 만들 때가 있다.",
+      "ko_name": "불대문자"
+    },
+    "fire-fang": {
+      "description": "불꽃을 두른 이빨로 문다. 상대를 풀죽게 하거나 화상 상태로 만들 때가 있다.",
+      "ko_name": "불꽃엄니"
+    },
+    "fire-lash": {
+      "description": "불타는 채찍으로 상대를 친다. 공격을 받은 상대는 방어가 떨어진다.",
+      "ko_name": "불꽃채찍"
+    },
+    "fire-punch": {
+      "description": "불꽃을 담은 펀치로 상대를 공격한다. 화상 상태로 만들 때가 있다.",
+      "ko_name": "불꽃펀치"
+    },
+    "fire-spin": {
+      "description": "세차게 소용돌이치는 불꽃 속에 4-5턴 동안 상대를 가두어 공격한다.",
+      "ko_name": "회오리불꽃"
+    },
+    "first-impression": {
+      "description": "위력이 높은 기술이지만 배틀에 나가서 바로 쓰지 않으면 성공할 수 없다.",
+      "ko_name": "만나자마자"
+    },
+    "fissure": {
+      "description": "땅이 갈라진 곳에 상대를 떨어뜨려 공격한다. 맞으면 일격에 기절한다.",
+      "ko_name": "땅가르기"
+    },
+    "flail": {
+      "description": "바둥바둥 난동 부려서 공격한다. 자신의 HP가 적을수록 기술의 위력이 올라간다.",
+      "ko_name": "바둥바둥"
+    },
+    "flame-charge": {
+      "description": "불꽃을 둘러 상대를 공격한다. 힘을 모아서 자신의 스피드를 올린다.",
+      "ko_name": "니트로차지"
+    },
+    "flamethrower": {
+      "description": "세찬 불꽃을 상대에게 발사하여 공격한다. 화상 상태로 만들 때가 있다.",
+      "ko_name": "화염방사"
+    },
+    "flare-blitz": {
+      "description": "불꽃을 두르고 돌진한다. 자신도 상당한 데미지를 입는다. 화상 상태로 만들 때가 있다.",
+      "ko_name": "플레어드라이브"
+    },
+    "flash-cannon": {
+      "description": "몸의 빛을 한곳에 모아서 힘을 방출한다. 상대의 특수방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "러스터캐논"
+    },
+    "flatter": {
+      "description": "상대를 부추겨서 혼란시킨다. 동시에 상대의 특수공격도 올라가 버린다.",
+      "ko_name": "부추기기"
+    },
+    "fling": {
+      "description": "지니게 한 도구를 재빠르게 내던져서 공격한다. 도구에 따라 위력과 효과가 바뀐다.",
+      "ko_name": "내던지기"
+    },
+    "flip-turn": {
+      "description": "공격한 뒤 굉장한 스피드로 돌아와서 교대 포켓몬과 교체한다.",
+      "ko_name": "퀵턴"
+    },
+    "flower-trick": {
+      "description": "숨겨진 장치가 있는 꽃다발을 상대에게 던져서 공격한다. 반드시 명중하며 급소에 맞는다.",
+      "ko_name": "트릭플라워"
+    },
+    "fly": {
+      "description": "1턴째에 하늘을 날아 2턴째에 상대를 공격한다.",
+      "ko_name": "공중날기"
+    },
+    "flying-press": {
+      "description": "공중에서 상대에게 다이브한다. 이 기술은 격투타입임과 동시에 비행타입이기도 하다.",
+      "ko_name": "플라잉프레스"
+    },
+    "focus-blast": {
+      "description": "기합을 높여서 혼신의 힘을 방출한다. 상대의 특수방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "기합구슬"
+    },
+    "focus-energy": {
+      "description": "깊게 숨을 들이마셔 기합을 넣는다. 자신의 공격이 급소에 맞기 쉬워진다.",
+      "ko_name": "기충전"
+    },
+    "focus-punch": {
+      "description": "정신력을 높여 펀치를 날린다. 기술을 쓰기 전에 공격을 받으면 실패한다.",
+      "ko_name": "힘껏펀치"
+    },
+    "follow-me": {
+      "description": "자신에게 주목시켜 상대로부터의 공격을 모두 자신에게 향하게 한다.",
+      "ko_name": "날따름"
+    },
+    "forests-curse": {
+      "description": "상대에게 숲의 저주를 건다. 저주에 걸린 상대는 타입에 풀타입이 추가된다.",
+      "ko_name": "숲의저주"
+    },
+    "foul-play": {
+      "description": "상대의 힘을 이용한다. 싸우고 있는 상대의 공격이 높을수록 데미지가 올라간다.",
+      "ko_name": "속임수"
+    },
+    "freeze-dry": {
+      "description": "상대를 급격히 차갑게 하여 얼음 상태로 만들 때가 있다. 물타입 포켓몬에게도 효과가 굉장해진다.",
+      "ko_name": "프리즈드라이"
+    },
+    "frenzy-plant": {
+      "description": "큰 나무로 상대를 힘껏 쳐서 공격한다. 다음 턴은 움직일 수 없게 된다.",
+      "ko_name": "하드플랜트"
+    },
+    "frost-breath": {
+      "description": "차가운 숨결을 상대에게 내뿜어 공격한다. 반드시 급소에 맞는다.",
+      "ko_name": "얼음숨결"
+    },
+    "future-sight": {
+      "description": "기술을 사용한 2턴 뒤에 상대에게 염동력의 덩어리를 보내어 공격한다.",
+      "ko_name": "미래예지"
+    },
+    "gastro-acid": {
+      "description": "상대의 몸에 위액을 내뱉는다. 달라붙은 위액은 상대의 특성 효과를 지운다.",
+      "ko_name": "위액"
+    },
+    "giga-drain": {
+      "description": "양분을 흡수하여 공격한다. 입힌 데미지의 절반에 해당하는 HP를 회복할 수 있다.",
+      "ko_name": "기가드레인"
+    },
+    "giga-impact": {
+      "description": "가진 힘을 모두 사용해서 상대에게 돌격한다. 다음 턴은 움직일 수 없다.",
+      "ko_name": "기가임팩트"
+    },
+    "gigaton-hammer": {
+      "description": "거대한 해머를 온몸으로 휘둘러서 공격한다. 이 기술은 2회 연속으로 쓸 수 없다.",
+      "ko_name": "거대해머"
+    },
+    "glare": {
+      "description": "배의 무늬로 겁을 주어 상대를 마비 상태로 만든다.",
+      "ko_name": "뱀눈초리"
+    },
+    "grass-knot": {
+      "description": "풀을 휘감아서 상대를 쓰러뜨린다. 상대가 무거울수록 위력이 올라간다.",
+      "ko_name": "풀묶기"
+    },
+    "grassy-glide": {
+      "description": "지면에 미끄러지듯 상대를 공격한다. 그래스필드일 때 반드시 선제공격할 수 있다.",
+      "ko_name": "그래스슬라이더"
+    },
+    "grassy-terrain": {
+      "description": "5턴 동안 그래스필드로 만든다. 땅에 있으면 매 턴 회복한다. 풀타입의 위력이 올라간다.",
+      "ko_name": "그래스필드"
+    },
+    "grav-apple": {
+      "description": "높은 곳에서 사과를 떨어뜨려서 데미지를 준다. 상대의 방어를 떨어뜨린다.",
+      "ko_name": "G의힘"
+    },
+    "gravity": {
+      "description": "5턴 동안 부유나 비행타입에 땅타입의 기술이 맞게 된다. 공중으로 나는 기술도 사용할 수 없다.",
+      "ko_name": "중력"
+    },
+    "growth": {
+      "description": "몸을 일시에 크게 성장시켜 공격과 특수공격을 올린다.",
+      "ko_name": "성장"
+    },
+    "guard-split": {
+      "description": "초능력으로 자신과 상대의 방어와 특수방어를 더해서 반으로 나눈다.",
+      "ko_name": "가드셰어"
+    },
+    "guard-swap": {
+      "description": "초능력으로 자신과 상대의 방어와 특수방어의 능력 변화를 교체한다.",
+      "ko_name": "가드스왑"
+    },
+    "guillotine": {
+      "description": "큰 집게로 상대를 베어 갈라 공격한다. 맞으면 일격에 기절한다.",
+      "ko_name": "가위자르기"
+    },
+    "gunk-shot": {
+      "description": "더러운 쓰레기를 상대에게 부딪쳐서 공격한다. 독 상태로 만들 때가 있다.",
+      "ko_name": "더스트슈트"
+    },
+    "gyro-ball": {
+      "description": "몸을 고속으로 회전시켜 몸통박치기한다. 상대보다 스피드가 낮을수록 위력은 올라간다.",
+      "ko_name": "자이로볼"
+    },
+    "hammer-arm": {
+      "description": "강하고 무거운 주먹을 휘둘러 데미지를 준다. 자신의 스피드가 떨어진다.",
+      "ko_name": "암해머"
+    },
+    "hard-press": {
+      "description": "팔이나 집게로 상대를 압박한다. 상대의 HP가 남아 있을수록 위력이 올라간다.",
+      "ko_name": "하드프레스"
+    },
+    "haze": {
+      "description": "흑안개를 뿜어 배틀에 참가 중인 포켓몬 전원의 능력 변화를 원래대로 돌린다.",
+      "ko_name": "흑안개"
+    },
+    "head-smash": {
+      "description": "목숨을 걸고 혼신의 힘으로 상대에게 박치기를 한다. 자신도 굉장한 데미지를 입는다.",
+      "ko_name": "양날박치기"
+    },
+    "headlong-rush": {
+      "description": "온 힘을 다한 몸통박치기를 날린다. 자신의 방어력이 떨어진다.",
+      "ko_name": "들이받기"
+    },
+    "heal-bell": {
+      "description": "기분 좋은 방울소리를 들려주어 같은 편 전원의 상태 이상을 회복한다.",
+      "ko_name": "치료방울"
+    },
+    "heal-pulse": {
+      "description": "치유파동을 날려서 최대 HP의 절반만큼 상대의 HP를 회복한다.",
+      "ko_name": "치유파동"
+    },
+    "healing-wish": {
+      "description": "자신은 기절하지만 교대하여 나오는 포켓몬의 상태 이상과 HP를 회복한다.",
+      "ko_name": "치유소원"
+    },
+    "heat-crash": {
+      "description": "불타는 몸으로 상대에게 부딪쳐서 공격한다. 자신이 상대보다 무거울수록 위력이 올라간다.",
+      "ko_name": "히트스탬프"
+    },
+    "heat-wave": {
+      "description": "뜨거운 숨결을 상대에게 내뿜어 공격한다. 화상 상태로 만들 때가 있다.",
+      "ko_name": "열풍"
+    },
+    "heavy-slam": {
+      "description": "무거운 몸으로 상대에게 부딪쳐 공격한다. 자신이 상대보다 무거울수록 위력이 올라간다.",
+      "ko_name": "헤비봄버"
+    },
+    "helping-hand": {
+      "description": "동료를 돕는다. 도움받은 포켓몬이 쓰는 기술의 위력은 여느 때보다 커진다.",
+      "ko_name": "도우미"
+    },
+    "hex": {
+      "description": "엎친 데 덮친 격으로 공격한다. 상태 이상인 상대에게 큰 데미지를 준다.",
+      "ko_name": "병상첨병"
+    },
+    "high-horsepower": {
+      "description": "온몸을 써서 상대에게 맹렬히 어택한다.",
+      "ko_name": "10만마력"
+    },
+    "high-jump-kick": {
+      "description": "점프해서 무릎차기로 상대를 공격한다. 빗나가면 자신이 데미지를 입는다.",
+      "ko_name": "무릎차기"
+    },
+    "horn-drill": {
+      "description": "회전하는 뿔을 상대에게 꿰찔러서 공격한다. 맞으면 일격에 기절한다.",
+      "ko_name": "뿔드릴"
+    },
+    "horn-leech": {
+      "description": "뿔을 꿰찔러서 상대의 양분을 흡수한다. 입힌 데미지의 절반에 해당하는 HP를 회복할 수 있다.",
+      "ko_name": "우드혼"
+    },
+    "howl": {
+      "description": "큰 소리로 짖고 기합을 높여 자신과 같은 편의 공격을 올린다.",
+      "ko_name": "멀리짖기"
+    },
+    "hurricane": {
+      "description": "강렬한 바람으로 상대를 둘러싸서 공격한다. 상대를 혼란시킬 때가 있다.",
+      "ko_name": "폭풍"
+    },
+    "hydro-cannon": {
+      "description": "물의 대포를 상대에게 발사해서 공격한다. 다음 턴은 움직일 수 없다.",
+      "ko_name": "하이드로캐논"
+    },
+    "hydro-pump": {
+      "description": "대량의 물을 세찬 기세로 상대에게 발사하여 공격한다.",
+      "ko_name": "하이드로펌프"
+    },
+    "hyper-beam": {
+      "description": "강한 광선을 상대에게 발사하여 공격한다. 다음 턴은 움직일 수 없다.",
+      "ko_name": "파괴광선"
+    },
+    "hyper-voice": {
+      "description": "시끄럽게 울리는 큰 진동을 상대에게 전달하여 공격한다.",
+      "ko_name": "하이퍼보이스"
+    },
+    "hypnosis": {
+      "description": "졸음을 유도하는 암시를 걸어서 상대를 잠듦 상태로 만든다.",
+      "ko_name": "최면술"
+    },
+    "ice-beam": {
+      "description": "냉동빔을 상대에게 발사하여 공격한다. 얼음 상태로 만들 때가 있다.",
+      "ko_name": "냉동빔"
+    },
+    "ice-fang": {
+      "description": "냉기를 품은 이빨로 문다. 상대를 풀죽게 하거나 얼음 상태로 만들 때가 있다.",
+      "ko_name": "얼음엄니"
+    },
+    "ice-hammer": {
+      "description": "강하고 무거운 주먹을 휘둘러 데미지를 준다. 자신의 스피드가 떨어진다.",
+      "ko_name": "아이스해머"
+    },
+    "ice-punch": {
+      "description": "냉기를 담은 펀치로 상대를 공격한다. 얼음 상태로 만들 때가 있다.",
+      "ko_name": "냉동펀치"
+    },
+    "ice-shard": {
+      "description": "얼음덩어리를 순식간에 만들어 상대에게 빠르게 쏜다. 반드시 선제공격을 할 수 있다.",
+      "ko_name": "얼음뭉치"
+    },
+    "ice-spinner": {
+      "description": "발에 얇은 얼음을 두르고 빙글빙글 회전하며 부딪친다. 회전 운동에 의해 필드가 파괴된다.",
+      "ko_name": "아이스스피너"
+    },
+    "icicle-crash": {
+      "description": "큰 고드름을 격렬하게 부딪쳐서 공격한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "고드름떨구기"
+    },
+    "icicle-spear": {
+      "description": "날카로운 고드름을 상대에게 발사하여 공격한다. 2-5회 동안 연속으로 쓴다.",
+      "ko_name": "고드름침"
+    },
+    "icy-wind": {
+      "description": "차가운 냉기를 상대에게 내뿜어 공격한다. 상대의 스피드를 떨어뜨린다.",
+      "ko_name": "얼어붙은바람"
+    },
+    "imprison": {
+      "description": "상대가 자신과 같은 기술을 배웠다면 상대만 그 기술을 사용할 수 없게 한다.",
+      "ko_name": "봉인"
+    },
+    "infernal-parade": {
+      "description": "무수히 많은 불덩이로 공격해서 상대를 화상 상태로 만들 때가 있다. 상대가 상태 이상인 경우 위력이 2배가 된다.",
+      "ko_name": "백귀야행"
+    },
+    "inferno": {
+      "description": "격렬한 불꽃으로 상대를 둘러싸 공격한다. 화상 상태로 만든다.",
+      "ko_name": "연옥"
+    },
+    "infestation": {
+      "description": "4-5턴 동안 상대에게 엉겨 붙어서 공격한다. 그동안 상대는 도망갈 수 없다.",
+      "ko_name": "엉겨붙기"
+    },
+    "ingrain": {
+      "description": "대지에 뿌리를 박아 매 턴마다 자신의 HP를 회복한다. 뿌리 박고 있으므로 교체할 수 없다.",
+      "ko_name": "뿌리박기"
+    },
+    "instruct": {
+      "description": "상대에게 지시하여 상대가 쓴 기술을 다시 한번 쓰게 할 수 있다.",
+      "ko_name": "지휘"
+    },
+    "iron-defense": {
+      "description": "피부를 쇠처럼 단단하게 만듦으로써 자신의 방어를 크게 올린다.",
+      "ko_name": "철벽"
+    },
+    "iron-head": {
+      "description": "강철과 같은 단단한 머리로 공격한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "아이언헤드"
+    },
+    "iron-tail": {
+      "description": "단단한 꼬리로 상대를 힘껏 쳐서 공격한다. 상대의 방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "아이언테일"
+    },
+    "jet-punch": {
+      "description": "거센 물살을 주먹에 둘러 눈에 보이지 않는 속도로 펀치를 날린다. 반드시 선제공격할 수 있다.",
+      "ko_name": "제트펀치"
+    },
+    "kings-shield": {
+      "description": "상대의 공격을 막음과 동시에 방어 태세를 갖춘다. 접촉한 상대의 공격을 떨어뜨린다.",
+      "ko_name": "킹실드"
+    },
+    "knock-off": {
+      "description": "상대의 지닌 물건을 탁 쳐서 떨어뜨려 배틀이 끝날 때까지 사용할 수 없게 한다. 물건을 가진 상대에게는 데미지를 더 준다.",
+      "ko_name": "탁쳐서떨구기"
+    },
+    "kowtow-cleave": {
+      "description": "머리를 조아려 상대를 방심하게 만든 뒤에 베어 버린다. 공격은 반드시 명중한다.",
+      "ko_name": "도각참"
+    },
+    "lash-out": {
+      "description": "상대에 대한 울분이 담긴 공격을 한다. 그 턴에 능력이 떨어져 있으면 기술의 위력이 2배가 된다.",
+      "ko_name": "분풀이"
+    },
+    "last-resort": {
+      "description": "배틀 중에 기억하고 있는 기술을 모두 사용하면 그때부터 쓸 수 있는 필살기이다.",
+      "ko_name": "비장의무기"
+    },
+    "last-respects": {
+      "description": "동료의 한을 풀어 주기 위해 공격한다. 쓰러진 같은 편 포켓몬이 많을수록 기술의 위력이 올라간다.",
+      "ko_name": "성묘"
+    },
+    "lava-plume": {
+      "description": "새빨간 불꽃으로 자신의 주위에 있는 포켓몬을 공격한다. 화상 상태로 만들 때가 있다.",
+      "ko_name": "분연"
+    },
+    "leaf-blade": {
+      "description": "잎사귀를 칼처럼 이용해 상대를 베어 공격한다. 급소에 맞기 쉽다.",
+      "ko_name": "리프블레이드"
+    },
+    "leaf-storm": {
+      "description": "뾰족한 잎사귀로 상대에게 돌풍을 일으킨다. 사용하면 반동으로 자신의 특수공격이 크게 떨어진다.",
+      "ko_name": "리프스톰"
+    },
+    "leech-life": {
+      "description": "피를 빨아서 상대를 공격한다. 준 데미지의 절반을 HP로 회복한다.",
+      "ko_name": "흡혈"
+    },
+    "leech-seed": {
+      "description": "씨가 뿌려진 상대의 HP를 매 턴 조금씩 흡수하여 자신의 HP를 회복한다.",
+      "ko_name": "씨뿌리기"
+    },
+    "life-dew": {
+      "description": "신비한 물을 흩뿌려서 자신과 배틀에 나와 있는 같은 편의 HP를 회복한다.",
+      "ko_name": "생명의물방울"
+    },
+    "light-of-ruin": {
+      "description": "영원의 꽃의 파워를 빌려서 강력한 광선을 쏜다. 자신도 상당한 데미지를 입는다.",
+      "ko_name": "파멸의빛"
+    },
+    "light-screen": {
+      "description": "5턴 동안 이상한 장막을 쳐서 상대로부터 받는 특수공격의 데미지를 약하게 한다.",
+      "ko_name": "빛의장막"
+    },
+    "liquidation": {
+      "description": "물의 힘으로 상대에게 부딪쳐서 공격한다. 상대의 방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "아쿠아브레이크"
+    },
+    "lock-on": {
+      "description": "조준을 잘 맞춰 다음 공격이 반드시 상대에게 명중하도록 한다.",
+      "ko_name": "록온"
+    },
+    "low-kick": {
+      "description": "발을 강하게 걸고 상대를 넘어뜨려 공격한다. 상대가 무거울수록 위력이 올라간다.",
+      "ko_name": "안다리걸기"
+    },
+    "low-sweep": {
+      "description": "재빠른 움직임으로 상대의 다리를 노려 공격한다. 상대의 스피드를 떨어뜨린다.",
+      "ko_name": "로킥"
+    },
+    "lumina-crash": {
+      "description": "정신에도 작용하는 기묘한 빛을 발산해서 공격한다. 상대의 특수방어를 크게 떨어뜨린다.",
+      "ko_name": "루미나콜리전"
+    },
+    "lunge": {
+      "description": "전력으로 상대에게 덤벼들며 공격한다. 상대의 공격을 떨어뜨린다.",
+      "ko_name": "덤벼들기"
+    },
+    "mach-punch": {
+      "description": "눈에 보이지 않는 굉장한 속도로 펀치를 날린다. 반드시 선제공격을 할 수 있다.",
+      "ko_name": "마하펀치"
+    },
+    "magic-powder": {
+      "description": "마법가루를 날려서 상대를 에스퍼타입으로 바꾼다.",
+      "ko_name": "마법가루"
+    },
+    "magic-room": {
+      "description": "이상한 공간을 만든다. 5턴 동안 모든 포켓몬의 도구의 효과가 사라진다.",
+      "ko_name": "매직룸"
+    },
+    "magnet-rise": {
+      "description": "전기로 만든 자력의 힘으로 허공에 뜬다. 5턴 동안 부유할 수 있다.",
+      "ko_name": "전자부유"
+    },
+    "magnetic-flux": {
+      "description": "자기장 조작으로 인해 특성 플러스와 마이너스의 방어, 특수방어가 오른다.",
+      "ko_name": "자기장조작"
+    },
+    "make-it-rain": {
+      "description": "대량의 코인을 날려서 공격한다. 자신의 특수공격이 떨어진다. 배틀 후에 돈을 받을 수 있다.",
+      "ko_name": "골드러시"
+    },
+    "matcha-gotcha": {
+      "description": "휘저은 차를 대포처럼 발사해 준 데미지의 절반을 HP로 회복한다. 화상 상태로 만들 때도 있다.",
+      "ko_name": "휘적휘적포"
+    },
+    "mean-look": {
+      "description": "빨려 들어갈 것 같은 까만 눈빛으로 가만히 응시하여 상대를 배틀에서 도망갈 수 없게 한다.",
+      "ko_name": "검은눈빛"
+    },
+    "mega-kick": {
+      "description": "굉장한 힘을 담은 킥으로 상대를 걷어차서 공격한다.",
+      "ko_name": "메가톤킥"
+    },
+    "megahorn": {
+      "description": "단단하고 훌륭한 뿔로 마음껏 상대를 꿰찔러서 공격한다.",
+      "ko_name": "메가혼"
+    },
+    "memento": {
+      "description": "자신은 기절하게 되지만 그 대신 상대의 공격과 특수공격을 크게 떨어뜨린다.",
+      "ko_name": "추억의선물"
+    },
+    "metal-burst": {
+      "description": "기술을 쓰기 전에 마지막으로 받은 기술의 데미지를 늘려서 기술을 쓴 상대에게 돌려준다.",
+      "ko_name": "메탈버스트"
+    },
+    "metal-sound": {
+      "description": "금속을 긁을 때 나는 듯한 싫은 소리를 들려준다. 상대의 특수방어를 크게 떨어뜨린다.",
+      "ko_name": "금속음"
+    },
+    "meteor-beam": {
+      "description": "1턴째에 우주의 힘을 모아서 특수공격을 올리고 2턴째에 상대를 공격한다.",
+      "ko_name": "메테오빔"
+    },
+    "meteor-mash": {
+      "description": "혜성과 같은 펀치를 날려서 상대를 공격한다. 자신의 공격이 올라갈 때가 있다.",
+      "ko_name": "코멧펀치"
+    },
+    "milk-drink": {
+      "description": "자신의 HP를 최대 HP의 절반만큼 회복한다. 동료의 HP를 회복시킬 수도 있다.",
+      "ko_name": "우유마시기"
+    },
+    "minimize": {
+      "description": "몸을 축소하여 작게 보임으로써 자신의 회피율을 크게 올린다.",
+      "ko_name": "작아지기"
+    },
+    "mirror-coat": {
+      "description": "상대에게 받은 특수공격의 데미지를 2배로 만들어 그 상대에게 돌려준다.",
+      "ko_name": "미러코트"
+    },
+    "misty-explosion": {
+      "description": "자신의 주위에 있는 모두를 공격하지만 사용하면 기절한다. 미스트필드일 때 위력이 올라간다.",
+      "ko_name": "미스트버스트"
+    },
+    "misty-terrain": {
+      "description": "5턴 동안 땅에 있으면 상태 이상이 되지 않고 드래곤타입 기술의 데미지도 절반이 된다.",
+      "ko_name": "미스트필드"
+    },
+    "moonblast": {
+      "description": "달의 파워를 빌려서 상대를 공격한다. 상대의 특수공격을 떨어뜨릴 때가 있다.",
+      "ko_name": "문포스"
+    },
+    "moonlight": {
+      "description": "자신의 HP를 회복한다. 날씨에 따라 회복량이 변한다.",
+      "ko_name": "달빛"
+    },
+    "morning-sun": {
+      "description": "자신의 HP를 회복한다. 날씨에 따라 회복량이 변한다.",
+      "ko_name": "아침햇살"
+    },
+    "mortal-spin": {
+      "description": "회전해서 상대를 공격한다. 조이기, 김밥말이, 씨뿌리기 등의 효과를 날려 버린다. 상대를 독 상태로 만든다.",
+      "ko_name": "킬러스핀"
+    },
+    "mountain-gale": {
+      "description": "빙산처럼 커다란 얼음덩어리를 부딪쳐서 공격한다.",
+      "ko_name": "빙산바람"
+    },
+    "mud-shot": {
+      "description": "진흙 덩어리를 상대에게 내던져서 공격한다. 동시에 상대의 스피드를 떨어뜨린다.",
+      "ko_name": "머드샷"
+    },
+    "mud-slap": {
+      "description": "상대의 얼굴 등에 진흙을 내던져서 공격한다. 명중률을 떨어뜨린다.",
+      "ko_name": "진흙뿌리기"
+    },
+    "muddy-water": {
+      "description": "탁해진 물을 상대에게 발사하여 공격한다. 명중률을 떨어뜨릴 때가 있다.",
+      "ko_name": "탁류"
+    },
+    "mystical-fire": {
+      "description": "입에서 내뱉는 아주 뜨거운 불꽃으로 공격한다. 상대의 특수공격을 떨어뜨린다.",
+      "ko_name": "매지컬플레임"
+    },
+    "nasty-plot": {
+      "description": "나쁜 일을 생각해서 머리를 활성화시킨다. 자신의 특수공격을 크게 올린다.",
+      "ko_name": "나쁜음모"
+    },
+    "night-daze": {
+      "description": "암흑의 충격파를 날려서 상대를 공격한다. 명중률을 떨어뜨릴 때가 있다.",
+      "ko_name": "나이트버스트"
+    },
+    "night-shade": {
+      "description": "무시무시한 환상을 보게 해서 자신의 레벨과 똑같은 만큼의 데미지를 상대에게 준다.",
+      "ko_name": "나이트헤드"
+    },
+    "night-slash": {
+      "description": "순간적으로 틈을 노려 상대를 베어 버린다. 급소에 맞기 쉽다.",
+      "ko_name": "깜짝베기"
+    },
+    "no-retreat": {
+      "description": "자신의 모든 능력이 올라가지만 교체하거나 도망칠 수 없게 된다.",
+      "ko_name": "배수의진"
+    },
+    "noble-roar": {
+      "description": "우렁차게 부르짖어서 상대를 위협하여 상대의 공격과 특수공격을 떨어뜨린다.",
+      "ko_name": "부르짖기"
+    },
+    "nuzzle": {
+      "description": "전기가 흐르는 볼을 비벼서 공격한다. 상대를 마비 상태로 만든다.",
+      "ko_name": "볼부비부비"
+    },
+    "outrage": {
+      "description": "2-3턴 동안 마구 난동 부려서 공격한다. 난동 부린 뒤에는 혼란에 빠진다.",
+      "ko_name": "역린"
+    },
+    "overheat": {
+      "description": "풀 파워로 상대를 공격한다. 쓰면 반동으로 자신의 특수공격이 크게 떨어진다.",
+      "ko_name": "오버히트"
+    },
+    "pain-split": {
+      "description": "자신의 HP와 상대의 HP를 합친 것을 자신과 상대가 사이좋게 나눈다.",
+      "ko_name": "아픔나누기"
+    },
+    "parabolic-charge": {
+      "description": "주위에 있는 모든 포켓몬에게 데미지를 준다. 준 데미지의 절반을 자신이 회복한다.",
+      "ko_name": "파라볼라차지"
+    },
+    "parting-shot": {
+      "description": "막말을 내뱉어 상대를 위협하여 공격과 특수공격을 떨어뜨린 후 교대 포켓몬과 교체한다.",
+      "ko_name": "막말내뱉기"
+    },
+    "payback": {
+      "description": "모아서 공격한다. 상대보다 나중에 공격할 수 있으면 기술의 위력은 2배가 된다.",
+      "ko_name": "보복"
+    },
+    "perish-song": {
+      "description": "노래를 들은 포켓몬은 3턴이 지나면 기절한다. 교체되면 효과가 없어진다.",
+      "ko_name": "멸망의노래"
+    },
+    "petal-blizzard": {
+      "description": "세찬 꽃보라를 일으켜서 주위에 있는 포켓몬을 공격하여 데미지를 준다.",
+      "ko_name": "꽃보라"
+    },
+    "petal-dance": {
+      "description": "2-3턴 동안 꽃을 흩뿌려서 상대를 공격한다. 흩뿌린 뒤에는 혼란에 빠진다.",
+      "ko_name": "꽃잎댄스"
+    },
+    "phantom-force": {
+      "description": "1턴째에 어디론가 사라져서 2턴째에 상대를 공격한다. 기술 방어를 무시하고 공격할 수 있다.",
+      "ko_name": "고스트다이브"
+    },
+    "pin-missile": {
+      "description": "날카로운 침을 상대에게 발사해서 공격한다. 2-5회 동안 연속으로 쓴다.",
+      "ko_name": "바늘미사일"
+    },
+    "play-rough": {
+      "description": "상대에게 치근거리며 공격한다. 상대의 공격을 떨어뜨릴 때가 있다.",
+      "ko_name": "치근거리기"
+    },
+    "pluck": {
+      "description": "부리로 공격한다. 상대가 나무열매를 지니고 있을 때 먹어서 나무열매의 효과를 받을 수 있다.",
+      "ko_name": "쪼아대기"
+    },
+    "poison-fang": {
+      "description": "독이 있는 이빨로 상대를 물어서 공격한다. 맹독을 주입할 때가 있다.",
+      "ko_name": "맹독엄니"
+    },
+    "poison-jab": {
+      "description": "독에 물든 촉수나 팔로 상대를 꿰찌른다. 독 상태로 만들 때가 있다.",
+      "ko_name": "독찌르기"
+    },
+    "poison-powder": {
+      "description": "독이 있는 가루를 많이 흩뿌려서 상대를 독 상태로 만든다.",
+      "ko_name": "독가루"
+    },
+    "pollen-puff": {
+      "description": "상대에게는 폭발하는 경단을 사용하여 공격한다. 같은 편에게는 회복하는 경단을 준다.",
+      "ko_name": "꽃가루경단"
+    },
+    "poltergeist": {
+      "description": "상대의 지닌 물건을 조종해서 공격한다. 상대가 도구를 지니고 있지 않으면 실패한다.",
+      "ko_name": "폴터가이스트"
+    },
+    "population-bomb": {
+      "description": "여기저기서 동료들을 모아서 화려한 콤비네이션으로 공격한다. 1~10회 연속으로 공격한다.",
+      "ko_name": "찍찍베기"
+    },
+    "pounce": {
+      "description": "상대에게 달려들어 공격한다. 상대의 스피드를 떨어뜨린다.",
+      "ko_name": "달려들기"
+    },
+    "power-gem": {
+      "description": "보석처럼 반짝이는 빛을 발사하여 상대를 공격한다.",
+      "ko_name": "파워젬"
+    },
+    "power-shift": {
+      "description": "자신의 공격력과 방어력을 바꾼다.",
+      "ko_name": "파워시프트"
+    },
+    "power-split": {
+      "description": "초능력으로 자신과 상대의 공격과 특수공격을 더해서 반으로 나눈다.",
+      "ko_name": "파워셰어"
+    },
+    "power-swap": {
+      "description": "초능력으로 자신과 상대의 공격과 특수공격의 능력 변화를 교체한다.",
+      "ko_name": "파워스왑"
+    },
+    "power-trick": {
+      "description": "초능력으로 자신의 공격과 방어의 힘을 교환한다.",
+      "ko_name": "파워트릭"
+    },
+    "power-trip": {
+      "description": "자신의 강함을 뻐기고 공격한다. 자신의 능력이 올라가 있는 만큼 위력이 오른다.",
+      "ko_name": "기어오르기"
+    },
+    "power-whip": {
+      "description": "덩굴이나 촉수를 세차게 흔들어 상대를 힘껏 쳐서 공격한다.",
+      "ko_name": "파워휩"
+    },
+    "protect": {
+      "description": "상대의 공격을 전혀 받지 않는다. 연속으로 쓰면 실패하기 쉽다.",
+      "ko_name": "방어"
+    },
+    "psych-up": {
+      "description": "자신에게 암시를 걸어서 능력 변화 상태를 상대와 똑같은 상태로 만든다.",
+      "ko_name": "자기암시"
+    },
+    "psychic": {
+      "description": "강한 염동력을 상대에게 보내어 공격한다. 상대의 특수방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "사이코키네시스"
+    },
+    "psychic-fangs": {
+      "description": "사이코 파워로 물어서 상대를 공격한다. 빛의장막이나 리플렉터도 파괴할 수 있다.",
+      "ko_name": "사이코팽"
+    },
+    "psychic-noise": {
+      "description": "불쾌한 음파를 상대에게 날려서 공격한다. 2턴 동안 상대는 기술이나 특성 또는 지니고 있는 도구로 HP를 회복할 수 없게 된다.",
+      "ko_name": "사이코노이즈"
+    },
+    "psychic-terrain": {
+      "description": "5턴 동안 땅에 있으면 선제공격을 받지 않는다. 에스퍼타입의 위력이 올라간다.",
+      "ko_name": "사이코필드"
+    },
+    "psycho-cut": {
+      "description": "실체화시킨 마음의 칼날로 상대를 베어 가른다. 급소에 맞기 쉽다.",
+      "ko_name": "사이코커터"
+    },
+    "psyshield-bash": {
+      "description": "사념의 에너지를 두른 채로 상대에 부딪힌다. 자신의 방어력이 오를 때가 있다.",
+      "ko_name": "배리어러시"
+    },
+    "psyshock": {
+      "description": "이상한 염력파를 실체화하여 상대를 공격한다. 물리적인 데미지를 준다.",
+      "ko_name": "사이코쇼크"
+    },
+    "quash": {
+      "description": "상대를 억눌러서 행동의 순서를 마지막으로 만든다.",
+      "ko_name": "순서미루기"
+    },
+    "quick-attack": {
+      "description": "눈에 보이지 않는 굉장한 속도로 상대에게 돌진한다. 반드시 선제공격할 수 있다.",
+      "ko_name": "전광석화"
+    },
+    "quick-guard": {
+      "description": "자신과 같은 편을 상대의 선제공격으로부터 지킨다.",
+      "ko_name": "패스트가드"
+    },
+    "quiver-dance": {
+      "description": "신비롭고 아름다운 춤을 경쾌하게 춘다. 자신의 특수공격과 특수방어와 스피드를 올린다.",
+      "ko_name": "나비춤"
+    },
+    "rage-fist": {
+      "description": "분노를 에너지로 바꿔서 공격한다. 받은 공격의 횟수가 많을수록 기술의 위력이 올라간다.",
+      "ko_name": "분노의주먹"
+    },
+    "rage-powder": {
+      "description": "안절부절못하게 하는 가루를 자신에게 뿌려서 주의를 끈다. 상대의 공격은 모두 자신에게 향한다.",
+      "ko_name": "분노가루"
+    },
+    "raging-bull": {
+      "description": "분노해 날뛰는 성난소의 맹렬한 태클. 폼에 따라 기술의 타입이 달라지고 빛의장막이나 리플렉터 등도 파괴할 수 있다.",
+      "ko_name": "레이징불"
+    },
+    "raging-fury": {
+      "description": "격렬한 불꽃을 방출하면서 마구 날뛰어 공격한다. 기술을 사용한 다음 열중 상태가 된다.",
+      "ko_name": "대격분"
+    },
+    "rain-dance": {
+      "description": "5턴 동안 비를 내리게 해서 물타입 기술의 위력을 올린다. 불꽃타입의 위력은 떨어진다.",
+      "ko_name": "비바라기"
+    },
+    "rapid-spin": {
+      "description": "회전해서 상대를 공격한다. 조이기, 김밥말이, 씨뿌리기 등을 날려버린다. 자신의 스피드도 오른다.",
+      "ko_name": "고속스핀"
+    },
+    "razor-shell": {
+      "description": "날카로운 조개껍질로 베어 공격한다. 상대의 방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "셸블레이드"
+    },
+    "recover": {
+      "description": "세포를 재생시켜 자신의 최대 HP의 절반만큼 HP를 회복한다.",
+      "ko_name": "HP회복"
+    },
+    "recycle": {
+      "description": "배틀 중에 사용하여 없어진 자신의 지닌 물건을 재생시켜 사용할 수 있게 한다.",
+      "ko_name": "리사이클"
+    },
+    "reflect": {
+      "description": "5턴 동안 이상한 장막을 쳐서 상대로부터 받는 물리공격의 데미지를 약하게 한다.",
+      "ko_name": "리플렉터"
+    },
+    "reflect-type": {
+      "description": "상대의 타입을 반사해서 자신도 똑같은 타입이 된다.",
+      "ko_name": "미러타입"
+    },
+    "rest": {
+      "description": "2턴 동안 계속 잠잔다. 자신의 HP와 상태 이상을 모두 회복한다.",
+      "ko_name": "잠자기"
+    },
+    "reversal": {
+      "description": "힘을 쥐어짜서 공격한다. 자신의 HP가 적을수록 기술의 위력이 올라간다.",
+      "ko_name": "기사회생"
+    },
+    "revival-blessing": {
+      "description": "자애로운 마음으로 기도를 하여 기절한 교대 포켓몬을 HP가 절반인 상태로 부활시킨다.",
+      "ko_name": "회생의기도"
+    },
+    "rising-voltage": {
+      "description": "지면에서 올라오는 전격으로 공격한다. 상대가 일렉트릭필드 위에 있을 때 기술의 위력이 2배가 된다.",
+      "ko_name": "라이징볼트"
+    },
+    "roar": {
+      "description": "상대를 도망가게 해서 교대할 포켓몬을 끌어낸다. 야생의 경우에는 배틀이 끝난다.",
+      "ko_name": "울부짖기"
+    },
+    "rock-blast": {
+      "description": "단단한 암석을 상대에게 발사하여 공격한다. 2-5회 동안 연속으로 쓴다.",
+      "ko_name": "록블라스트"
+    },
+    "rock-polish": {
+      "description": "자신의 몸을 갈아 공기의 저항을 적게 한다. 스피드를 크게 올릴 수 있다.",
+      "ko_name": "록커트"
+    },
+    "rock-slide": {
+      "description": "큰 바위를 세차게 부딪쳐서 공격한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "스톤샤워"
+    },
+    "rock-tomb": {
+      "description": "암석을 내던져서 공격한다. 상대의 움직임을 봉인함으로써 스피드를 떨어뜨린다.",
+      "ko_name": "암석봉인"
+    },
+    "rock-wrecker": {
+      "description": "거대한 바위를 상대에게 발사하여 공격한다. 다음 턴은 움직일 수 없게 된다.",
+      "ko_name": "암석포"
+    },
+    "role-play": {
+      "description": "상대의 역할을 하여 자신도 상대와 같은 특성으로 변화한다.",
+      "ko_name": "역할"
+    },
+    "roost": {
+      "description": "땅에 내려와 몸을 쉬게 한다. 최대 HP의 절반만큼 HP를 회복한다.",
+      "ko_name": "날개쉬기"
+    },
+    "round": {
+      "description": "노래로 상대를 공격한다. 함께 돌림노래를 하면 계속해서 쓸 수 있고 위력도 올라간다.",
+      "ko_name": "돌림노래"
+    },
+    "sacred-sword": {
+      "description": "긴 뿔로 베어 공격한다. 상대의 능력 변화에 관계없이 데미지를 준다.",
+      "ko_name": "성스러운칼"
+    },
+    "safeguard": {
+      "description": "5턴 동안 이상한 힘의 보호를 받아 상태 이상이 되지 않는다.",
+      "ko_name": "신비의부적"
+    },
+    "salt-cure": {
+      "description": "상대를 소금절이 상태로 만들어 매 턴 데미지를 준다. 강철타입이나 물타입에게 더 고통스럽다.",
+      "ko_name": "소금절이"
+    },
+    "sand-tomb": {
+      "description": "세차게 불어대는 모래바람 속에 4-5턴 동안 상대를 가두어 공격한다.",
+      "ko_name": "모래지옥"
+    },
+    "sandstorm": {
+      "description": "5턴 동안 모래바람을 일으켜 바위 땅, 강철타입 이외의 상대에게 데미지를 준다. 바위타입의 특수방어가 올라간다.",
+      "ko_name": "모래바람"
+    },
+    "scald": {
+      "description": "뜨겁게 끓어오르는 물을 상대에게 발사해서 공격한다. 화상 상태로 만들 때가 있다.",
+      "ko_name": "열탕"
+    },
+    "scale-shot": {
+      "description": "비늘을 쏘아서 공격한다. 2-5회 동안 연속으로 쓴다. 스피드가 올라가지만 방어가 떨어진다.",
+      "ko_name": "스케일샷"
+    },
+    "scary-face": {
+      "description": "무서운 얼굴로 노려보고 겁주어 상대의 스피드를 크게 떨어뜨린다.",
+      "ko_name": "겁나는얼굴"
+    },
+    "scorching-sands": {
+      "description": "뜨겁게 달궈진 모래를 상대에게 부딪쳐서 공격한다. 화상 상태로 만들 때가 있다.",
+      "ko_name": "열사의대지"
+    },
+    "screech": {
+      "description": "그만 귀를 막아버리고 싶은 싫은 소리를 내어 상대의 방어를 크게 떨어뜨린다.",
+      "ko_name": "싫은소리"
+    },
+    "seed-bomb": {
+      "description": "단단한 껍질을 가지고 있는 큰 씨앗을 위에서 힘껏 내던져 상대를 공격한다.",
+      "ko_name": "씨폭탄"
+    },
+    "seismic-toss": {
+      "description": "인력을 사용해 내던진다. 자신의 레벨과 똑같은 데미지를 상대에게 준다.",
+      "ko_name": "지구던지기"
+    },
+    "self-destruct": {
+      "description": "폭발을 일으켜서 자신의 주위에 있는 포켓몬을 공격한다. 쓰고 나서 기절하게 된다.",
+      "ko_name": "자폭"
+    },
+    "shadow-ball": {
+      "description": "까만 그림자의 덩어리를 내던져서 공격한다. 상대의 특수방어를 떨어뜨릴 때가 있다.",
+      "ko_name": "섀도볼"
+    },
+    "shadow-claw": {
+      "description": "그림자로 만든 날카로운 발톱으로 상대를 베어 가른다. 급소에 맞기 쉽다.",
+      "ko_name": "섀도클로"
+    },
+    "shadow-punch": {
+      "description": "그림자에 섞여 펀치를 날린다. 공격은 반드시 명중한다.",
+      "ko_name": "섀도펀치"
+    },
+    "shadow-sneak": {
+      "description": "그림자를 늘려 상대의 배후에서 공격한다. 반드시 선제공격할 수 있다.",
+      "ko_name": "야습"
+    },
+    "shed-tail": {
+      "description": "사용자 HP의 1/2를 깎아서 대타가 되는 분신을 만든 다음, 교대 포켓몬과 교체한다.",
+      "ko_name": "꼬리자르기"
+    },
+    "sheer-cold": {
+      "description": "상대를 일격에 기절시킨다. 얼음타입 이외의 포켓몬이 사용하면 잘 맞지 않는다.",
+      "ko_name": "절대영도"
+    },
+    "shell-side-arm": {
+      "description": "물리와 특수 중 더 많은 데미지를 줄 수 있는 능력으로 공격한다. 독 상태로 만들 때가 있다.",
+      "ko_name": "셸암즈"
+    },
+    "shell-smash": {
+      "description": "껍질을 깨서 자신의 방어와 특수방어를 떨어뜨리지만 공격과 특수공격, 스피드를 크게 올린다.",
+      "ko_name": "껍질깨기"
+    },
+    "shelter": {
+      "description": "피부를 강철 방패처럼 단단하게 만들어서 자신의 방어력을 올린다. 상대의 기술을 회피하기 쉬워진다.",
+      "ko_name": "농성"
+    },
+    "simple-beam": {
+      "description": "수수께끼의 염력파를 상대에게 보낸다. 염력파를 받은 상대는 특성이 단순으로 바뀐다.",
+      "ko_name": "심플빔"
+    },
+    "sing": {
+      "description": "기분 좋은 예쁜 노랫소리를 들려주고 상대를 잠듦 상태로 만든다.",
+      "ko_name": "노래하기"
+    },
+    "skill-swap": {
+      "description": "초능력으로 자신의 특성과 상대의 특성을 바꾼다.",
+      "ko_name": "스킬스왑"
+    },
+    "skitter-smack": {
+      "description": "배후에서 엄습해서 공격한다. 상대의 특수공격을 떨어뜨린다.",
+      "ko_name": "엄습하는일격"
+    },
+    "sky-attack": {
+      "description": "2턴째에 상대를 공격한다. 가끔 풀죽게 만든다. 급소에도 맞기 쉽다.",
+      "ko_name": "불새"
+    },
+    "slack-off": {
+      "description": "게으름 피우며 쉰다. 자신의 HP를 최대 HP의 절반만큼 회복한다.",
+      "ko_name": "게으름피우기"
+    },
+    "sleep-powder": {
+      "description": "잠이 오는 가루를 많이 흩뿌려서 상대를 잠듦 상태로 만든다.",
+      "ko_name": "수면가루"
+    },
+    "sleep-talk": {
+      "description": "자신이 배운 기술 중 하나를 무작위로 날린다. 자신이 잠들어 있을 때만 쓸 수 있다.",
+      "ko_name": "잠꼬대"
+    },
+    "sludge-bomb": {
+      "description": "더러운 오물을 상대에게 내던져서 공격한다. 독 상태로 만들 때가 있다.",
+      "ko_name": "오물폭탄"
+    },
+    "sludge-wave": {
+      "description": "오물 파도로 자신의 주위에 있는 포켓몬을 공격한다. 독 상태로 만들 때가 있다.",
+      "ko_name": "오물웨이브"
+    },
+    "smack-down": {
+      "description": "돌이나 구슬을 던져서 날고 있는 상대를 공격한다. 맞은 상대는 땅에 떨어진다.",
+      "ko_name": "떨어뜨리기"
+    },
+    "smart-strike": {
+      "description": "뾰족한 뿔로 상대를 꿰찔러서 공격한다. 공격은 반드시 명중한다.",
+      "ko_name": "스마트혼"
+    },
+    "snap-trap": {
+      "description": "집게덫으로 붙잡은 뒤 4-5턴 동안 상대를 끼워서 공격한다.",
+      "ko_name": "집게덫"
+    },
+    "snarl": {
+      "description": "호되게 호통을 쳐서 상대의 특수공격을 떨어뜨린다.",
+      "ko_name": "바크아웃"
+    },
+    "snore": {
+      "description": "자신이 잠들어 있을 때 소음을 내어 공격한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "코골기"
+    },
+    "snowscape": {
+      "description": "5턴 동안 눈을 내리게 한다. 얼음타입의 방어가 올라간다.",
+      "ko_name": "설경"
+    },
+    "soak": {
+      "description": "많은 물을 끼얹어서 상대를 물타입으로 바꾼다.",
+      "ko_name": "물붓기"
+    },
+    "soft-boiled": {
+      "description": "자신의 최대 HP 절반을 회복한다. 동료의 HP를 회복시킬 수도 있다.",
+      "ko_name": "알낳기"
+    },
+    "solar-beam": {
+      "description": "1턴째에 빛을 가득 모아 2턴째에 빛의 다발을 발사하여 공격한다.",
+      "ko_name": "솔라빔"
+    },
+    "solar-blade": {
+      "description": "1턴째에 빛을 가득 모아 2턴째에 그 힘을 검에 담아 공격한다.",
+      "ko_name": "솔라블레이드"
+    },
+    "sparkling-aria": {
+      "description": "노래 부르는 것으로 많은 벌룬을 방출한다. 기술에 맞으면 화상이 낫는다.",
+      "ko_name": "물거품아리아"
+    },
+    "speed-swap": {
+      "description": "상대의 스피드와 자신의 스피드를 교체한다.",
+      "ko_name": "스피드스왑"
+    },
+    "spicy-extract": {
+      "description": "어마어마하게 매운 엑기스를 발사한다. 상대의 공격이 크게 오르고 방어는 크게 떨어진다.",
+      "ko_name": "하바네로엑기스"
+    },
+    "spikes": {
+      "description": "상대의 발밑에 압정을 뿌린다. 교체된 상대 포켓몬에게 데미지를 준다.",
+      "ko_name": "압정뿌리기"
+    },
+    "spiky-shield": {
+      "description": "상대의 공격을 막음과 동시에 접촉한 상대의 체력을 떨어뜨린다.",
+      "ko_name": "니들가드"
+    },
+    "spirit-break": {
+      "description": "맞으면 기가 꺾여버릴 것 같은 기세로 공격한다. 상대의 특수공격을 떨어뜨린다.",
+      "ko_name": "소울크래시"
+    },
+    "spirit-shackle": {
+      "description": "공격과 동시에 상대의 그림자를 꿰매 도망칠 수 없게 한다.",
+      "ko_name": "그림자꿰매기"
+    },
+    "spit-up": {
+      "description": "비축된 힘을 상대에게 부딪쳐서 공격한다. 비축된 만큼 위력이 올라간다.",
+      "ko_name": "토해내기"
+    },
+    "spite": {
+      "description": "상대가 마지막으로 사용한 기술에 원한을 품어 그 기술의 PP를 4만큼 줄인다.",
+      "ko_name": "원한"
+    },
+    "spore": {
+      "description": "최면 효과가 있는 포자를 훌훌 흩뿌려서 상대를 잠듦 상태로 만든다.",
+      "ko_name": "버섯포자"
+    },
+    "stealth-rock": {
+      "description": "상대의 주위에 무수한 바위를 띄워 교체해서 나온 상대 포켓몬에게 데미지를 준다.",
+      "ko_name": "스텔스록"
+    },
+    "steel-beam": {
+      "description": "전신에서 끌어모은 강철을 빔으로 바꿔 세차게 발사한다. 자신도 데미지를 받는다.",
+      "ko_name": "철제광선"
+    },
+    "steel-roller": {
+      "description": "필드를 파괴하면서 공격한다. 필드가 어떤 상태로든 변해 있지 않은 경우 기술은 실패한다.",
+      "ko_name": "아이언롤러"
+    },
+    "steel-wing": {
+      "description": "단단한 날개를 상대에게 부딪쳐서 공격한다. 자신의 방어가 올라갈 때가 있다.",
+      "ko_name": "강철날개"
+    },
+    "sticky-web": {
+      "description": "상대의 주위에 끈적끈적한 네트를 둘러 펼쳐 교체되어 나온 상대의 스피드를 떨어뜨린다.",
+      "ko_name": "끈적끈적네트"
+    },
+    "stockpile": {
+      "description": "힘을 비축해서 자신의 방어와 특수방어를 올린다. 최대 3회까지 비축할 수 있다.",
+      "ko_name": "비축하기"
+    },
+    "stomping-tantrum": {
+      "description": "분함을 발판 삼아 공격한다. 앞 턴에서 기술이 빗나갔다면 위력이 배가 된다.",
+      "ko_name": "분함의발구르기"
+    },
+    "stone-axe": {
+      "description": "암석 도끼로 급소를 노려 공격한다. 흩어진 암석 파편으로 상대에게 여러 번 데미지를 준다.",
+      "ko_name": "암석액스"
+    },
+    "stone-edge": {
+      "description": "뾰족한 바위를 상대에게 꿰찔러서 공격한다. 급소에 맞기 쉽다.",
+      "ko_name": "스톤에지"
+    },
+    "stored-power": {
+      "description": "축적된 파워로 상대를 공격한다. 자신의 능력이 올라가 있는 만큼 위력이 오른다.",
+      "ko_name": "어시스트파워"
+    },
+    "storm-throw": {
+      "description": "강렬한 일격을 상대에게 날린다. 공격은 반드시 급소에 맞는다.",
+      "ko_name": "업어후리기"
+    },
+    "strength-sap": {
+      "description": "상대 공격력과 동일하게 자신의 HP를 회복한다. 그리고 상대의 공격을 떨어뜨린다.",
+      "ko_name": "힘흡수"
+    },
+    "string-shot": {
+      "description": "입에서 뿜어낸 실을 휘감아서 상대의 스피드를 크게 떨어뜨린다.",
+      "ko_name": "실뿜기"
+    },
+    "struggle": {
+      "description": "자신의 PP가 떨어지면 발버둥 쳐 상대를 공격한다. 자신도 조금 데미지를 입는다.",
+      "ko_name": "발버둥"
+    },
+    "struggle-bug": {
+      "description": "저항해서 상대를 공격한다. 상대의 특수공격을 떨어뜨린다.",
+      "ko_name": "벌레의저항"
+    },
+    "stuff-cheeks": {
+      "description": "지니고 있는 나무열매를 먹고 방어를 크게 올린다.",
+      "ko_name": "볼가득넣기"
+    },
+    "stun-spore": {
+      "description": "저리가루를 많이 흩뿌려서 상대를 마비 상태로 만든다.",
+      "ko_name": "저리가루"
+    },
+    "substitute": {
+      "description": "자신의 HP를 조금 깎아서 분신을 만든다. 분신은 자신의 대타가 된다.",
+      "ko_name": "대타출동"
+    },
+    "sucker-punch": {
+      "description": "상대보다 먼저 공격할 수 있다. 상대가 쓴 기술이 공격기술이 아니면 실패한다.",
+      "ko_name": "기습"
+    },
+    "sunny-day": {
+      "description": "5턴 동안 햇살을 강하게 해서 불꽃타입 기술의 위력을 올린다. 물타입의 위력은 떨어진다.",
+      "ko_name": "쾌청"
+    },
+    "super-fang": {
+      "description": "날카로운 앞니로 강하게 물어서 공격한다. 상대의 HP는 절반이 된다.",
+      "ko_name": "분노의앞니"
+    },
+    "supercell-slam": {
+      "description": "몸에 전기를 두르고 상대를 덮친다. 빗나가면 자신이 데미지를 입는다.",
+      "ko_name": "썬더다이브"
+    },
+    "superpower": {
+      "description": "엄청난 힘을 발휘하여 상대를 공격한다. 자신의 공격과 방어가 떨어진다.",
+      "ko_name": "엄청난힘"
+    },
+    "surf": {
+      "description": "큰 파도로 자신의 주위에 있는 포켓몬을 공격한다.",
+      "ko_name": "파도타기"
+    },
+    "swagger": {
+      "description": "상대를 화내게 해서 혼란시킨다. 분노로 상대의 공격은 크게 올라가 버린다.",
+      "ko_name": "뽐내기"
+    },
+    "swallow": {
+      "description": "비축된 힘을 꿀꺽해서 자신의 HP를 회복한다. 비축된 만큼 회복한다.",
+      "ko_name": "꿀꺽"
+    },
+    "sweet-kiss": {
+      "description": "천사처럼 귀엽게 키스하여 상대를 혼란시킨다.",
+      "ko_name": "천사의키스"
+    },
+    "sweet-scent": {
+      "description": "향기로 상대의 회피율을 크게 떨어뜨린다.",
+      "ko_name": "달콤한향기"
+    },
+    "switcheroo": {
+      "description": "눈에 보이지 않는 속도로 자신과 상대가 지닌 물건을 교환한다.",
+      "ko_name": "바꿔치기"
+    },
+    "swords-dance": {
+      "description": "싸움의 춤을 격렬하게 춰서 기세를 높인다. 자신의 공격을 크게 올린다.",
+      "ko_name": "칼춤"
+    },
+    "synthesis": {
+      "description": "자신의 HP를 회복한다. 날씨에 따라 회복량이 변한다.",
+      "ko_name": "광합성"
+    },
+    "syrup-bomb": {
+      "description": "끈적끈적한 물엿을 폭발시킨다. 상대를 물엿범벅 상태로 만들어서 3턴 동안 계속 스피드를 떨어뜨린다",
+      "ko_name": "시럽봄"
+    },
+    "tail-slap": {
+      "description": "단단한 꼬리로 상대를 때려서 공격한다. 2-5회 동안 연속으로 쓴다.",
+      "ko_name": "스위프뺨치기"
+    },
+    "tailwind": {
+      "description": "세차게 불어대는 바람의 소용돌이를 만들어 4턴 동안 같은 편 모두의 스피드를 올린다.",
+      "ko_name": "순풍"
+    },
+    "taunt": {
+      "description": "상대를 화나게 한다. 3턴 동안 상대는 데미지를 주는 기술밖에 쓸 수 없게 된다.",
+      "ko_name": "도발"
+    },
+    "tearful-look": {
+      "description": "눈물을 그렁그렁거려 상대의 전의를 상실하게 한다. 상대의 공격과 특수공격이 떨어진다.",
+      "ko_name": "눈물그렁그렁"
+    },
+    "teatime": {
+      "description": "다과회를 열어서 배틀에 나와 있는 포켓몬이 각각 지니고 있는 나무열매를 먹는다.",
+      "ko_name": "다과회"
+    },
+    "teeter-dance": {
+      "description": "흔들흔들 댄스를 춰서 주위에 있는 포켓몬을 혼란 상태로 만든다.",
+      "ko_name": "흔들흔들댄스"
+    },
+    "temper-flare": {
+      "description": "자포자기하는 자세로 공격한다. 앞 턴에서 기술이 빗나갔다면 위력이 배가 된다.",
+      "ko_name": "열불내기"
+    },
+    "terrain-pulse": {
+      "description": "필드의 힘을 빌려서 공격한다. 사용했을 때의 필드 상태에 따라서 기술 타입과 위력이 바뀐다.",
+      "ko_name": "대지의파동"
+    },
+    "thief": {
+      "description": "공격과 동시에 도구를 훔친다. 자신이 도구를 지니고 있을 경우에는 훔칠 수 없다.",
+      "ko_name": "도둑질"
+    },
+    "thrash": {
+      "description": "2-3턴 동안 마구 난동 부려서 상대를 공격한다. 난동 부린 뒤에는 혼란에 빠진다.",
+      "ko_name": "난동부리기"
+    },
+    "throat-chop": {
+      "description": "이 기술에 맞은 상대는 지옥의 고통 때문에 2턴 동안 소리 기술을 낼 수 없다.",
+      "ko_name": "지옥찌르기"
+    },
+    "thunder": {
+      "description": "강한 번개를 상대에게 떨어뜨려 공격한다. 마비 상태로 만들 때가 있다.",
+      "ko_name": "번개"
+    },
+    "thunder-fang": {
+      "description": "전기를 모은 이빨로 문다. 상대를 풀죽게 하거나 마비 상태로 만들 때가 있다.",
+      "ko_name": "번개엄니"
+    },
+    "thunder-punch": {
+      "description": "전격을 담은 펀치로 상대를 공격한다. 마비 상태로 만들 때가 있다.",
+      "ko_name": "번개펀치"
+    },
+    "thunder-wave": {
+      "description": "약한 전격을 날려서 상대를 마비 상태로 만든다.",
+      "ko_name": "전기자석파"
+    },
+    "thunderbolt": {
+      "description": "강한 전격을 상대에게 날려서 공격한다. 마비 상태로 만들 때가 있다.",
+      "ko_name": "10만볼트"
+    },
+    "tickle": {
+      "description": "몸을 간질여 웃게 만들어서 상대의 공격과 방어를 떨어뜨린다.",
+      "ko_name": "간지르기"
+    },
+    "tidy-up": {
+      "description": "압정뿌리기, 스텔스록, 끈적끈적네트, 독압정, 대타출동을 모두 정리한다. 자신의 공격과 스피드가 올라간다.",
+      "ko_name": "정리정돈"
+    },
+    "topsy-turvy": {
+      "description": "상대에게 걸려 있는 모든 능력 변화를 뒤집어서 반대로 만든다.",
+      "ko_name": "뒤집어엎기"
+    },
+    "torch-song": {
+      "description": "활활 타오르는 불꽃을 노래하듯 뿜어서 상대를 태워 버린다. 자신의 특수공격을 올린다.",
+      "ko_name": "플레어송"
+    },
+    "torment": {
+      "description": "상대에게 트집을 잡아서 똑같은 기술을 2회 연속으로 쓸 수 없게 한다.",
+      "ko_name": "트집"
+    },
+    "toxic": {
+      "description": "상대를 맹독의 상태로 만든다. 턴이 진행될수록 독의 데미지가 증가한다.",
+      "ko_name": "맹독"
+    },
+    "toxic-spikes": {
+      "description": "상대의 발밑에 독 압정을 뿌린다. 교체로 나온 상대 포켓몬에게 독을 퍼지게 한다.",
+      "ko_name": "독압정"
+    },
     "toxic-thread": {
+      "description": "독이 섞인 실을 뿜어낸다. 상대를 독 상태로 만들고 스피드를 떨어뜨린다.",
       "ko_name": "독독실"
+    },
+    "trailblaze": {
+      "description": "풀숲에서 튀어나오듯이 공격한다. 경쾌한 발재간으로 자신의 스피드를 올린다.",
+      "ko_name": "개척하기"
+    },
+    "transform": {
+      "description": "상대 포켓몬으로 변신하여 상대와 완전히 똑같은 기술을 사용할 수 있다.",
+      "ko_name": "변신"
+    },
+    "tri-attack": {
+      "description": "3개의 광선으로 공격한다. 마비, 화상 또는 얼음 상태 중 어느 하나로 만들 때가 있다.",
+      "ko_name": "트라이어택"
+    },
+    "trick": {
+      "description": "상대의 빈틈을 노려 자신과 상대가 지닌 물건을 바꿔치기한다.",
+      "ko_name": "트릭"
+    },
+    "trick-or-treat": {
+      "description": "상대를 핼러윈으로 초대한다. 상대 타입에 고스트타입이 추가된다.",
+      "ko_name": "핼러윈"
+    },
+    "trick-room": {
+      "description": "이상한 공간을 만든다. 5턴 동안 느린 포켓몬부터 행동할 수 있다.",
+      "ko_name": "트릭룸"
+    },
+    "triple-arrows": {
+      "description": "발뒤꿈치로 찍은 뒤 3개의 화살을 동시에 발사한다. 자신의 공격이 급소에 맞기 쉬워진다. 상대의 방어력을 떨어뜨린다.",
+      "ko_name": "3연화살"
+    },
+    "triple-axel": {
+      "description": "3회 연속으로 킥을 날려 공격한다. 기술이 맞을 때마다 위력이 올라간다.",
+      "ko_name": "트리플악셀"
+    },
+    "trop-kick": {
+      "description": "남쪽 나라에서 유래된 뜨거운 킥을 상대에게 날린다. 상대의 공격을 떨어뜨린다.",
+      "ko_name": "트로피컬킥"
+    },
+    "twin-beam": {
+      "description": "두 눈에서 불가사의한 광선을 발사해서 공격한다. 2회 연속으로 데미지를 준다.",
+      "ko_name": "트윈빔"
+    },
+    "u-turn": {
+      "description": "공격한 뒤 굉장한 스피드로 돌아와서 교대 포켓몬과 교체한다.",
+      "ko_name": "유턴"
+    },
+    "upper-hand": {
+      "description": "움직임에 반응하여 손바닥으로 밀쳐서 상대를 풀죽게 한다. 상대가 쓴 기술이 선제공격 기술이 아니면 실패한다.",
+      "ko_name": "기선제압"
+    },
+    "uproar": {
+      "description": "3턴 동안 소란 피워 공격한다. 그동안은 아무도 잠들지 않게 된다.",
+      "ko_name": "소란피기"
+    },
+    "vacuum-wave": {
+      "description": "주먹을 흔들어 진공의 파도를 일으킨다. 반드시 선제공격을 할 수 있다.",
+      "ko_name": "진공파"
+    },
+    "venoshock": {
+      "description": "특수한 독액을 끼얹는다. 독 상태의 상대에게는 위력이 2배가 된다.",
+      "ko_name": "베놈쇼크"
+    },
+    "volt-switch": {
+      "description": "공격한 뒤 굉장한 스피드로 돌아와서 교대 포켓몬과 교체한다.",
+      "ko_name": "볼트체인지"
+    },
+    "volt-tackle": {
+      "description": "전기를 한데 모아 돌진한다. 자신도 상당한 데미지를 입는다. 마비 상태로 만들 때가 있다.",
+      "ko_name": "볼트태클"
+    },
+    "water-pulse": {
+      "description": "물의 진동을 상대에게 가하여 공격한다. 상대를 혼란시킬 때가 있다.",
+      "ko_name": "물의파동"
+    },
+    "water-shuriken": {
+      "description": "점액으로 만든 수리검을 2-5회 동안 연속으로 던진다. 반드시 선제공격할 수 있다.",
+      "ko_name": "물수리검"
+    },
+    "water-spout": {
+      "description": "바닷물을 내뿜어 공격한다. 자신의 HP가 적을수록 기술의 위력이 떨어진다.",
+      "ko_name": "해수스파우팅"
+    },
+    "waterfall": {
+      "description": "굉장한 기세로 상대에게 돌진한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "폭포오르기"
+    },
+    "wave-crash": {
+      "description": "물을 두르고 온몸으로 상대에게 부딪친다. 자신도 상당한 데미지를 입는다.",
+      "ko_name": "웨이브태클"
+    },
+    "weather-ball": {
+      "description": "사용했을 때의 날씨에 따라서 기술 타입과 위력이 바뀐다.",
+      "ko_name": "웨더볼"
+    },
+    "whirlpool": {
+      "description": "세차게 소용돌이치는 물속에 4-5턴 동안 상대를 가두어 공격한다.",
+      "ko_name": "바다회오리"
+    },
+    "whirlwind": {
+      "description": "상대를 날려버려서 교대할 포켓몬을 끌어낸다. 야생의 경우에는 배틀이 끝난다.",
+      "ko_name": "날려버리기"
+    },
+    "wide-guard": {
+      "description": "같은 편 전원에게 향하는 공격을 1턴 동안 막는다.",
+      "ko_name": "와이드가드"
+    },
+    "wild-charge": {
+      "description": "전기를 두르고 상대에게 부딪쳐 공격한다. 자신도 조금 데미지를 입는다.",
+      "ko_name": "와일드볼트"
+    },
+    "will-o-wisp": {
+      "description": "으스스하고 괴상한 불꽃을 쏘아 상대를 화상 상태로 만든다.",
+      "ko_name": "도깨비불"
+    },
+    "wish": {
+      "description": "다음 턴에 자신 또는 교체한 포켓몬의 HP를 최대 HP의 절반만큼 회복한다.",
+      "ko_name": "희망사항"
+    },
+    "wonder-room": {
+      "description": "이상한 공간을 만든다. 5턴 동안 모든 포켓몬의 방어와 특수방어가 바뀐다.",
+      "ko_name": "원더룸"
+    },
+    "wood-hammer": {
+      "description": "단단한 몸통을 상대에게 부딪쳐서 공격한다. 자신도 상당한 데미지를 입는다.",
+      "ko_name": "우드해머"
+    },
+    "worry-seed": {
+      "description": "마음을 괴롭히는 씨앗을 심는다. 상대를 잠잘 수 없게 해서 특성을 불면으로 만든다.",
+      "ko_name": "고민씨"
+    },
+    "wrap": {
+      "description": "긴 몸이나 덩굴 등을 사용해 4-5턴 동안 상대를 휘감아 공격한다.",
+      "ko_name": "김밥말이"
+    },
+    "x-scissor": {
+      "description": "낫이나 발톱을 가위처럼 교차시키면서 상대를 베어 가른다.",
+      "ko_name": "시저크로스"
+    },
+    "yawn": {
+      "description": "큰 하품으로 졸음을 유도한다. 다음 턴에 상대를 잠듦 상태로 만든다.",
+      "ko_name": "하품"
+    },
+    "zap-cannon": {
+      "description": "대포처럼 전기를 발사해서 공격한다. 상대를 마비 상태로 만든다.",
+      "ko_name": "전자포"
+    },
+    "zen-headbutt": {
+      "description": "사념의 힘을 이마에 모아서 공격한다. 상대를 풀죽게 만들 때가 있다.",
+      "ko_name": "사념의박치기"
     }
   }
 }

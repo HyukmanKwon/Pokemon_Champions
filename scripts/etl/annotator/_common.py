@@ -32,8 +32,17 @@ class Spec:
     check_columns: list
     # 행을 읽어오는 함수. dict 리스트를 돌려준다
     fetch: Callable
-    # 한 행을 저장하는 함수. (키, {체크필드: bool}, reviewed) -> 바뀐 것 dict
+    # 한 행을 저장하는 함수. (키, {필드: 값}, reviewed) -> 바뀐 것 dict
     save: Callable
+    # 글자를 직접 쳐 넣는 열
+    #   (필드, 헤더)                     기본 폭 한 줄 입력
+    #   (필드, 헤더, 폭px)               폭 지정
+    #   (필드, 헤더, 폭px, "area")       여러 줄 입력(textarea). 설명문용
+    #   빈 칸이면 None 으로 저장된다. 체크박스와 섞어 써도 된다.
+    #   기본값이 있는 필드는 없는 필드 뒤에 와야 해서 여기 놓았다.
+    text_columns: list = field(default_factory=list)
+    # 제목 옆에 붙는 한 줄 안내
+    subtitle: str = "추측값을 훑어보고 틀린 것만 고치세요"
     key_field: str = "name"
     # 검색 대상 필드
     search_fields: tuple = ("name",)
@@ -77,6 +86,12 @@ PAGE = """<!doctype html>
             font-size: 12px; opacity: .75; }
   i { opacity: .35; font-style: normal; }
   input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; }
+  .txt { padding: 3px 6px; font-size: 14px; width: 130px;
+         font-family: inherit; }
+  .txt:placeholder-shown { outline: 2px solid #e9a33a80; outline-offset: -2px; }
+  textarea.txt { min-height: 3.4em; resize: vertical; line-height: 1.4;
+                 vertical-align: top; }
+  td.wrap { white-space: normal; }
   button { padding: 5px 10px; font-size: 13px; cursor: pointer; }
   .chips { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
   .chip { padding: 3px 9px; font-size: 13px; border: 1px solid #8886;
@@ -90,7 +105,7 @@ PAGE = """<!doctype html>
 </style></head><body>
 
 <header>
-  <h1>__TITLE__ &mdash; 추측값을 훑어보고 틀린 것만 고치세요</h1>
+  <h1>__TITLE__ &mdash; __SUBTITLE__</h1>
   <div class="bar">
     <input type="search" id="q" placeholder="검색">
     <label><input type="checkbox" id="onlyTodo"> 미확인만</label>
@@ -119,6 +134,7 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g,
 
 $('#head').innerHTML =
   CFG.info.map(c => `<th class="${c[2] ?? ''}">${esc(c[1])}</th>`).join('') +
+  CFG.texts.map(c => `<th title="${esc(c[0])}">${esc(c[1])}</th>`).join('') +
   CFG.checks.map(c => `<th class="flag" title="${esc(c[0])}">${esc(c[1])}</th>`).join('') +
   '<th class="flag">확인</th>' +
   (CFG.detail ? '<th>설명</th>' : '');
@@ -193,6 +209,14 @@ function render() {
       ${CFG.info.map(c => `<td class="${c[2] ?? ''}">${
           r[c[0]] === null || r[c[0]] === undefined
           ? '<i>·</i>' : esc(r[c[0]])}</td>`).join('')}
+      ${CFG.texts.map(c => {
+          const style = c[2] ? ` style="width:${c[2]}px"` : '';
+          return c[3] === 'area'
+            ? `<td class="wrap"><textarea class="txt" data-f="${c[0]}"
+                 placeholder="비어 있음"${style}>${esc(r[c[0]] ?? '')}</textarea></td>`
+            : `<td><input type="text" class="txt" data-f="${c[0]}"
+                 placeholder="비어 있음"${style} value="${esc(r[c[0]] ?? '')}"></td>`;
+        }).join('')}
       ${CFG.checks.map(c => `<td class="flag${mark(c[0])}"><input type="checkbox"
           data-f="${c[0]}" ${r[c[0]] ? 'checked' : ''}></td>`).join('')}
       <td class="flag"><input type="checkbox" data-f="reviewed"
@@ -220,19 +244,37 @@ function flash() {
 function valuesOf(r) {
   const v = {};
   CFG.checks.forEach(c => v[c[0]] = !!r[c[0]]);
+  CFG.texts.forEach(c => v[c[0]] = r[c[0]] ?? null);
   return v;
 }
 
-// 체크박스를 건드리면 그 줄만 즉시 저장한다 (저장 버튼 없음)
+// 건드리면 그 줄만 즉시 저장한다 (저장 버튼 없음).
+// 글자 칸은 change 라서 포커스를 벗어나거나 Enter 를 쳐야 저장된다.
+// 한 글자마다 저장하면 조합 중인 한글이 그대로 들어간다.
 $('#rows').addEventListener('change', async e => {
-  const box = e.target;
-  if (box.type !== 'checkbox') return;
-  const r = rows.find(x => String(x[CFG.key]) === e.target.closest('tr').dataset.key);
-  r[box.dataset.f] = box.checked;
-  if (box.dataset.f !== 'reviewed') r.reviewed = true;   // 손대면 확인 처리
+  const el = e.target;
+  const isText = el.classList.contains('txt');
+  if (el.type !== 'checkbox' && !isText) return;
+
+  const r = rows.find(x => String(x[CFG.key]) === el.closest('tr').dataset.key);
+  r[el.dataset.f] = isText ? (el.value.trim() || null) : el.checked;
+  if (el.dataset.f !== 'reviewed') r.reviewed = true;   // 손대면 확인 처리
   if (await post({key: r[CFG.key], values: valuesOf(r), reviewed: r.reviewed})) {
     flash(); render();
   }
+});
+
+// 한 줄 칸에서 Enter 는 다음 줄 같은 칸으로 넘어간다. 쭉 채워 넣기 편하다.
+// textarea 에서는 Enter 가 줄바꿈이어야 하므로 건드리지 않는다.
+$('#rows').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !e.target.classList.contains('txt')) return;
+  if (e.target.tagName === 'TEXTAREA') return;
+  e.preventDefault();
+  const cells = [...document.querySelectorAll(
+    `input.txt[data-f="${e.target.dataset.f}"]`)];
+  const next = cells[cells.indexOf(e.target) + 1];
+  e.target.blur();
+  if (next) setTimeout(() => { next.focus(); next.select(); }, 60);
 });
 
 $('#markPage').addEventListener('click', async () => {
@@ -257,6 +299,7 @@ def build_page(spec):
     cfg = {
         "key": spec.key_field,
         "info": spec.info_columns,
+        "texts": spec.text_columns,
         "checks": spec.check_columns,
         "detail": spec.detail_field,
         "search": list(spec.search_fields),
@@ -264,11 +307,13 @@ def build_page(spec):
     }
     return (PAGE
             .replace("__TITLE__", spec.title)
+            .replace("__SUBTITLE__", spec.subtitle)
             .replace("__CONFIG__", json.dumps(cfg, ensure_ascii=False)))
 
 
 def make_handler(spec):
     check_fields = [c[0] for c in spec.check_columns]
+    text_fields = [c[0] for c in spec.text_columns]
 
     class Handler(BaseHTTPRequestHandler):
 
@@ -297,13 +342,24 @@ def make_handler(spec):
             try:
                 key = body["key"]
                 values = {f: bool(body["values"].get(f)) for f in check_fields}
+                for f in text_fields:
+                    raw = body["values"].get(f)
+                    values[f] = raw.strip() or None if isinstance(raw, str) else None
                 diff = spec.save(key, values, bool(body.get("reviewed")))
             except Exception as e:          # 브라우저에 그대로 띄운다
                 return self._send(400, f"{type(e).__name__}: {e}",
                                   "text/plain; charset=utf-8")
+            def show(v):
+                if isinstance(v, bool):
+                    return "O" if v else "X"
+                if not v:
+                    return "-"
+                one_line = " ".join(str(v).split())
+                return one_line if len(one_line) <= 30 else one_line[:29] + "…"
+
             mark = " ".join(
-                f"{spec.labels.get(f, f)}={'O' if v else 'X'}"
-                for f, v in (diff or {}).items()) or "추측 그대로"
+                f"{spec.labels.get(f, f)}={show(v)}"
+                for f, v in (diff or {}).items()) or "기존 값 그대로"
             print(f"  {key:<24} {mark}")
             self._send(200, json.dumps({"ok": True}))
 

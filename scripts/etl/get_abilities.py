@@ -14,12 +14,14 @@ abilities 테이블용 05_abilities.sql 을 생성한다.
 
 from pokemon_champions.db import connect
 
+from . import overrides
 from . import paths
 from . import schema
 from .parse_utils import (get_json, pick_korean, pick_korean_flavor,
                          pick_english_effect, render, mogrify_rows)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/ability"
+KO_OVERRIDE_KEY = "ability_ko_names"
 
 FILENAME = "05_abilities.sql"
 TABLE = "abilities"
@@ -34,11 +36,21 @@ def fetch_ability(name):
 
 
 def parse_ability(data):
+    # PokeAPI 에 한국어가 없는 신규 특성이 있고, flavor text 도 옛 표현이거나
+    # 잘려 있는 경우가 있다. annotator 로 손본 값을 덮어씌워서 재구축해도
+    # 사라지지 않게 한다.
+    #   python -m scripts.etl.annotator.ko_names abilities
+    ko = {
+        "ko_name": pick_korean(data["names"]),
+        "description": pick_korean_flavor(data["flavor_text_entries"]),
+    }
+    overrides.apply(KO_OVERRIDE_KEY, data["name"], ko)
+
     return {
         "id": data["id"],
         "name": data["name"],
-        "ko_name": pick_korean(data["names"]),
-        "description": pick_korean_flavor(data["flavor_text_entries"]),
+        "ko_name": ko["ko_name"],
+        "description": ko["description"],
         "effect": pick_english_effect(data["effect_entries"]),
     }
 

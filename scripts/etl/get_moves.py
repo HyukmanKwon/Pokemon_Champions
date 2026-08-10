@@ -162,8 +162,12 @@ def parse_move(data):
     flags, source = move_flags.resolve(data["id"], data["name"], category)
     reviewed = overrides.apply(OVERRIDE_KEY, data["name"], flags)
 
-    # 한국어 이름도 override 를 태운다. PokeAPI 값이 옛 번역인 경우가 있다.
-    ko = {"ko_name": pick_korean(data["names"])}
+    # 한국어 이름·설명도 override 를 태운다. PokeAPI 값이 옛 번역인 경우가 있다.
+    #   python -m scripts.etl.annotator.ko_names moves
+    ko = {
+        "ko_name": pick_korean(data["names"]),
+        "description": pick_korean_flavor(data["flavor_text_entries"]),
+    }
     overrides.apply(KO_OVERRIDE_KEY, data["name"], ko)
 
     return {
@@ -193,7 +197,7 @@ def parse_move(data):
         "reviewed": reviewed,
         "_source": source,                       # COLUMNS 에 없다. 통계용
 
-        "description": pick_korean_flavor(data["flavor_text_entries"]),
+        "description": ko["description"],
         "effect": pick_english_effect(data["effect_entries"]),
     }
 

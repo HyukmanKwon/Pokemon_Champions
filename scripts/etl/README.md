@@ -59,7 +59,9 @@ scripts/etl/
 │
 ├── annotator/            브라우저에서 손으로 고치는 도구들
 │   ├── _common.py        서버·화면 뼈대 (도구마다 재사용)
-│   └── moves.py          기술 플래그
+│   ├── moves.py          기술 플래그
+│   ├── ko_names.py       한국어 이름·설명 (특성·도구·기술)
+│   └── items.py          도구를 지닐 수 있는가
 │
 │
 ├── get_types.py          01_types.sql
@@ -88,7 +90,8 @@ data/
 ├── sql/         build.py 가 만든 SQL. 실행할 때마다 덮어쓴다 (git 제외)
 ├── overrides/   사람이 확정한 값. 재구축해도 살아남는다 (git 커밋 대상)
 │   ├── move_flags.json      기술 플래그
-│   └── move_ko_names.json   PokeAPI 가 옛 번역을 주는 한국어 이름
+│   ├── item_usable.json     포챔스에서 지닐 수 있는 도구인가
+│   └── *_ko_names.json      한국어 이름·설명 (특성·도구·기술)
 └── cache/       내려받은 PokeAPI CSV. 재생성 가능 (git 제외)
     └── move_flag_map.csv
 ```
@@ -188,14 +191,108 @@ PokeAPI가 주지 않는 정보는 이름 규칙으로 추측할 수밖에 없�
 치면 오타가 나고, **다음 재구축에서 전부 사라진다.**
 
 ```bash
-python -m scripts.etl.annotator.moves    # 브라우저가 열린다 (http://localhost:8765)
+python -m scripts.etl.annotator.moves              # 기술 플래그 (8765)
+
+python -m scripts.etl.annotator.ko_names abilities # 특성 한국어 이름 (8766)
+python -m scripts.etl.annotator.ko_names items     # 도구 한국어 이름 (8767)
+python -m scripts.etl.annotator.ko_names moves     # 기술 한국어 이름 (8768)
+
+python -m scripts.etl.annotator.items              # 도구 사용 가능 여부 (8769)
 ```
 
 도구가 여러 개가 되므로 `annotator/` 폴더에 모아 둔다. 화면·서버·저장 흐름은
-`_common.py` 에 있고, 각 파일은 "무엇을 보여주고 무엇을 체크할지"만 정한다.
-특성·도구 효과 편집기를 추가할 때도 `annotator/abilities.py` 처럼 붙이면 된다.
+`_common.py` 에 있고, 각 파일은 "무엇을 보여주고 무엇을 고칠지"만 정한다.
+고치는 방식은 두 가지다.
 
-체크박스를 건드리면 **즉시 두 군데에 저장**된다.
+| | Spec 필드 | 화면 | 저장 시점 |
+|---|---|---|---|
+| 체크박스 | `check_columns` | `<input type=checkbox>` | 누르는 즉시 |
+| 한 줄 입력 | `text_columns` | `<input type=text>` | 포커스를 벗어나거나 Enter |
+| 여러 줄 입력 | `text_columns` + `"area"` | `<textarea>` | 포커스를 벗어날 때 |
+
+글자 칸을 한 글자마다 저장하면 **조합 중인 한글**(`ㄷ`, `다`, `단`)이 그대로 DB에
+들어간다. 그래서 `input` 이 아니라 `change` 이벤트를 쓴다. 한 줄 칸에서 Enter 를
+치면 다음 줄의 같은 칸으로 넘어가므로 쭉 채워 넣기 좋고, textarea 에서는 Enter 가
+줄바꿈이라 그 동작을 걸지 않는다.
+
+```python
+text_columns = [
+    ("ko_name",     "한국어 이름", 150),
+    ("description", "한국어 설명", 380, "area"),   # 네 번째가 "area" 면 여러 줄
+]
+```
+
+### `ko_names` — 한국어 이름과 설명 고치기
+
+고치는 칸은 `ko_name` 과 `description` 둘이고, 맨 오른쪽에 **영문 `effect` 가 읽기
+전용으로 붙는다.** 원문을 보면서 한국어를 쓰라는 뜻이다. `effect` 는 PokeAPI 원문이라
+일부러 못 고치게 뒀다.
+
+**이름이 왜 급한가.** PokeAPI 에 한국어가 없는 항목이 있다(§10). 지금까지는 `ko_name`
+이 NULL 이어도 아무 문자열이나 입력할 수 있어서 문제가 안 됐지만, **"이 포켓몬이 가질
+수 있는 특성만 허용"으로 검증을 조이면 입력할 이름 자체가 없어서 등록이 불가능해진다.**
+검증을 붙이기 전에 이 구멍부터 메워야 한다.
+
+**설명은 급하지 않다.** 검증에 쓰이지 않는다. 다만 화면에 그대로 노출되고, 나중에 LLM
+이 특성 효과를 읽을 때 근거가 된다. PokeAPI 의 flavor text 는 세대별로 잘리거나 옛
+표현인 경우가 많아 손볼 값이 꽤 있다.
+
+**도구에는 `이 도구의 주인` 열이 붙는다.** `clefablite` 만 보고 픽시 것인 줄 알 수는
+없으니, `mega_evolutions` 에 이미 있는 관계를 조인해서 원종의 한국어 이름을 보여준다.
+성별 폼(`meowstic-male` / `-female`)이 스톤을 공유해 한 도구에 여러 행이 걸리므로
+`string_agg(DISTINCT ...)` 로 미리 묶고 조인한다 — 그냥 조인하면 도구가 중복된다.
+
+메가스톤만 보려면 검색창에 `mega-stones` 를 치면 된다.
+
+이름이 빈 것 → 설명이 빈 것 순으로 위에 올라오고, 빈 칸에는 주황 테두리가 붙는다.
+세 테이블이 `(id, name, ko_name, description, effect)` 로 모양이 같아서 파일 하나가
+인자를 받는 형태로 만들었다 — `abilities.py`, `items.py` 로 나누면 거의 같은 파일이
+세 개가 되고 고칠 일이 생기면 세 군데를 고쳐야 한다.
+
+기술 플래그는 "추측과 다른 것만" JSON 에 남기지만, 한국어 표기는 **입력한 값을 무조건
+남긴다.** PokeAPI 가 나중에 한국어를 주더라도 그건 옛 세대 번역일 수 있어 포챔스 표기를
+우선해야 하기 때문이다(§6 의 깨뜨리다 → 깨트리기).
+
+`get_abilities.py` · `get_items.py` · `get_moves.py` 가 `overrides.apply()` 로 이름과
+설명을 함께 덮어씌우므로, 재구축을 몇 번 해도 유지된다. **이 적용이 없으면
+`python -m scripts.etl.build` 한 번에 손으로 넣은 값이 전부 날아간다.**
+
+> JSON 파일 이름이 `*_ko_names` 인 것은 설명 지원 이전에 붙은 이름이다. 이미 손으로
+> 채운 값이 들어 있는 파일이라 굳이 바꾸지 않았다.
+
+### `items` — 지닐 수 있는 도구인가
+
+도구 목록은 `ITEM_CATEGORIES` 의 카테고리를 합집합으로 긁어 만든다(§9). 카테고리
+단위라 대전에서 쓸 수 없는 것이 섞여 들어오는데, PokeAPI 에는 그 구분이 없다.
+그래서 **일단 전부 `usable = TRUE` 로 두고 X 만 찍는다.**
+
+```bash
+python -m scripts.etl.annotator.items    # 8769
+```
+
+분류(`category`)가 가장 큰 단서라 분류 순으로 정렬해 둔다. 한 분류는 대개 판정이
+같아서 몰아서 보는 편이 빠르고, 애매하면 오른쪽의 한국어 설명을 본다. 검색창은
+분류로도 걸려서 `mega-stones` 를 치면 메가스톤만 남는다.
+
+기술 플래그와 같이 **추측과 결론이 다른 것만** `values` 에 들어간다. 추측이 "전부
+사용 가능" 이므로, 파일에는 사실상 "쓸 수 없다고 찍은 것" 만 모인다.
+
+```json
+{ "reviewed": ["flame-orb"], "values": { "master-ball": {"usable": false} } }
+```
+
+`get_items.py` 가 `overrides.apply("item_usable", ...)` 로 이 값을 덮어씌운다.
+**이게 빠지면 재구축 한 번에 판정이 전부 날아간다.**
+
+엔트리 화면은 `items.usable` 을 두 곳에서 쓴다 — 도구 선택 목록
+(`item_repo.fetch_usable`)과 입력 검증(`services/team.py` 의 `validate_spec`)이다.
+메가스톤은 선택 목록에서만 빠진다. 92개를 통째로 올리면 쓸 수 있는 한두 개가
+묻히기 때문이고, 그 포켓몬 것만 따로 보여준다. 검증은 통과시킨다 — 남의 스톤을
+지니는 것은 잘못이 아니라 그냥 메가진화가 안 되는 것뿐이다.
+
+---
+
+값을 건드리면 **즉시 두 군데에 저장**된다.
 
 ```
 DB moves 테이블            즉시 반영. 계산기가 바로 쓴다
@@ -322,6 +419,45 @@ python -m scripts.etl.check_moves 목록.txt      # 한국어 이름 한 줄에 
 
 점수가 거의 같아서 임계치를 어디에 두든 하나는 틀린다. 그래서 자동 판정하지
 않는다.
+
+### 목록에 추가한 뒤 — `sync_moves`
+
+**`moves_M_B` 를 고쳐도 DB 는 그대로다.** 재구축을 해야 반영되는데 그건 1,900회
+호출이라 기술 몇 개 때문에 돌리기엔 과하다. 실제로 위 4개를 목록에 추가한 뒤
+재구축을 안 해서, DB 에 498개만 들어 있는 상태가 한동안 이어졌다.
+
+```bash
+python -m scripts.etl.sync_moves --dry-run   # 무엇이 들어갈지 먼저
+python -m scripts.etl.sync_moves             # 반영. API 는 빠진 기술 수만큼만
+```
+
+`moves` 와 `move_stat_changes` 뿐 아니라 **`pokemon_moves` 도 같이 채운다.**
+`moves` 에만 넣으면 "아무 포켓몬도 못 배우는 기술"이 되고, 엔트리 검증이
+정상적인 조합을 거부하게 된다. 원인이 검증 코드가 아니라 데이터라 찾기가 고약하다.
+
+`/move` 응답의 `learned_by_pokemon` 을 쓰므로 추가 호출은 없다. 다만 그 목록은
+보통 원종만 주기 때문에, `원종이름-` 으로 시작하는 폼도 같이 넣는다. **이건
+추론이라 몇 건인지 따로 세어서 출력한다.** 하이픈을 요구해서 `kabuto` 가
+`kabutops` 를 잡는 사고는 막는다. 원종만 넣으려면 `--exact-only`, 정확히 하려면
+`get_pokemon_moves` 를 다시 돌린다(313회).
+
+`ON CONFLICT DO NOTHING` 이라 중간에 끊겨도 다시 실행하면 된다. DB 에만 있고
+목록에 없는 기술은 **보고만 하고 지우지 않는다.**
+
+### 한국어 표기 고정 — `pin_ko_names`
+
+애노테이터는 "내가 손댄 것"만 override 에 담는다. PokeAPI 가 이미 멀쩡한 한국어를
+준 항목은 손댈 이유가 없으니 안 담기고, 그러면 그 항목만 재구축 때마다 PokeAPI
+값을 따라간다. 지금 화면에 나오는 글자는 같아서 차이가 안 보이지만, PokeAPI 가
+번역을 갱신하면 고정해 둔 것은 꿈쩍 않는데 안 담긴 것만 조용히 달라진다.
+
+```bash
+python -m scripts.etl.pin_ko_names moves --dry-run
+python -m scripts.etl.pin_ko_names all
+```
+
+**DB 에 있는 값을 override 로 옮겨 적을 뿐, 값을 지어내지 않는다.** 이미 담긴
+항목은 건드리지 않아서 손으로 고친 값이 되돌아갈 일은 없고, 빠진 필드만 채운다.
 
 ---
 
@@ -485,6 +621,16 @@ CSV 를 쓰는 효과는 분명하다. 예를 들어 이름 규칙으로는 `sup
 ### `items` — 도구
 `id`(PK), `name`(UNIQUE), `ko_name`, `category`, `fling_power`,
 `description`(한글), `effect`(영문)
+
+| 컬럼 | 설명 |
+|---|---|
+| `usable` | 포챔스에서 지닐 수 있는가. 기본 TRUE, 사람이 X 를 찍는다 |
+| `reviewed` | 사람이 `usable` 을 확인했는가 |
+
+목록을 카테고리 단위로 긁어오는 탓에 대전에서 쓸 수 없는 것이 섞인다. PokeAPI 가
+그 구분을 주지 않아서 `annotator/items.py` 로 확인하고, 결과는
+`overrides/item_usable.json` 에 쌓인다. 엔트리 화면의 도구 선택 목록과 입력 검증이
+이 칸을 본다.
 
 ### `pokemon_moves` — 포켓몬-기술 연결
 `pokemon_name`, `move_name` (둘이 합쳐 PK)
