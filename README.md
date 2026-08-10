@@ -22,6 +22,16 @@ python web.py                    # http://127.0.0.1:8000
 pytest                           # DB 없이 도는 계산 테스트
 ```
 
+로컬 LLM 도우미는 Ollama 가 따로 떠 있어야 한다.
+
+```bash
+ollama serve                     # 한 번만, 별도 터미널
+ollama pull qwen3:8b
+
+python -m scripts.chat --tools   # 어떤 도구를 불렀는지 보면서 대화
+python -m scripts.chat "메가갸라도스 지진이 한카리아스를 몇 방에 보내?"
+```
+
 접속 정보는 환경변수로 바꾼다. `.env.example` 참고.
 
 DB 구축 과정은 [`scripts/etl/README.md`](scripts/etl/README.md)에 따로 정리돼 있다.
@@ -56,6 +66,9 @@ Pokemon_Champions/
 │   ├── config.py               레귤레이션 상수 · 경로 · 접속 정보
 │   ├── text.py                 NFC 정규화
 │   ├── assets.py               스프라이트 다운로드 캐시
+│   ├── agent/                  LLM 도우미. 모델은 도구만 고르고 계산은 안 한다
+│   │   ├── tools.py            도구 13개 + 스키마 (repositories/services 호출)
+│   │   └── runner.py           Ollama 도구 호출 루프
 │   │
 │   ├── domain/                 "포켓몬이란 무엇인가"만 안다
 │   │   ├── stats.py            Stats — 능력치 6칸

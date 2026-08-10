@@ -1,0 +1,77 @@
+"""로컬 LLM 도우미와 대화한다.
+
+    ollama serve                       (한 번만, 따로 띄워둔다)
+    ollama pull qwen3:8b
+
+    python -m scripts.chat                          대화 모드
+    python -m scripts.chat "메가갸라도스 지진이 한카리아스를 몇 방에 보내?"
+    python -m scripts.chat --model qwen2.5:7b --tools   도구 호출을 같이 보기
+
+── 왜 웹이 아니라 CLI 부터인가 ──
+  도구를 제대로 고르는지, 숫자를 지어내지 않는지를 먼저 봐야 한다. 화면을
+  먼저 만들면 모델이 틀린 답을 예쁘게 감싸서 내놓는 것만 확인하게 된다.
+  --tools 로 무엇을 어떤 인자로 불렀는지 눈으로 보면서 프롬프트를 조인다.
+"""
+
+import argparse
+import sys
+
+import requests
+
+from pokemon_champions.agent import runner, tools
+
+
+def show_tool(name, args, result):
+    brief = str(result)
+    if len(brief) > 160:
+        brief = brief[:160] + " …"
+    print(f"  \033[90m→ {name}({args})\033[0m")
+    print(f"  \033[90m  {brief}\033[0m")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("question", nargs="*", help="한 번만 묻고 끝낼 질문")
+    ap.add_argument("--model", default=runner.DEFAULT_MODEL)
+    ap.add_argument("--tools", action="store_true",
+                    help="어떤 도구를 어떤 인자로 불렀는지 같이 보여준다")
+    args = ap.parse_args()
+
+    on_tool = show_tool if args.tools else None
+    history = None
+
+    def once(q):
+        nonlocal history
+        try:
+            answer, history = runner.ask(q, args.model, history, on_tool)
+        except requests.ConnectionError:
+            print("Ollama 에 연결하지 못했습니다. `ollama serve` 가 떠 있나요?")
+            return 1
+        except requests.HTTPError as e:
+            print(f"Ollama 오류: {e}")
+            print(f"모델이 없다면 `ollama pull {args.model}` 을 먼저 하세요.")
+            return 1
+        print(answer)
+        return 0
+
+    try:
+        if args.question:
+            return once(" ".join(args.question))
+
+        print(f"모델: {args.model} · 도구 {len(tools.TOOLS)}개 · 빈 줄이면 종료")
+        while True:
+            try:
+                q = input("\n> ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print()
+                return 0
+            if not q:
+                return 0
+            print()
+            once(q)
+    finally:
+        tools.close()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
