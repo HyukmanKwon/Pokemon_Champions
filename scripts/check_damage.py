@@ -26,21 +26,36 @@ import argparse
 import sys
 
 from pokemon_champions.db import connection
-from pokemon_champions.db.repositories import move_repo, rules_repo
+from pokemon_champions.db.repositories import move_repo, pokemon_repo, rules_repo
 from pokemon_champions.services import damage, team
 from pokemon_champions.services.damage import BattleContext, Rules
 
-# 내 팀 기본 엔트리에서 뽑은 조합. 자속·상성·도구·특성이 골고루 걸리도록
-# 골랐다 — 전부 등배 무보정이면 대조해도 얻는 게 없다.
+# 대조용 기준 케이스. 자속·상성·도구·특성이 골고루 걸리도록 골랐다 —
+# 전부 등배 무보정이면 대조해도 얻는 게 없다.
+#
+# ── 왜 스펙을 여기 적어두나 ──
+#   예전에는 my_team.json 에서 이름으로 찾아 썼다. 그런데 엔트리는 바뀌는
+#   물건이다. 팀에서 리자몽을 빼는 순간 케이스 다섯 개가 조용히 "건너뜀"
+#   으로 바뀌고, 대조 도구가 아무 일도 안 하면서 통과한 것처럼 보인다.
+#   기준값은 움직이지 않아야 해서 여기에 못 박는다.
+#
+#   {} 는 무보정(SP 0 · 성실 · 1번 특성 · 도구 없음)이다.
 CASES = [
-    # (공격자, 기술, 방어자, 설명)
-    ("리자몽", "화염방사", "이상해꽃", "자속 + 약점 2배 + 생명의구슬"),
-    ("리자몽", "기합구슬", "잠만보", "비자속 + 약점"),
-    ("거북왕", "파도타기", "리자몽", "자속 + 약점 + 기합의띠(데미지 무관)"),
-    ("이상해꽃", "기가드레인", "거북왕", "자속 + 약점 + 신비의물방울"),
-    ("피카츄", "10만볼트", "거북왕", "자속 + 약점 + 전기구슬"),
-    ("잠만보", "지진", "피카츄", "자속 아님 + 약점"),
-    ("루카리오", "인파이트", "잠만보", "자속 + 약점 + 구애스카프"),
+    # (공격자 스펙, 기술, 방어자 스펙, 설명)
+    ({"ko_name": "리자몽", "item": "생명의구슬"}, "화염방사",
+     {"ko_name": "이상해꽃"}, "자속 + 약점 2배 + 생명의구슬"),
+    ({"ko_name": "리자몽"}, "기합구슬",
+     {"ko_name": "잠만보"}, "비자속 + 약점"),
+    ({"ko_name": "거북왕"}, "파도타기",
+     {"ko_name": "리자몽", "item": "기합의띠"}, "자속 + 약점"),
+    ({"ko_name": "이상해꽃", "item": "신비의물방울"}, "기가드레인",
+     {"ko_name": "거북왕"}, "자속 + 약점 + 타입강화도구(풀에는 안 걸림)"),
+    ({"ko_name": "피카츄", "item": "전기구슬"}, "10만볼트",
+     {"ko_name": "거북왕"}, "자속 + 약점 + 전기구슬(공격 2배)"),
+    ({"ko_name": "잠만보"}, "지진",
+     {"ko_name": "피카츄"}, "비자속 + 약점"),
+    ({"ko_name": "루카리오", "item": "구애스카프"}, "인파이트",
+     {"ko_name": "잠만보"}, "자속 + 약점 + 구애스카프(속도만)"),
 ]
 
 
@@ -52,16 +67,42 @@ def fetch_move(conn, ko_name):
     return move_repo.fetch_detail(conn, en)
 
 
-def spec_of(specs, ko_name):
-    for s in specs:
-        if s["ko_name"] == ko_name:
-            return s
-    raise SystemExit(f"내 팀에 없는 포켓몬입니다: {ko_name}")
+def build(conn, specs, want, use_team=True):
+    """이름 또는 부분 스펙을 받아 Pokemon 을 만든다.
+
+    ── 왜 팀에 없어도 세우나 ──
+      예전에는 my_team.json 에 있는 6마리만 됐다. 대조는 "이 조합의 값이
+      맞는가" 를 보는 일이지 "내가 그 포켓몬을 쓰는가" 와 무관하다.
+      엔트리에 없다고 못 재면, 정작 재보고 싶은 상대는 늘 못 잰다.
+
+    ── use_team ──
+      CASES 는 False 로 부른다. 기준값이 엔트리를 따라가면 팀을 고칠 때마다
+      숫자가 달라져서, 어제 맞춰둔 값과 대조할 수가 없다. 반대로 인자로
+      직접 물을 때는 True 다 — 내 잠만보가 실제로 몇 대 버티는지가 궁금한
+      것이지, 무보정 잠만보가 궁금한 게 아니다.
+
+      어느 쪽이든 안 적은 칸은 무보정(SP 0 · 성실 · 1번 특성)으로 채운다.
+      웹 계산기와 같은 기본값이라 두 쪽 답이 갈리지 않는다.
+    """
+    want = {"ko_name": want} if isinstance(want, str) else dict(want)
+    ko = want["ko_name"]
+
+    base = next((dict(s) for s in specs if s["ko_name"] == ko), None) \
+        if use_team else None
+    if base is None:
+        cands = pokemon_repo.fetch_abilities(conn, ko)
+        base = {"ko_name": ko, "sp_values": [0] * 6, "ko_nature": "성실",
+                "ability": cands[0] if cands else None, "item": None}
+    base.update({k: v for k, v in want.items() if k != "ko_name"})
+    # 기술 검증은 여기서 할 일이 아니다. 재려는 기술 하나만 따로 넘긴다.
+    base.pop("moves", None)
+    return team.build_pokemon(conn, allow_mega=True, **base)
 
 
-def show(conn, specs, rules, attacker_name, move_name, defender_name, note=""):
-    attacker = team.build_pokemon(conn, **spec_of(specs, attacker_name))
-    defender = team.build_pokemon(conn, **spec_of(specs, defender_name))
+def show(conn, specs, rules, attacker_spec, move_name, defender_spec, note="",
+         use_team=True):
+    attacker = build(conn, specs, attacker_spec, use_team)
+    defender = build(conn, specs, defender_spec, use_team)
     move = fetch_move(conn, move_name)
 
     # 싱글·랭크 0·맑음. 포케챔스 기본값과 맞춘다.
@@ -70,7 +111,7 @@ def show(conn, specs, rules, attacker_name, move_name, defender_name, note=""):
     ko = damage.analyze_ko(attacker, defender, move, ctx, rules)
     lo, hi = dmg.percent(defender.stats.h)
 
-    print(f"── {attacker_name} → {move_name} → {defender_name}"
+    print(f"── {attacker.name} → {move_name} → {defender.name}"
           + (f"  ({note})" if note else ""))
     print(f"   공격자  {attacker.stats.a}/{attacker.stats.c} "
           f"타입 {'·'.join(attacker.types)} "
@@ -107,13 +148,18 @@ def main():
         print()
 
         if args.names:
-            show(conn, specs, rules, *args.names)
+            # 인자로 물을 때는 엔트리 스펙을 쓴다. 내 포켓몬이 실제로 몇 대
+            # 버티는지가 궁금한 것이지 무보정 값이 궁금한 게 아니다.
+            show(conn, specs, rules, *args.names, use_team=True)
         else:
+            print("기준 케이스는 엔트리와 무관하게 무보정"
+                  "(SP 0 · 성실 · 1번 특성)으로 세웁니다.\n")
             for case in CASES:
                 try:
-                    show(conn, specs, rules, *case)
+                    show(conn, specs, rules, *case, use_team=False)
                 except (SystemExit, ValueError) as e:
-                    print(f"── {case[0]} → {case[1]} → {case[2]}: 건너뜀 ({e})")
+                    print(f"── {case[0]['ko_name']} → {case[1]}"
+                          f" → {case[2]['ko_name']}: 건너뜀 ({e})")
                     print()
     return 0
 
