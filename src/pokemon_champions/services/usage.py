@@ -1,8 +1,9 @@
 """채용률을 우리 DB 와 맞춰 한국어로 돌려준다.
 
-usage.py 가 받아온 영문 행과 DB 의 한국어 이름을 잇는 자리다.
-받아오기(usage.py)와 잇기(여기)를 나눈 이유는, 네트워크가 안 될 때와
-DB 에 없을 때가 서로 다른 문제이기 때문이다.
+battledata.py 가 받아온 영문 행과 DB 의 한국어 이름을 잇는 자리다.
+받아오기(battledata.py)와 잇기(여기)를 나눈 이유는, 네트워크가 안 될 때와
+DB 에 없을 때가 서로 다른 문제이기 때문이다. 한 일의 두 단계라 이름도
+usage 로 맞춰 두고, 어느 쪽인지는 계층(패키지 뿌리 / services)으로 가른다.
 
 ── 영문 -> 우리 이름 ──
   채용률 쪽은 사람이 읽는 표기(Focus Sash), 우리 DB 는 PokeAPI 슬러그
@@ -17,7 +18,7 @@ DB 에 없을 때가 서로 다른 문제이기 때문이다.
 
 import re
 
-from .. import usage
+from .. import battledata
 from ..db.repositories import lookup_repo
 
 CATEGORY_KO = {
@@ -74,7 +75,7 @@ def _pokemon_alt_map(ko_by_name):
     base 는 두 번 훑는다. 한 번에 하면 raichu-alola 가 raichu 자리를
     먼저 차지해서 "Raichu" 가 알로라로 잡힌다.
     """
-    by_tokens = {usage.tokens(name): ko for name, ko in ko_by_name.items()}
+    by_tokens = {battledata.tokens(name): ko for name, ko in ko_by_name.items()}
     by_base = {}
     for want_plain in (True, False):
         for name, ko in ko_by_name.items():
@@ -90,7 +91,7 @@ def _pokemon_ko(maps, en_display):
     slug = slugify(en_display)
     alt = maps["_pokemon_alt"]
     return (maps["teammate"].get(slug)
-            or alt["tokens"].get(usage.tokens(slug))
+            or alt["tokens"].get(battledata.tokens(slug))
             or alt["base"].get(slug.split("-")[0]))
 
 
@@ -100,12 +101,12 @@ def usage_of(conn, en_name, ko_name=None, fmt="Singles", top=8):
     en_name 은 우리 DB 의 pokemons.name (PokeAPI 슬러그) 이다.
     """
     who = ko_name or en_name
-    name, was_mega = usage.battle_name(en_name)
+    name, was_mega = battledata.battle_name(en_name)
     if name is None:
         return {"error": f"채용률 자료에 '{who}' 가 없습니다. "
                          "랭크배틀 표본이 적거나 아직 안 실린 폼일 수 있습니다."}
 
-    data = usage.fetch_battle(name, fmt)
+    data = battledata.fetch_battle(name, fmt)
     if data is None:
         return {"error": f"'{who}' 의 {fmt} 자료를 못 받았습니다. "
                          "채용률 서버에 연결하지 못했고 캐시도 없습니다."}

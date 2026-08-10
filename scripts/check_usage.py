@@ -17,10 +17,10 @@
 import argparse
 import sys
 
-from pokemon_champions import usage
+from pokemon_champions import battledata
 from pokemon_champions.db import connect
 from pokemon_champions.db.repositories import pokemon_repo
-from pokemon_champions.services import meta
+from pokemon_champions.services import usage
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
     args = ap.parse_args()
 
     if args.clear:
-        print(f"캐시 {usage.clear()}개 삭제")
+        print(f"캐시 {battledata.clear()}개 삭제")
 
     conn = connect()
     try:
@@ -45,18 +45,18 @@ def main():
                 return 1
             import json
             print(json.dumps(
-                meta.usage_of(conn, row[0], args.name, args.format),
+                usage.usage_of(conn, row[0], args.name, args.format),
                 ensure_ascii=False, indent=2))
             return 0
 
         rows = pokemon_repo.fetch_list(conn)
-        if usage.fetch_index() is None:
+        if battledata.fetch_index() is None:
             print("색인을 못 받았습니다. 네트워크를 확인하세요.")
             return 1
 
         hit = miss = mega = 0
         for r in sorted(rows, key=lambda r: r["name"]):
-            name, was_mega = usage.battle_name(r["name"])
+            name, was_mega = battledata.battle_name(r["name"])
             if name is None:
                 miss += 1
                 print(f"  ✗ {r['ko_name'] or r['name']:<18} {r['name']}")

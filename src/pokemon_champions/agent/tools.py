@@ -21,7 +21,7 @@ from ..db import connect
 from ..db.repositories import (ability_repo, item_repo, move_repo,
                                pokemon_repo, rules_repo)
 from ..domain import STAT_LABELS, STAT_ORDER
-from ..services import damage, meta, team
+from ..services import damage, team, usage
 from ..services.damage import BattleContext, Rules
 from ..text import normalize
 
@@ -323,9 +323,9 @@ def usage_stats(pokemon, format="Singles"):
     en = _en_of(pokemon)
     if en is None:
         return {"error": f"'{pokemon}' 은(는) 포챔스 목록에 없습니다."}
-    return meta.usage_of(_conn(), en, ko_name=normalize(pokemon),
-                         fmt=format if format in ("Singles", "Doubles")
-                         else "Singles")
+    return usage.usage_of(_conn(), en, ko_name=normalize(pokemon),
+                          fmt=format if format in ("Singles", "Doubles")
+                          else "Singles")
 
 
 # ─────────────────────────────────────────────────────────────
