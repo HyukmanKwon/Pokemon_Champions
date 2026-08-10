@@ -1,4 +1,4 @@
-"""DB에 있는 포켓몬·타입 이미지를 전부 내려받아 data/images/ 에 캐시한다.
+"""DB에 있는 포켓몬·타입·도구 이미지를 전부 내려받아 data/images/ 에 캐시한다.
 
     python -m scripts.fetch_assets              전체
     python -m scripts.fetch_assets --limit 5    먼저 5마리만 시험
@@ -23,10 +23,12 @@ import argparse
 import sys
 import time
 
+import requests
+
 from pokemon_champions import assets
 from pokemon_champions.config import IMAGES_DIR
 from pokemon_champions.db import connect
-from pokemon_champions.db.repositories import pokemon_repo
+from pokemon_champions.db.repositories import item_repo, pokemon_repo
 
 
 def human(num_bytes):
@@ -39,6 +41,19 @@ def human(num_bytes):
 
 def total_size(path):
     return sum(p.stat().st_size for p in path.rglob("*.png"))
+
+
+def probe_network():
+    """저장소에 닿는지 한 번 확인한다. 반드시 있는 파일을 골라 받아본다.
+
+    파일로 저장하지 않는다. 캐시를 건드리면 다음 실행의 '이미 있음' 수가
+    이 확인 때문에 달라진다.
+    """
+    try:
+        res = requests.get(assets.TYPE_ICON_URL.format(type_id=1), timeout=10)
+        return res.status_code == 200
+    except requests.RequestException:
+        return False
 
 
 def fetch_all(label, jobs, sleep):
@@ -70,7 +85,7 @@ def fetch_all(label, jobs, sleep):
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--limit", type=int,
-                        help="포켓몬을 이 개수까지만 처리 (시험용)")
+                        help="포켓몬·도구를 이 개수까지만 처리 (시험용)")
     parser.add_argument("--sleep", type=float, default=0.0,
                         help="요청 사이 대기 초 (기본 0)")
     args = parser.parse_args()
@@ -78,18 +93,21 @@ def main():
     conn = connect()
     try:
         pokemons = pokemon_repo.fetch_all_meta(conn)
+        items = [r["name"] for r in item_repo.fetch_list(conn)]
     finally:
         conn.close()
 
     if args.limit:
         pokemons = pokemons[:args.limit]
+        items = items[:args.limit]
 
     # DB 안에 실제로 쓰이는 타입만 모은다. 18개가 다 나오겠지만,
     # 수집 범위를 줄이면 여기도 따라 줄어드는 게 맞다.
     types = sorted({t for p in pokemons for t in (p["type1"], p["type2"]) if t})
 
     before = total_size(IMAGES_DIR) if IMAGES_DIR.exists() else 0
-    print(f"대상     : 포켓몬 {len(pokemons)}마리 · 타입 {len(types)}종")
+    print(f"대상     : 포켓몬 {len(pokemons)}마리 · 타입 {len(types)}종 "
+          f"· 도구 {len(items)}개")
     print(f"저장 위치 : {IMAGES_DIR}")
     print()
 
@@ -106,26 +124,45 @@ def main():
         args.sleep)
     print(f"  받음 {p_got} · 이미 있음 {p_skip} · 실패 {len(p_fail)}")
 
+    # 목록 표에 깔리는 96px 도트. 상세용 큰 그림과 다른 파일이라 따로 받는다.
+    print("포켓몬 아이콘")
+    i_got, i_skip, i_fail = fetch_all(
+        "", [(p["name"], assets.POKEMON_ICON_DIR / f"{p['id']}.png",
+              lambda p=p: assets.ensure_pokemon_icon(p["id"])) for p in pokemons],
+        args.sleep)
+    print(f"  받음 {i_got} · 이미 있음 {i_skip} · 실패 {len(i_fail)}")
+
+    # 도구는 id 가 아니라 영문 이름으로 찾는다 (leftovers.png).
+    print("도구 아이콘")
+    m_got, m_skip, m_fail = fetch_all(
+        "", [(n, assets.ITEM_DIR / f"{n}.png",
+              lambda n=n: assets.ensure_item_sprite(n)) for n in items],
+        args.sleep)
+    print(f"  받음 {m_got} · 이미 있음 {m_skip} · 실패 {len(m_fail)}")
+
     after = total_size(IMAGES_DIR)
     print()
     print(f"용량 : {human(before)} -> {human(after)}  (+{human(after - before)})")
 
-    failed = t_fail + p_fail
+    failed = t_fail + p_fail + i_fail + m_fail
     if not failed:
         return 0
 
     print()
-    attempted = (t_got + p_got) + len(failed)
-    if attempted and len(failed) == attempted:
-        # assets 는 다운로드 실패를 조용히 None 으로 넘긴다. 능력치 조회가
-        # 사진 때문에 막히면 안 되기 때문인데, 일괄 받기에서는 그 침묵이
-        # "폼에 이미지가 없음"과 "네트워크가 안 됨"을 똑같아 보이게 만든다.
-        print("시도한 전부가 실패했습니다. 개별 이미지 문제가 아니라")
-        print("네트워크나 raw.githubusercontent.com 접근 문제일 가능성이 큽니다.")
+    # assets 는 다운로드 실패를 조용히 None 으로 넘긴다. 능력치 조회가 사진
+    # 때문에 막히면 안 되기 때문인데, 일괄 받기에서는 그 침묵이 "저장소에
+    # 이미지가 없음"과 "네트워크가 안 됨"을 똑같아 보이게 만든다.
+    #
+    # 받은 게 하나도 없다고 네트워크 탓을 하면 안 된다. 두 번째 실행부터는
+    # 성공한 것이 전부 '이미 있음'으로 빠져서, 남은 실패만 세면 언제나
+    # "전부 실패"로 보인다. 그래서 세는 대신 직접 한 번 받아본다.
+    if not probe_network():
+        print("스프라이트 저장소에 닿지 못했습니다. 개별 이미지 문제가 아니라")
+        print("네트워크나 raw.githubusercontent.com 접근 문제입니다.")
         return 1
 
-    print(f"실패 {len(failed)}개 — 스프라이트 저장소에 그 폼의 이미지가 없는 경우다.")
-    print("다시 실행하면 재시도한다. 계속 실패하면 그 폼은 이미지가 없는 것이다.")
+    print(f"실패 {len(failed)}개 — 저장소에 그 이름의 이미지가 없습니다.")
+    print("(저장소 연결 자체는 정상입니다)")
     for name in failed:
         print("   ", name)
     return 1
