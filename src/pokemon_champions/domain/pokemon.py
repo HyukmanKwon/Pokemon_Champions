@@ -26,3 +26,16 @@ class Pokemon:
     moves: list = None      # 기술 4개까지
     condition: str = None   # None 이면 정상, "poison" 등
     nature: str = None
+    # 영문 타입 1~2개. ("fire", "flying") 또는 ("water",)
+    #
+    # 이름이 아니라 타입을 들고 있는 이유: 데미지 계산이 자속과 상성을
+    # 판정하려면 타입이 필요한데, services/damage.py 는 DB를 안 본다.
+    # 이름만 들고 있으면 계산 함수가 "이 이름의 타입이 뭐지"를 물으러
+    # DB로 돌아가야 하고, 그 순간 순수 함수가 아니게 된다.
+    #
+    # 메가진화하면 여기가 바뀐다 — 메가폼의 타입으로 다시 만들면 된다.
+    types: tuple = ()
+
+    def rank_of(self, stat):
+        """랭크 변화 단계. 안 걸려 있으면 0."""
+        return (self.rank or {}).get(stat, 0)
