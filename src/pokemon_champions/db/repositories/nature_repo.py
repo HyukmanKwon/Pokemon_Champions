@@ -21,3 +21,17 @@ def fetch_modifiers(conn, ko_nature):
     if down is not None:
         mods[down] = 0.9
     return mods
+
+
+def fetch_all(conn):
+    """성격 21종을 [{ko_name, up, down}] 로. 고를 목록을 만드는 데 쓴다.
+
+    성격은 포켓몬을 가리지 않으므로 6마리를 위해 여섯 번 조회할 이유가 없다.
+    up/down 은 'a' 'c' 같은 능력치 글자이고, 성실은 둘 다 NULL 이다.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT ko_name, up, down FROM pokemon_natures ORDER BY ko_name"
+    )
+    return [{"ko_name": r[0], "up": r[1], "down": r[2]}
+            for r in cur.fetchall()]

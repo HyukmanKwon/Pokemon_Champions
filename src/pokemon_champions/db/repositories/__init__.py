@@ -9,6 +9,8 @@ DB 없이 테스트할 수 있다.
 때문이다.
 """
 
-from . import ability_repo, move_repo, nature_repo, pokemon_repo
+from . import (ability_repo, item_repo, mega_repo, move_repo, nature_repo,
+               pokemon_repo, rules_repo)
 
-__all__ = ["pokemon_repo", "nature_repo", "ability_repo", "move_repo"]
+__all__ = ["pokemon_repo", "nature_repo", "ability_repo", "move_repo",
+           "mega_repo", "item_repo", "rules_repo"]

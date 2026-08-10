@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>내 포켓몬 팀</title>
+<title>포켓몬 챔피언스 DB</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -13,6 +13,8 @@
     --muted: #6b6b70;
     --accent: #3b6fe0;
     --error: #d0342c;
+    --up: #d0342c;      /* 오르는 쪽은 빨강 */
+    --down: #3b6fe0;    /* 내리는 쪽은 파랑 */
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -21,17 +23,34 @@
       --border: #3d3d40;
       --text: #f2f2f2;
       --muted: #a0a0a5;
+      --up: #ff6b61;
+      --down: #7aa2f7;
     }
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    padding: 24px;
+    padding: 20px 24px 40px;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   }
-  h1 { font-size: 1.3rem; margin: 0 0 20px; }
+  h1 { font-size: 1.3rem; margin: 0 0 14px; }
+
+  /* ── 탭 ───────────────────────────────────────────────── */
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tabs button {
+    padding: 7px 16px; font-size: 0.88rem; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: var(--card-bg); color: var(--text); font-family: inherit;
+  }
+  .tabs button.on {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+    font-weight: 600;
+  }
+  .panel[hidden] { display: none; }
+
+  /* ── 내 팀 (기존 화면) ───────────────────────────────── */
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -50,8 +69,27 @@
     justify-content: space-between;
     margin-bottom: 8px;
   }
-  .type-badges { display: flex; gap: 4px; }
+  .type-badges { display: flex; gap: 4px; align-items: center; }
   .type-badges img { height: 18px; }
+  .mega-bar {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px; font-size: 0.78rem; color: var(--muted);
+  }
+  .mega-toggle {
+    padding: 4px 12px; font-size: 0.78rem; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: transparent; color: var(--text); font-family: inherit;
+  }
+  .mega-toggle.on {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+    font-weight: 600;
+  }
+  .mega-hint { font-size: 0.72rem; color: var(--muted); margin-bottom: 10px; }
+  .card.mega-on { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .changed { font-weight: 600; }
+  .delta { font-size: 0.68rem; margin-left: 3px; }
+  .up { color: var(--up); }
+  .down { color: var(--down); }
   .sprite-wrap { text-align: center; margin-bottom: 10px; }
   .sprite-wrap img { max-width: 140px; max-height: 140px; }
   .move-row {
@@ -64,11 +102,7 @@
   .move-row img { height: 16px; }
 
   .stat-block { margin-bottom: 10px; }
-  .stat-title {
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-bottom: 3px;
-  }
+  .stat-title { font-size: 0.75rem; color: var(--muted); margin-bottom: 3px; }
   .stat-title .total { color: var(--text); font-weight: 600; }
   .stat-grid {
     display: grid;
@@ -82,59 +116,912 @@
   .stat-grid .label { font-size: 0.68rem; color: var(--muted); }
   .stat-grid .value { font-size: 0.85rem; }
 
-  .line {
-    font-size: 0.85rem;
-    margin-bottom: 6px;
-  }
+  .line { font-size: 0.85rem; margin-bottom: 6px; }
   .line .label { color: var(--muted); margin-right: 4px; }
   .ability-line .effect {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-top: 2px;
+    display: block; font-size: 0.75rem; color: var(--muted); margin-top: 2px;
   }
 
   .edit { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
   .field { margin-bottom: 8px; }
   .field label {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-bottom: 2px;
+    display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 2px;
   }
   .field input {
-    width: 100%;
-    padding: 5px 7px;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    background: transparent;
-    color: var(--text);
-    font-size: 0.85rem;
+    width: 100%; padding: 5px 7px;
+    border: 1px solid var(--border); border-radius: 5px;
+    background: transparent; color: var(--text); font-size: 0.85rem;
   }
   .sp-input-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
   .sp-input-row input { text-align: center; padding: 5px 2px; }
   .moves-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-  .error {
-    color: var(--error);
-    font-size: 0.78rem;
-    min-height: 1.1em;
-    margin-top: 4px;
+
+  .combo { position: relative; }
+  .combo-list {
+    display: none;
+    position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 2px);
+    max-height: 190px; overflow-y: auto;
+    background: var(--card-bg);
+    border: 1px solid var(--border); border-radius: 6px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
   }
+  .combo.open .combo-list { display: block; }
+  .combo-list div { padding: 5px 8px; font-size: 0.82rem; cursor: pointer; }
+  .combo-list div.on, .combo-list div:hover { background: var(--bg); }
+  .combo-list .hint { color: var(--muted); font-size: 0.72rem; margin-left: 5px; }
+  .combo-list .none { color: var(--muted); cursor: default; }
+  .combo-list .none:hover { background: transparent; }
+  /* 고를 여지가 없는 칸. 메가폼의 도구가 그렇다. */
+  input.locked {
+    background: var(--bg); color: var(--muted); cursor: not-allowed;
+  }
+  .error { color: var(--error); font-size: 0.78rem; min-height: 1.1em; margin-top: 4px; }
+
+  /* ── 도감 (목록 + 상세) ─────────────────────────────── */
+  /* 목록은 왼쪽에서 스크롤하고 상세는 오른쪽에 붙어 따라온다. 좁은 화면
+     에서는 세로로 쌓인다 — 표를 옆으로 밀어 보게 만들지 않으려는 것. */
+  .dex { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; }
+  @media (max-width: 1000px) { .dex { grid-template-columns: minmax(0, 1fr); } }
+
+  .dex-controls {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .dex-controls input[type="search"], .dex-controls select {
+    padding: 6px 9px; font-size: 0.85rem; font-family: inherit;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--card-bg); color: var(--text);
+  }
+  .dex-controls input[type="search"] { min-width: 200px; flex: 1 1 200px; }
+  .dex-controls button {
+    padding: 6px 12px; font-size: 0.82rem; font-family: inherit; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--card-bg); color: var(--muted);
+  }
+  .dex-controls button:hover { color: var(--text); }
+  .dex-controls .count { font-size: 0.78rem; color: var(--muted); }
+
+  .table-wrap {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 10px; overflow: auto; max-height: calc(100vh - 210px);
+  }
+  table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+  thead th {
+    position: sticky; top: 0; z-index: 1;
+    background: var(--card-bg); border-bottom: 1px solid var(--border);
+    padding: 8px 8px; text-align: left; white-space: nowrap;
+    color: var(--muted); font-weight: 600; cursor: pointer; user-select: none;
+  }
+  thead th .arrow { font-size: 0.65rem; margin-left: 2px; color: var(--accent); }
+  tbody td { padding: 5px 8px; border-bottom: 1px solid var(--border); }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--bg); }
+  tbody tr.on { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.mid, th.mid { text-align: center; }
+  td img.icon { height: 30px; width: 30px; object-fit: contain; display: block; }
+  td img.tiny { height: 16px; vertical-align: -3px; }
+  .sub { color: var(--muted); font-size: 0.72rem; }
+  .empty { padding: 24px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+  .empty.err { color: var(--down); line-height: 1.6; }
+
+  /* 상세 패널 */
+  .dex-detail {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+    align-self: start; position: sticky; top: 20px;
+    max-height: calc(100vh - 60px); overflow-y: auto;
+  }
+  @media (max-width: 1000px) { .dex-detail { position: static; max-height: none; } }
+  .dex-detail h2 { margin: 0 0 2px; font-size: 1.15rem; }
+  .dex-detail .en { color: var(--muted); font-size: 0.78rem; font-weight: 400; }
+  .dex-detail section { margin-top: 14px; }
+  .dex-detail section > h3 {
+    margin: 0 0 6px; font-size: 0.75rem; color: var(--muted);
+    font-weight: 600; letter-spacing: 0.02em;
+  }
+  .dex-detail p { margin: 0 0 6px; font-size: 0.83rem; line-height: 1.5; }
+  .dex-detail p.eff { color: var(--muted); font-size: 0.76rem; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-size: 0.83rem; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+
+  /* 종족값 막대 */
+  .bars { display: grid; grid-template-columns: 3.6em 2.6em 1fr; gap: 3px 6px; align-items: center; }
+  .bars .bl { font-size: 0.75rem; color: var(--muted); }
+  .bars .bv { font-size: 0.8rem; text-align: right; font-variant-numeric: tabular-nums; }
+  .bars .bar { height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .bars .bar i { display: block; height: 100%; background: var(--accent); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip {
+    font-size: 0.72rem; padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted);
+  }
+  .chip.warn { color: var(--up); border-color: var(--up); }
+  .chip.ok { color: var(--accent); border-color: var(--accent); }
+
+  /* 상세 안의 관계 목록 (배우는 포켓몬, 특성 보유 포켓몬 …) */
+  .rel { max-height: 260px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; }
+  .rel a {
+    display: flex; align-items: center; gap: 6px; padding: 3px 8px;
+    font-size: 0.8rem; color: var(--text); text-decoration: none; cursor: pointer;
+  }
+  .rel a:hover { background: var(--bg); }
+  .rel img { height: 26px; width: 26px; object-fit: contain; }
+  .rel .t { margin-left: auto; display: flex; gap: 2px; }
+  .rel .t img { height: 14px; width: auto; }
+
+  /* ── 계산기 ──────────────────────────────────────────── */
+  /* 공격자 · 방어자를 나란히 두고, 그 아래 판 상황과 결과가 가로 전체를
+     쓴다. 좁으면 세로로 쌓인다. */
+  .calc { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .calc { grid-template-columns: 1fr; } }
+  .calc .wide { grid-column: 1 / -1; }
+  .calc fieldset {
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--card-bg); padding: 12px 14px 14px; margin: 0;
+  }
+  .calc legend { font-size: 0.85rem; font-weight: 600; padding: 0 6px; }
+  .calc label { display: block; font-size: 0.72rem; color: var(--muted); margin-bottom: 3px; }
+  .calc select, .calc input {
+    width: 100%; padding: 5px 7px; font-family: inherit; font-size: 0.85rem;
+    border: 1px solid var(--border); border-radius: 5px;
+    background: transparent; color: var(--text);
+  }
+  .calc .row { display: grid; gap: 8px; margin-bottom: 8px; }
+  .calc .row.two { grid-template-columns: 1fr 1fr; }
+
+  /* 여섯 능력치 입력줄. 칸 위에 이름을 얹는다 — 순서를 외워야 쓸 수 있는
+     화면은 매번 손가락으로 세어보게 된다. */
+  .statgrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .statgrid .cap {
+    display: block; text-align: center; font-size: 0.65rem;
+    color: var(--muted); margin-bottom: 2px;
+  }
+  .statgrid input, .statgrid select { text-align: center; padding: 5px 2px; }
+
+  .calc .hprow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  /* 상대 HP 는 게임에서도 % 로만 보인다. 숫자 칸 대신 막대를 준다. */
+  .calc .hpwrap { display: flex; align-items: center; gap: 8px; flex: 1 1 220px; }
+  .calc .hpwrap input[type="range"] { flex: 1 1 90px; min-width: 90px; padding: 0; }
+  .calc label.inline {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.8rem; color: var(--text); margin: 0;
+  }
+  .calc label.inline input[type="checkbox"] { width: auto; }
+  .calc label.inline input[type="number"] { width: 5.5em; }
+  .calc .hpinfo {
+    font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums;
+  }
+  .calc .note { font-size: 0.8rem; line-height: 1.6; color: var(--muted); margin: 0 0 12px; }
+
+  .calc .checks { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .calc .checks label {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.8rem; color: var(--text); margin: 0;
+  }
+  .calc .checks input { width: auto; }
+  .calc button.run {
+    padding: 9px 20px; font-size: 0.9rem; font-family: inherit; cursor: pointer;
+    border: 1px solid var(--accent); border-radius: 8px;
+    background: var(--accent); color: #fff; font-weight: 600;
+  }
+  .calc button.swap {
+    padding: 8px 14px; font-size: 0.82rem; font-family: inherit; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card-bg); color: var(--text);
+  }
+
+  /* 계산기 안의 모드 전환. 위쪽 주 탭과 구별되게 작고 네모나다. */
+  .tabs.sub { margin-bottom: 14px; }
+  .tabs.sub button { padding: 5px 13px; font-size: 0.82rem; border-radius: 7px; }
+
+  .result { font-size: 0.88rem; }
+  .result .err { color: var(--down); }
+  .result .sub2 { color: var(--muted); font-size: 0.8rem; margin-bottom: 10px; }
+
+  /* 판정이 결론이다. 숫자보다 먼저, 크게 나온다. */
+  .result .verdict { margin-bottom: 12px; }
+  .result .verdict .ko {
+    font-size: 1.5rem; font-weight: 700; color: var(--accent); line-height: 1.2;
+  }
+  .result .verdict .line { font-size: 0.85rem; color: var(--muted); margin-top: 3px; }
+  .result .verdict .line b { color: var(--text); }
+  .result .verdict img.tiny { height: 15px; vertical-align: -3px; }
+
+  .result .hpbar {
+    height: 14px; background: var(--bg); border-radius: 7px;
+    overflow: hidden; position: relative; margin-top: 6px;
+  }
+  /* 최소 난수와 최대 난수를 겹쳐 그린다. 진한 쪽이 "확실히 들어가는 만큼",
+     연한 쪽이 "운이 좋으면 여기까지". 막대 둘로 나누면 관계가 안 보인다. */
+  .result .hpbar i { position: absolute; left: 0; top: 0; height: 100%; }
+  .result .hpbar .hi { background: color-mix(in srgb, var(--accent) 32%, transparent); }
+  .result .hpbar .lo { background: var(--accent); }
+  .result .applied {
+    font-size: 0.75rem; color: var(--muted); margin: 10px 0 2px;
+    padding: 5px 9px; background: var(--bg); border-radius: 6px;
+  }
+  .result .hpscale {
+    display: flex; justify-content: space-between;
+    font-size: 0.7rem; color: var(--muted); margin: 3px 0 4px;
+  }
+
+  .result table.rolltable { font-size: 0.82rem; margin-top: 12px; width: 100%; }
+  .result table.rolltable thead th {
+    position: static; padding: 6px 8px; cursor: default;
+  }
+  .result table.rolltable td { padding: 6px 8px; }
+
+  .minibar {
+    display: block; height: 8px; background: var(--bg);
+    border-radius: 4px; overflow: hidden;
+  }
+  .minibar i { display: block; height: 100%; background: var(--accent); }
+
+  /* 난수 16개는 결론이 아니라 근거다. 접어두고 필요할 때만 편다. */
+  .result details.rolls { margin-top: 14px; font-size: 0.78rem; color: var(--muted); }
+  .result details.rolls summary { cursor: pointer; color: var(--accent); }
+  .result details.rolls > div { margin-top: 6px; }
+  .rollgrid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+    gap: 4px; margin-top: 8px;
+  }
+  .rollgrid span {
+    background: var(--bg); border-radius: 5px; padding: 4px 6px;
+    text-align: center; font-variant-numeric: tabular-nums; color: var(--text);
+  }
+  .rollgrid em { display: block; font-style: normal; font-size: 0.68rem; color: var(--muted); }
 </style>
 </head>
 <body>
-<h1>내 포켓몬 팀</h1>
-<div id="grid" class="grid"></div>
+<h1>포켓몬 챔피언스 DB</h1>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="team" class="on">내 팀</button>
+  <button data-tab="pokemon">포켓몬</button>
+  <button data-tab="move">기술</button>
+  <button data-tab="ability">특성</button>
+  <button data-tab="item">도구</button>
+  <button data-tab="calc">계산기</button>
+</nav>
+
+<section class="panel" id="panel-team"><div id="grid" class="grid"></div></section>
+<section class="panel" id="panel-pokemon" hidden></section>
+<section class="panel" id="panel-move" hidden></section>
+<section class="panel" id="panel-ability" hidden></section>
+<section class="panel" id="panel-item" hidden></section>
+<section class="panel" id="panel-calc" hidden></section>
 
 <script>
-const grid = document.getElementById("grid");
+// ═════════════════════════════════════════════════════════════
+// 공통
+// ═════════════════════════════════════════════════════════════
 const STAT_LABELS = ["체력", "공격", "방어", "특수공격", "특수방어", "스피드"];
+// 표 머리글용 줄임말. 앞 두 글자로 자르면 특수공격과 특수방어가 둘 다
+// "특수"가 되어 어느 칸인지 구별할 수 없다.
+const STAT_SHORT = ["체력", "공격", "방어", "특공", "특방", "스피드"];
 const STAT_KEYS = ["h", "a", "b", "c", "d", "s"];
 
-function statGrid(stats) {
+// 능력 변화(move_stat_changes.stat)는 명중·회피도 쓴다. 여섯 칸과 별개다.
+const STAT_KO = {
+  h: "체력", a: "공격", b: "방어", c: "특수공격", d: "특수방어", s: "스피드",
+  acc: "명중률", eva: "회피율",
+};
+
+// DB는 타입을 영문 enum으로 들고 있다. 화면에만 한국어를 씌운다 —
+// 여기서 번역해두면 검색창에 "불꽃"을 쳐도 걸린다.
+const TYPE_KO = {
+  normal: "노말", fire: "불꽃", water: "물", electric: "전기", grass: "풀",
+  ice: "얼음", fighting: "격투", poison: "독", ground: "땅", flying: "비행",
+  psychic: "에스퍼", bug: "벌레", rock: "바위", ghost: "고스트",
+  dragon: "드래곤", dark: "악", steel: "강철", fairy: "페어리",
+};
+const CATEGORY_KO = { physical: "물리", special: "특수", status: "변화" };
+
+// 기술 플래그. true인 것만 배지로 띄운다.
+const MOVE_FLAGS = {
+  is_contact: "접촉", is_punch: "펀치", is_bite: "물기", is_sound: "소리",
+  is_powder: "가루", is_bullet: "구슬", is_wind: "바람", is_slicing: "베기",
+  is_dance: "춤", is_pulse: "파동", is_gravity: "중력영향", is_press: "누르기",
+};
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"]/g,
+    c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+}
+const nfc = s => String(s ?? "").normalize("NFC");
+const dash = v => (v === null || v === undefined || v === "") ? "—" : v;
+const typeKo = t => TYPE_KO[t] || t || "";
+const j = (...xs) => xs.filter(Boolean).join("");
+
+// 타입 배지. icon 이 없는 폼도 있으므로 그때는 이름을 글자로 보여준다.
+function typeBadge(type) {
+  return type.icon
+    ? `<img src="${type.icon}" alt="${esc(typeKo(type.name))}" title="${esc(typeKo(type.name))}" loading="lazy">`
+    : esc(typeKo(type.name));
+}
+const typeBadges = ts => (ts || []).map(typeBadge).join("");
+
+// 목록 아이콘. src 를 못 받아오면(저장소에 없는 폼) 그 자리를 비운다.
+function iconImg(url, alt, cls = "icon") {
+  return url
+    ? `<img class="${cls}" src="${url}" alt="${esc(alt)}" loading="lazy"
+            onerror="this.style.visibility='hidden'">`
+    : "";
+}
+
+// ═════════════════════════════════════════════════════════════
+// 탭
+// ═════════════════════════════════════════════════════════════
+const tabs = document.getElementById("tabs");
+
+tabs.addEventListener("click", e => {
+  const btn = e.target.closest("button[data-tab]");
+  if (btn) showTab(btn.dataset.tab);
+});
+
+function showTab(kind) {
+  [...tabs.querySelectorAll("button")].forEach(
+    b => b.classList.toggle("on", b.dataset.tab === kind));
+  document.querySelectorAll(".panel").forEach(
+    p => p.hidden = p.id !== `panel-${kind}`);
+  // 계산기는 목록/상세 구조가 아니라 DEX 를 안 탄다.
+  if (kind === "calc") Calc.init();
+  else if (kind !== "team") initDex(kind);
+}
+
+// 다른 탭의 상세로 건너뛴다. 기술 상세에서 "배우는 포켓몬"을 눌렀을 때처럼
+// 표를 찾아 스크롤까지 맞춰준다 — 탭만 바꾸면 어디를 눌렀는지 잃어버린다.
+async function goto(kind, key) {
+  showTab(kind);
+  await initDex(kind);
+  const st = DEX_STATE[kind];
+  st.q = "";                       // 검색으로 걸러져 있으면 그 줄이 안 보인다
+  st.panel.querySelector("input[type=search]").value = "";
+  renderTable(kind);
+  openDetail(kind, key);
+  st.panel.querySelector(`tr[data-key="${CSS.escape(key)}"]`)
+    ?.scrollIntoView({block: "center"});
+}
+
+// ═════════════════════════════════════════════════════════════
+// 도감 — 목록 + 상세
+//
+// 네 탭이 하는 일이 같다: 한 번 받아온 배열을 걸러서 표로 그리고, 한 줄을
+// 누르면 상세를 받아 옆에 그린다. 그래서 탭마다 코드를 쓰지 않고
+// "무엇을 어디서 받아 어느 칸으로 보여줄까"만 아래 표에 적는다.
+//
+// column: {key, label, cls, cell(row), sort(row)}
+//   cell 은 HTML, sort 는 비교할 값. sort 가 없으면 cell 대신 쓰지 않고
+//   그 칸은 정렬 불가로 둔다 — 이미지 칸까지 정렬 화살표가 붙으면 헷갈린다.
+// filter: {key, label, options(rows), match(row, value)}
+// ═════════════════════════════════════════════════════════════
+
+const numCol = (key, label) => ({
+  key, label, cls: "num",
+  cell: r => dash(r[key]), sort: r => r[key] ?? -Infinity,
+});
+
+const nameCell = r => j(
+  `<div>${esc(r.ko_name || r.name)}</div>`,
+  r.ko_name ? `<div class="sub">${esc(r.name)}</div>` : "");
+
+const DEX = {
+  // ── 포켓몬 ───────────────────────────────────────────────
+  pokemon: {
+    url: "/api/dex/pokemons",
+    detailUrl: name => `/api/dex/pokemons/${encodeURIComponent(name)}`,
+    key: r => r.name,
+    // 검색은 여기 적힌 것들을 이어붙여 부분일치로 본다.
+    search: r => [r.ko_name, r.name, typeKo(r.type1), typeKo(r.type2)],
+    columns: [
+      {key: "icon", label: "", cell: r => iconImg(r.icon, r.ko_name || r.name)},
+      // 보여주는 건 원종 도감 번호(pokemon_id)다. id 는 폼마다 다른
+      // PokeAPI 번호라 메가가 10064 처럼 뜬다 — 그림을 찾는 데만 쓴다.
+      //
+      // 번호가 같은 원종·메가의 순서는 여기서 정하지 않는다. 배열 정렬이
+      // 안정적이라, 서버가 준 순서(ORDER BY pokemon_id, id)가 그대로 남는다.
+      {key: "pokemon_id", label: "번호", cls: "num",
+       cell: r => r.pokemon_id, sort: r => r.pokemon_id},
+      {key: "name", label: "이름", cell: nameCell, sort: r => nfc(r.ko_name || r.name)},
+      {key: "types", label: "타입", cell: r => `<span class="type-badges">${typeBadges(r.types)}</span>`},
+      ...STAT_KEYS.map((k, i) => ({
+        key: k, label: STAT_SHORT[i], cls: "num",
+        cell: r => r[k], sort: r => r[k],
+      })),
+      {key: "total", label: "합계", cls: "num",
+       cell: r => bst(r), sort: r => bst(r)},
+    ],
+    filters: [
+      {key: "type", label: "타입",
+       options: () => Object.entries(TYPE_KO).map(([v, l]) => ({value: v, label: l})),
+       match: (r, v) => r.type1 === v || r.type2 === v},
+      {key: "form", label: "폼", options: () => [
+         {value: "base", label: "원종만"}, {value: "mega", label: "메가만"},
+         {value: "can", label: "메가 가능"}],
+       match: (r, v) => v === "base" ? !r.is_mega
+                      : v === "mega" ? r.is_mega : r.can_mega},
+    ],
+    detail: pokemonDetail,
+  },
+
+  // ── 기술 ─────────────────────────────────────────────────
+  move: {
+    url: "/api/dex/moves",
+    detailUrl: name => `/api/dex/moves/${encodeURIComponent(name)}`,
+    key: r => r.name,
+    search: r => [r.ko_name, r.name, typeKo(r.type), CATEGORY_KO[r.category]],
+    columns: [
+      {key: "name", label: "이름", cell: nameCell, sort: r => nfc(r.ko_name || r.name)},
+      {key: "type", label: "타입", cls: "mid",
+       cell: r => j(iconImg(r.icon, typeKo(r.type), "tiny"),
+                    r.icon ? "" : esc(typeKo(r.type))),
+       sort: r => typeKo(r.type)},
+      {key: "category", label: "분류", cls: "mid",
+       cell: r => CATEGORY_KO[r.category] || dash(r.category),
+       sort: r => r.category || ""},
+      numCol("power", "위력"),
+      numCol("accuracy", "명중"),
+      numCol("pp", "PP"),
+      numCol("priority", "우선도"),
+    ],
+    filters: [
+      {key: "type", label: "타입",
+       options: () => Object.entries(TYPE_KO).map(([v, l]) => ({value: v, label: l})),
+       match: (r, v) => r.type === v},
+      {key: "category", label: "분류",
+       options: () => Object.entries(CATEGORY_KO).map(([v, l]) => ({value: v, label: l})),
+       match: (r, v) => r.category === v},
+    ],
+    detail: moveDetail,
+  },
+
+  // ── 특성 ─────────────────────────────────────────────────
+  ability: {
+    url: "/api/dex/abilities",
+    detailUrl: name => `/api/dex/abilities/${encodeURIComponent(name)}`,
+    key: r => r.name,
+    search: r => [r.ko_name, r.name, r.description],
+    columns: [
+      {key: "name", label: "이름", cell: nameCell, sort: r => nfc(r.ko_name || r.name)},
+      {key: "description", label: "설명",
+       cell: r => `<span class="sub">${esc(r.description || "")}</span>`},
+    ],
+    filters: [
+      {key: "ko", label: "한국어 이름", options: () => [
+         {value: "no", label: "없는 것만"}, {value: "yes", label: "있는 것만"}],
+       match: (r, v) => v === "yes" ? !!r.ko_name : !r.ko_name},
+    ],
+    detail: abilityDetail,
+  },
+
+  // ── 도구 ─────────────────────────────────────────────────
+  item: {
+    url: "/api/dex/items",
+    detailUrl: name => `/api/dex/items/${encodeURIComponent(name)}`,
+    key: r => r.name,
+    search: r => [r.ko_name, r.name, r.category, r.description],
+    columns: [
+      {key: "icon", label: "", cell: r => iconImg(r.icon, r.ko_name || r.name)},
+      {key: "name", label: "이름", cell: nameCell, sort: r => nfc(r.ko_name || r.name)},
+      {key: "category", label: "분류", cell: r => esc(dash(r.category)),
+       sort: r => r.category || ""},
+      numCol("fling_power", "던지기 위력"),
+      {key: "usable", label: "대전 사용", cls: "mid",
+       cell: r => r.usable ? "✓" : "✗", sort: r => r.usable ? 1 : 0},
+      {key: "description", label: "설명",
+       cell: r => `<span class="sub">${esc((r.description || "").slice(0, 60))}</span>`},
+    ],
+    filters: [
+      // 분류는 DB에 있는 값에서 그대로 뽑는다. 목록을 코드에 적어두면
+      // ETL이 새 카테고리를 가져왔을 때 조용히 빠진다.
+      {key: "category", label: "분류",
+       options: rows => [...new Set(rows.map(r => r.category).filter(Boolean))]
+         .sort().map(v => ({value: v, label: v})),
+       match: (r, v) => r.category === v},
+      {key: "usable", label: "대전 사용", options: () => [
+         {value: "yes", label: "가능만"}, {value: "no", label: "불가만"}],
+       match: (r, v) => v === "yes" ? r.usable : !r.usable},
+      {key: "reviewed", label: "사람 확인", options: () => [
+         {value: "no", label: "미확인만"}, {value: "yes", label: "확인됨만"}],
+       match: (r, v) => v === "yes" ? r.reviewed : !r.reviewed},
+    ],
+    detail: itemDetail,
+  },
+};
+
+const bst = r => STAT_KEYS.reduce((s, k) => s + (r[k] || 0), 0);
+
+// 탭별 화면 상태. 받아온 배열은 여기 한 번만 담고 다시 받지 않는다.
+const DEX_STATE = {};
+
+async function initDex(kind) {
+  if (DEX_STATE[kind]) return DEX_STATE[kind].ready;
+
+  const spec = DEX[kind];
+  const panel = document.getElementById(`panel-${kind}`);
+  const st = DEX_STATE[kind] = {
+    spec, panel, rows: [], q: "", filters: {},
+    sort: null,          // null 이면 서버가 준 순서 그대로
+    selected: null,
+  };
+
+  panel.innerHTML = `
+    <div class="dex">
+      <div class="dex-list">
+        <div class="dex-controls">
+          <input type="search" placeholder="검색 (한국어·영문)">
+          ${spec.filters.map(f => `<select data-filter="${f.key}"></select>`).join("")}
+          <button class="reset" type="button">초기화</button>
+          <span class="count"></span>
+        </div>
+        <div class="table-wrap"><div class="empty">불러오는 중…</div></div>
+      </div>
+      <aside class="dex-detail"><div class="empty">목록에서 하나를 고르세요</div></aside>
+    </div>`;
+
+  // 검색은 입력할 때마다 다시 그린다. 서버에 묻지 않으니 부담이 없다.
+  const search = panel.querySelector("input[type=search]");
+  search.addEventListener("input", () => { st.q = search.value; renderTable(kind); });
+
+  panel.querySelector(".dex-controls").addEventListener("change", e => {
+    const sel = e.target.closest("select[data-filter]");
+    if (!sel) return;
+    st.filters[sel.dataset.filter] = sel.value;
+    renderTable(kind);
+  });
+
+  panel.querySelector(".reset").addEventListener("click", () => {
+    st.q = ""; st.filters = {}; st.sort = null;
+    search.value = "";
+    panel.querySelectorAll("select[data-filter]").forEach(s => s.value = "");
+    renderTable(kind);
+  });
+
+  // 표는 통째로 다시 그려지므로 tr 마다 걸지 않고 wrap 에 한 번만 건다.
+  const wrap = panel.querySelector(".table-wrap");
+  wrap.addEventListener("click", e => {
+    const th = e.target.closest("th[data-sort]");
+    if (th) return sortBy(kind, th.dataset.sort);
+    const tr = e.target.closest("tr[data-key]");
+    if (tr) openDetail(kind, tr.dataset.key);
+  });
+
+  st.ready = (async () => {
+    const res = await fetch(spec.url);
+    st.rows = res.ok ? await res.json() : [];
+    if (!res.ok) {
+      wrap.innerHTML = `<div class="empty">불러오지 못했습니다 (${res.status})</div>`;
+      return;
+    }
+    // 필터 후보는 받아온 데이터에서 만든다 (도구 분류처럼 DB에만 있는 것)
+    spec.filters.forEach(f => {
+      const sel = panel.querySelector(`select[data-filter="${f.key}"]`);
+      sel.innerHTML = `<option value="">${esc(f.label)} 전체</option>` +
+        f.options(st.rows).map(
+          o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join("");
+    });
+    renderTable(kind);
+  })();
+
+  return st.ready;
+}
+
+function visibleRows(kind) {
+  const st = DEX_STATE[kind], spec = st.spec;
+  const q = nfc(st.q).trim().toLowerCase();
+
+  let rows = st.rows.filter(r => {
+    for (const f of spec.filters) {
+      const v = st.filters[f.key];
+      if (v && !f.match(r, v)) return false;
+    }
+    if (!q) return true;
+    return nfc(spec.search(r).filter(Boolean).join(" ")).toLowerCase().includes(q);
+  });
+
+  if (st.sort) {
+    const col = spec.columns.find(c => c.key === st.sort.key);
+    const dir = st.sort.dir;
+    // slice 로 복사한 뒤 정렬한다. st.rows 를 직접 뒤집으면 "정렬 없음"
+    // 으로 돌아갈 수 없다.
+    rows = rows.slice().sort((x, y) => {
+      const a = col.sort(x), b = col.sort(y);
+      return (a < b ? -1 : a > b ? 1 : 0) * dir;
+    });
+  }
+  return rows;
+}
+
+function renderTable(kind) {
+  const st = DEX_STATE[kind], spec = st.spec;
+  const rows = visibleRows(kind);
+  const wrap = st.panel.querySelector(".table-wrap");
+
+  st.panel.querySelector(".count").textContent =
+    rows.length === st.rows.length
+      ? `${st.rows.length}개`
+      : `${rows.length} / ${st.rows.length}개`;
+
+  if (!rows.length) {
+    wrap.innerHTML = `<div class="empty">조건에 맞는 것이 없습니다</div>`;
+    return;
+  }
+
+  const head = spec.columns.map(c => {
+    const arrow = st.sort && st.sort.key === c.key
+      ? `<span class="arrow">${st.sort.dir > 0 ? "▲" : "▼"}</span>` : "";
+    const sortable = c.sort ? ` data-sort="${esc(c.key)}"` : ` style="cursor:default"`;
+    return `<th class="${c.cls || ""}"${sortable}>${esc(c.label)}${arrow}</th>`;
+  }).join("");
+
+  const body = rows.map(r => {
+    const key = spec.key(r);
+    const on = st.selected === key ? " class=\"on\"" : "";
+    const tds = spec.columns.map(
+      c => `<td class="${c.cls || ""}">${c.cell(r)}</td>`).join("");
+    return `<tr data-key="${esc(key)}"${on}>${tds}</tr>`;
+  }).join("");
+
+  wrap.innerHTML = `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+// 같은 칸을 다시 누르면 방향이 뒤집히고, 세 번째에 정렬을 푼다.
+// 원래 순서(도감 번호 · 가나다)로 돌아갈 방법이 없으면 답답하다.
+function sortBy(kind, key) {
+  const st = DEX_STATE[kind];
+  if (!st.sort || st.sort.key !== key) st.sort = {key, dir: 1};
+  else if (st.sort.dir === 1) st.sort.dir = -1;
+  else st.sort = null;
+  renderTable(kind);
+}
+
+async function openDetail(kind, key) {
+  const st = DEX_STATE[kind];
+  st.selected = key;
+  st.panel.querySelectorAll("tr[data-key]").forEach(
+    tr => tr.classList.toggle("on", tr.dataset.key === key));
+
+  const box = st.panel.querySelector(".dex-detail");
+  box.innerHTML = `<div class="empty">불러오는 중…</div>`;
+  const res = await fetch(st.spec.detailUrl(key));
+  if (!res.ok) {
+    box.innerHTML = `<div class="empty">불러오지 못했습니다 (${res.status})</div>`;
+    return;
+  }
+  box.innerHTML = st.spec.detail(await res.json());
+  box.scrollTop = 0;
+}
+
+// 상세 안의 포켓몬·기술·도구 링크. 상세는 계속 다시 그려지므로 개별
+// 요소가 아니라 body 에 한 번만 위임한다.
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-goto]");
+  if (!a) return;
+  e.preventDefault();
+  goto(a.dataset.goto, a.dataset.gotoKey);
+});
+
+// ── 상세 화면 조각 ──────────────────────────────────────────
+
+function detailHead(d, extra = "") {
+  return `
+    <div class="header-row">
+      <h2>${esc(d.ko_name || d.name)}
+        ${d.ko_name ? `<span class="en">${esc(d.name)}</span>` : ""}</h2>
+      ${extra}
+    </div>`;
+}
+
+function kv(pairs) {
+  const shown = pairs.filter(([, v]) => v !== null && v !== undefined && v !== "");
+  return shown.length
+    ? `<dl class="kv">${shown.map(
+        ([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join("")}</dl>`
+    : "";
+}
+
+function section(title, body) {
+  return body ? `<section><h3>${esc(title)}</h3>${body}</section>` : "";
+}
+
+// 관계 목록. 어느 탭으로 건너뛸지를 data-goto 로 들고 다닌다.
+function relList(kind, items, {icon, label, right, note} = {}) {
+  if (!items.length) return "";
+  return `<div class="rel">${items.map(o => `
+    <a data-goto="${kind}" data-goto-key="${esc(o.name)}">
+      ${icon ? iconImg(icon(o), "", "") : ""}
+      <span>${esc(label ? label(o) : (o.ko_name || o.name))}
+        ${note && note(o) ? `<span class="sub">${esc(note(o))}</span>` : ""}</span>
+      ${right ? `<span class="t">${right(o)}</span>` : ""}
+    </a>`).join("")}</div>`;
+}
+
+const pokemonRel = list => relList("pokemon", list, {
+  icon: p => p.icon,
+  right: p => typeBadges(p.types),
+});
+
+function statBars(d) {
+  // 막대 길이의 기준을 255로 둔다. 종족값의 사실상 상한이라 여기에 맞추면
+  // 다른 포켓몬을 열었을 때도 막대 길이를 그대로 비교할 수 있다.
+  return `<div class="bars">${STAT_KEYS.map((k, i) => `
+    <span class="bl">${STAT_LABELS[i]}</span>
+    <span class="bv">${d[k]}</span>
+    <span class="bar"><i style="width:${Math.min(100, d[k] / 255 * 100)}%"></i></span>
+  `).join("")}
+    <span class="bl">합계</span><span class="bv">${bst(d)}</span><span></span>
+  </div>`;
+}
+
+function pokemonDetail(d) {
+  const abilities = d.abilities.map(a => `
+    <p><a data-goto="ability" data-goto-key="${esc(a.name)}"
+          style="cursor:pointer;text-decoration:underline">${esc(a.ko_name || a.name)}</a>
+      ${a.is_hidden ? `<span class="chip">숨은 특성</span>` : ""}
+      <span class="eff sub"> ${esc(a.description || "")}</span></p>`).join("");
+
+  const megaLine = o => `
+    <p><a data-goto="pokemon" data-goto-key="${esc(o.mega_name || o.base_name)}"
+          style="cursor:pointer;text-decoration:underline">${esc(
+      o.mega_ko_name || o.base_ko_name || o.mega_name || o.base_name)}</a>
+      ${o.variant ? `<span class="chip">${esc(o.variant.toUpperCase())}</span>` : ""}
+      ${o.item_name ? `— ${iconImg(o.item_icon, "", "tiny")}
+        <a data-goto="item" data-goto-key="${esc(o.item_name)}"
+           style="cursor:pointer;text-decoration:underline">${esc(
+          o.item_ko_name || o.item_name)}</a>` : ""}</p>`;
+
+  const moves = d.moves.map(m => `
+    <a data-goto="move" data-goto-key="${esc(m.name)}">
+      ${iconImg(m.icon, typeKo(m.type), "tiny")}
+      <span>${esc(m.ko_name || m.name)}</span>
+      <span class="t sub">${esc(CATEGORY_KO[m.category] || "")} ${
+        m.power ? `위력 ${m.power}` : ""}</span>
+    </a>`).join("");
+
+  return j(
+    detailHead(d, `<span class="type-badges">${typeBadges(d.types)}</span>`),
+    d.sprite ? `<div class="sprite-wrap">${iconImg(d.sprite, d.ko_name || d.name, "")}</div>` : "",
+    kv([
+      ["도감 번호", d.pokemon_id],
+      ["신장", d.height != null ? `${d.height} m` : ""],
+      ["체중", d.weight != null ? `${d.weight} kg` : ""],
+      ["폼", j(d.is_mega ? `<span class="chip">메가진화</span>` : "",
+               d.can_mega ? `<span class="chip ok">메가진화 가능</span>` : "") || "원종"],
+    ]),
+    section("종족값", statBars(d)),
+    section("특성", abilities),
+    section(d.is_mega ? "원종" : "메가진화",
+      j(d.mega_of ? megaLine(d.mega_of) : "",
+        d.mega_forms.map(megaLine).join(""))),
+    section(`배울 수 있는 기술 (${d.moves.length})`,
+      d.moves.length ? `<div class="rel">${moves}</div>` : ""),
+  );
+}
+
+function moveDetail(d) {
+  const flags = Object.entries(MOVE_FLAGS)
+    .filter(([k]) => d[k]).map(([, l]) => `<span class="chip">${l}</span>`).join("");
+
+  // 능력 변화가 누구에게 걸리는지는 meta_category 가 정한다 (schema.py 주석).
+  const target = d.meta_category === "damage-lower" ? "상대" : "자신";
+  const changes = d.stat_changes.map(c =>
+    `<span class="chip ${c.change > 0 ? "ok" : "warn"}">${
+      esc(STAT_KO[c.stat] || c.stat)} ${c.change > 0 ? "+" : ""}${c.change}</span>`).join("");
+
+  return j(
+    detailHead(d, `<span class="type-badges">${
+      d.icon ? iconImg(d.icon, typeKo(d.type), "tiny") : esc(typeKo(d.type))}</span>`),
+    d.description ? `<p>${esc(d.description)}</p>` : "",
+    d.effect ? `<p class="eff">${esc(d.effect)}</p>` : "",
+    kv([
+      ["타입", esc(typeKo(d.type))],
+      ["분류", esc(CATEGORY_KO[d.category] || dash(d.category))],
+      ["위력", dash(d.power)],
+      ["명중", d.accuracy == null ? "필중" : d.accuracy],
+      ["PP", dash(d.pp)],
+      ["우선도", dash(d.priority)],
+      ["대상", esc(dash(d.target))],
+      ["연속타수", d.min_hits ? `${d.min_hits}~${d.max_hits}` : ""],
+    ]),
+    section("부가 효과", kv([
+      ["상태이상", d.ailment && d.ailment !== "none"
+        ? `${esc(d.ailment)} ${d.ailment_chance ? `${d.ailment_chance}%` : "(확정)"}` : ""],
+      ["풀죽음", d.flinch_chance ? `${d.flinch_chance}%` : ""],
+      ["급소 보정", d.crit_rate ? `+${d.crit_rate}단계` : ""],
+      ["흡수/반동", d.drain ? `${d.drain}%` : ""],
+      ["회복", d.healing ? `${d.healing}%` : ""],
+      ["능력 변화 확률", d.stat_chance ? `${d.stat_chance}%` : ""],
+      ["능력 변화", changes ? `${changes} <span class="sub">(${target})</span>` : ""],
+    ])),
+    section("플래그", j(flags,
+      `<span class="chip ${d.reviewed ? "ok" : "warn"}">${
+        d.reviewed ? "사람이 확인함" : "미확인"}</span>`)),
+    section(`배우는 포켓몬 (${d.learners.length})`, pokemonRel(d.learners)),
+  );
+}
+
+function abilityDetail(d) {
+  const normal = d.pokemons.filter(p => !p.is_hidden);
+  const hidden = d.pokemons.filter(p => p.is_hidden);
+  return j(
+    detailHead(d),
+    d.description ? `<p>${esc(d.description)}</p>` : "",
+    d.effect ? `<p class="eff">${esc(d.effect)}</p>` : "",
+    section(`보통 특성 (${normal.length})`, pokemonRel(normal)),
+    section(`숨은 특성 (${hidden.length})`, pokemonRel(hidden)),
+    d.pokemons.length ? "" :
+      `<p class="eff">이 특성을 가진 포켓몬이 DB에 없습니다.</p>`,
+  );
+}
+
+function itemDetail(d) {
+  const m = d.mega;
+  return j(
+    detailHead(d, d.icon ? iconImg(d.icon, d.ko_name || d.name, "") : ""),
+    d.description ? `<p>${esc(d.description)}</p>` : "",
+    d.effect ? `<p class="eff">${esc(d.effect)}</p>` : "",
+    kv([
+      ["분류", esc(dash(d.category))],
+      ["던지기 위력", dash(d.fling_power)],
+      ["대전 사용", `<span class="chip ${d.usable ? "ok" : "warn"}">${
+        d.usable ? "가능" : "불가"}</span> <span class="chip ${
+        d.reviewed ? "ok" : "warn"}">${d.reviewed ? "확인됨" : "미확인"}</span>`],
+    ]),
+    m ? section("메가진화", `
+      <p>
+        <a data-goto="pokemon" data-goto-key="${esc(m.base_name)}"
+           style="cursor:pointer;text-decoration:underline">${esc(m.base_ko_name || m.base_name)}</a>
+        →
+        <a data-goto="pokemon" data-goto-key="${esc(m.mega_name)}"
+           style="cursor:pointer;text-decoration:underline">${esc(m.mega_ko_name || m.mega_name)}</a>
+        ${m.variant ? `<span class="chip">${esc(m.variant.toUpperCase())}</span>` : ""}
+      </p>`) : "",
+  );
+}
+
+// ═════════════════════════════════════════════════════════════
+// 내 팀 — 기존 화면 그대로
+// ═════════════════════════════════════════════════════════════
+const grid = document.getElementById("grid");
+
+// 슬롯별 메가 On/Off 상태. 서버에 보낼 값이 아니라 화면 상태라 여기 둔다.
+// 메가 여부는 스펙(엔트리)이 아니라 배틀 중 상태이므로 저장하지 않는다.
+const megaOn = new Map();
+
+function statGrid(stats, compare) {
   const labels = STAT_KEYS.map(k => `<div class="label">${STAT_LABELS[STAT_KEYS.indexOf(k)]}</div>`).join("");
-  const values = STAT_KEYS.map(k => `<div class="value">${stats[k]}</div>`).join("");
+  const values = STAT_KEYS.map(k => {
+    if (!compare) return `<div class="value">${stats[k]}</div>`;
+    // 메가일 때는 원종 대비 증감을 같이 보여준다
+    const diff = stats[k] - compare[k];
+    const dir = diff > 0 ? "up" : "down";
+    const mark = diff === 0 ? ""
+      : `<span class="delta ${dir}">${diff > 0 ? "↑" : "↓"}${Math.abs(diff)}</span>`;
+    // 숫자도 화살표와 같은 색으로. 오른 능력치가 파랗게 보이면 안 된다.
+    return `<div class="value ${diff ? `changed ${dir}` : ""}">${stats[k]}${mark}</div>`;
+  }).join("");
   return `<div class="stat-grid">${labels}${values}</div>`;
+}
+
+function megaBar(slot, on) {
+  // 스톤을 지녔으면 버튼, 메가는 있는데 스톤이 없으면 안내, 둘 다 아니면 아무것도.
+  if (slot.mega) {
+    return `<div class="mega-bar">
+      <button class="mega-toggle ${on ? "on" : ""}" data-mega>
+        메가진화 ${on ? "ON" : "OFF"}
+      </button>
+      <span>${slot.mega.name}</span>
+    </div>`;
+  }
+  if (slot.mega_stones && slot.mega_stones.length) {
+    const names = slot.mega_stones
+      .map(s => `${s.item_ko_name}(${s.mega_ko_name})`).join(" 또는 ");
+    return `<div class="mega-hint">${names} 을(를) 지니면 메가진화할 수 있습니다</div>`;
+  }
+  return "";
 }
 
 function card(slot) {
@@ -146,7 +1033,7 @@ function card(slot) {
     <div class="edit">
       <div class="field">
         <label>이름</label>
-        <input data-field="ko_name" type="text">
+        ${combo(`<input data-field="ko_name" data-combo="pokemon" type="text">`)}
       </div>
       <div class="field">
         <label>SP (H A B C D S)</label>
@@ -156,20 +1043,22 @@ function card(slot) {
       </div>
       <div class="field">
         <label>성격</label>
-        <input data-field="ko_nature" type="text">
+        ${combo(`<input data-field="ko_nature" data-combo="nature" type="text">`)}
       </div>
       <div class="field">
         <label>특성</label>
-        <input data-field="ability" type="text">
+        ${combo(`<input data-field="ability" data-combo="ability" type="text">`)}
       </div>
       <div class="field">
         <label>도구</label>
-        <input data-field="item" type="text">
+        ${combo(`<input data-field="item" data-combo="item" type="text">`)}
       </div>
       <div class="field">
         <label>기술 (최대 4개)</label>
         <div class="moves-input-row">
-          ${[0,1,2,3].map(i => `<input data-field="moves" data-move="${i}" type="text">`).join("")}
+          ${[0,1,2,3].map(i => combo(
+            `<input data-field="moves" data-move="${i}" data-combo="move" type="text">`
+          )).join("")}
         </div>
       </div>
       <div class="error"></div>
@@ -180,25 +1069,196 @@ function card(slot) {
   el.querySelectorAll("[data-field]").forEach(input => {
     input.addEventListener("change", () => onEdit(el, input.dataset.field));
   });
+  el.querySelectorAll("[data-combo]").forEach(
+    input => setupCombo(input, () => CHOICES[input.dataset.combo](el._slot)));
+
+  // 메가 버튼은 fill() 이 .info 를 통째로 갈아끼울 때마다 사라지므로,
+  // 버튼이 아니라 카드에 한 번만 걸고 위임한다.
+  el.addEventListener("click", e => {
+    if (!e.target.closest("[data-mega]")) return;
+    megaOn.set(el._slot.index, !megaOn.get(el._slot.index));
+    fill(el, el._slot);   // 서버에 다시 묻지 않는다. 두 벌 다 이미 받아뒀다
+  });
 
   return el;
 }
 
-function typeBadge(type) {
-  return type.icon ? `<img src="${type.icon}" alt="${type.name}">` : type.name;
+// 성격 보정. 성실은 오르는 것도 내리는 것도 없다.
+function natureArrows(nature) {
+  if (!nature.up && !nature.down) return `<span class="label">보정 없음</span>`;
+  return [
+    nature.up ? `<span class="up">↑${esc(nature.up)}</span>` : "",
+    nature.down ? `<span class="down">↓${esc(nature.down)}</span>` : "",
+  ].join(" ");
+}
+
+// ─────────────────────────────────────────────────────────────
+// 후보 목록 — 칸 아래에 직접 그리는 드롭다운
+//
+// <datalist> 를 쓰지 않는 이유가 둘이다. 위치를 브라우저가 정해서 칸 옆에
+// 뜨기도 하고, 무엇보다 칸에 값이 있으면 그 값으로 목록을 걸러 버린다.
+// 이미 채워둔 기술을 다른 것으로 바꾸려 할 때 후보가 하나도 안 뜬다.
+// ─────────────────────────────────────────────────────────────
+
+function combo(inputHtml) {
+  return `<div class="combo">${inputHtml}<div class="combo-list"></div></div>`;
+}
+
+// 슬롯을 가리지 않는 것들. load() 에서 한 번만 받는다.
+let POKEMONS = [];
+let ITEMS = [];
+let NATURES = [];
+
+// data-combo 이름 -> 후보 [{value, hint}]
+const CHOICES = {
+  pokemon: () => POKEMONS.map(v => ({value: v})),
+  nature: () => NATURES.map(n => ({
+    value: n.name,
+    hint: n.up || n.down ? `↑${n.up || "-"} ↓${n.down || "-"}` : "보정 없음",
+  })),
+  ability: slot => (slot.selectable_abilities || []).map(v => ({value: v})),
+  move: slot => (slot.learnable_moves || []).map(v => ({value: v})),
+  item: slot => {
+    // 도구는 전역 목록 하나면 되지만, 메가스톤만은 포켓몬을 가린다.
+    // 그 슬롯 것만 맨 위에 따로 올린다.
+    const stones = (slot.mega_stones || [])
+      .map(s => ({value: s.item_ko_name, hint: `${s.mega_ko_name} 메가스톤`}));
+    const held = slot.spec.item ? [{value: nfc(slot.spec.item)}] : [];
+    const seen = new Set();
+    return [...stones, ...held, ...ITEMS.map(v => ({value: v}))]
+      .filter(o => o.value && !seen.has(nfc(o.value)) && seen.add(nfc(o.value)));
+  },
+};
+
+function renderChoices(list, choices) {
+  list.innerHTML = choices.length
+    ? choices.map(o => `<div data-value="${esc(o.value)}">${esc(o.value)}${
+        o.hint ? `<span class="hint">${esc(o.hint)}</span>` : ""}</div>`).join("")
+    : `<div class="none">후보가 없습니다</div>`;
+}
+
+// getChoices 는 () => [{value, hint}] 를 주는 함수다. 카드를 받지 않는
+// 이유는 계산기도 같은 콤보를 쓰기 때문이다 — 슬롯 개념이 없는 화면에
+// 슬롯을 넘기게 만들면 콤보가 두 벌이 된다.
+function setupCombo(input, getChoices) {
+  const box = input.closest(".combo");
+  const list = box.querySelector(".combo-list");
+
+  // filter 가 false 면 칸에 든 값을 무시하고 전부 보여준다. 저장된 기술을
+  // 바꾸려고 칸을 눌렀을 때 후보가 사라지지 않게 하려는 것이다.
+  function open(filter) {
+    // 잠긴 칸(메가폼의 도구)은 목록을 열지 않는다. 열어두면 readOnly 라
+    // 타이핑은 막혀 있는데 클릭으로는 바뀌는 반쪽짜리가 된다.
+    if (input.readOnly) return;
+    const all = getChoices();
+    const q = filter ? nfc(input.value).trim().toLowerCase() : "";
+    renderChoices(list, q
+      ? all.filter(o => nfc(o.value).toLowerCase().includes(q))
+      : all);
+    box.classList.add("open");
+    list.scrollTop = 0;
+  }
+
+  const close = () => box.classList.remove("open");
+  const rows = () => [...list.querySelectorAll("div[data-value]")];
+
+  function pick(value) {
+    close();
+    // ── 왜 다음 틱으로 미루나 ──
+    //   한글은 조합 중에 Enter 를 누르면, 브라우저가 조합 중이던 글자를
+    //   확정해 칸에 밀어 넣는다. 그 확정이 우리 대입보다 늦게 일어나서
+    //   "메가갸" 로 고른 결과가 "메가갸라도스" + "갸" 가 된다.
+    //   한 틱 미루면 확정이 끝난 뒤에 값을 통째로 덮어쓴다.
+    setTimeout(() => {
+      input.value = value;
+      // bubbles 가 꼭 있어야 한다. new Event("change") 는 기본이 false 라
+      // 칸에 직접 건 리스너에만 닿는다. 계산기는 위임으로 받으므로, 이게
+      // 없으면 목록에서 고른 것이 전달되지 않는다.
+      input.dispatchEvent(new Event("change", {bubbles: true}));
+    }, 0);
+  }
+
+  // 칸에 들어올 때 들어 있던 값을 통째로 고른다. 바로 치면 갈아끼워진다.
+  // 고쳐 쓰는 일보다 다른 것으로 바꾸는 일이 훨씬 잦은 칸들이다.
+  //
+  // mouseup 을 막는 이유: focus 는 mouseup 보다 먼저 오고, 그 mouseup 이
+  // 방금 잡아둔 선택을 커서 하나로 되돌린다. 처음 들어올 때 한 번만
+  // 막는다 — 계속 막으면 드래그로 일부만 고르는 일이 영영 안 된다.
+  let entering = false;
+  input.addEventListener("focus", () => {
+    entering = true;
+    input.select();
+    open(false);
+  });
+  input.addEventListener("mouseup", e => {
+    if (entering) { e.preventDefault(); entering = false; }
+  });
+  // 이미 포커스가 있는 칸을 다시 눌렀을 때도 열려야 한다. Esc 로 닫고 나면
+  // focus 는 다시 일어나지 않아서, 이게 없으면 목록을 못 여는 칸이 생긴다.
+  input.addEventListener("click", () => open(false));
+  input.addEventListener("input", () => open(true));
+  input.addEventListener("blur", () => setTimeout(close, 120));
+
+  input.addEventListener("keydown", e => {
+    const items = rows();
+    const at = items.findIndex(r => r.classList.contains("on"));
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!box.classList.contains("open")) return open(false);
+      const next = e.key === "ArrowDown"
+        ? Math.min(at + 1, items.length - 1) : Math.max(at - 1, 0);
+      items.forEach((r, i) => r.classList.toggle("on", i === next));
+      items[next]?.scrollIntoView({block: "nearest"});
+    } else if (e.key === "Enter") {
+      // 화살표로 고른 게 있으면 그것, 없으면 걸러진 목록의 첫 줄.
+      //
+      // 예전에는 at >= 0 일 때만 골랐다. 그래서 "먹다남"까지 치고 Enter 를
+      // 누르면 아무 일도 안 일어났고, 후보가 한 줄만 남아 있어도 굳이
+      // 아래 화살표를 한 번 눌러야 했다.
+      const row = at >= 0 ? items[at] : items[0];
+      if (row && box.classList.contains("open")) {
+        e.preventDefault();
+        pick(row.dataset.value);
+      }
+    } else if (e.key === "Escape") {
+      close();
+    }
+  });
+
+  // click 은 blur 뒤에 와서 목록이 이미 닫힌다. mousedown 으로 먼저 잡는다.
+  list.addEventListener("mousedown", e => {
+    const row = e.target.closest("div[data-value]");
+    if (!row) return;
+    e.preventDefault();
+    pick(row.dataset.value);
+  });
 }
 
 function fill(el, slot) {
+  el._slot = slot;   // 토글할 때 서버에 다시 묻지 않으려고 들고 있는다
+
+  // 스톤을 뺐는데 메가 ON 이 남아 있으면 안 되므로, mega 가 없으면 강제로 끈다
+  const on = !!slot.mega && megaOn.get(slot.index) === true;
+  if (!slot.mega) megaOn.delete(slot.index);
+  el.classList.toggle("mega-on", on);
+
+  // 메가일 때 바뀌는 것: 종족값 · 타입 · 특성. SP 와 성격은 그대로다.
+  const view = on ? slot.mega : slot;
+  const base = on ? slot.mega.base : slot.base;
+  const stats = on ? slot.mega.stats : slot.stats;
+  const ability = on ? slot.mega.ability : slot.ability;
+
   el.querySelector(".info").innerHTML = `
     <div class="header-row">
-      <h2 class="name">${slot.name}</h2>
-      <div class="type-badges">${slot.types.map(typeBadge).join("")}</div>
+      <h2 class="name">${view.name}</h2>
+      <div class="type-badges">${view.types.map(typeBadge).join("")}</div>
     </div>
-    ${slot.sprite ? `<div class="sprite-wrap"><img src="${slot.sprite}" alt="${slot.name}"></div>` : ""}
+    ${megaBar(slot, on)}
+    ${view.sprite ? `<div class="sprite-wrap"><img src="${view.sprite}" alt="${view.name}"></div>` : ""}
 
     <div class="stat-block">
-      <div class="stat-title">종족값 <span class="total">합계 ${slot.base.total}</span></div>
-      ${statGrid(slot.base)}
+      <div class="stat-title">종족값 <span class="total">합계 ${base.total}</span></div>
+      ${statGrid(base, on ? slot.base : null)}
     </div>
 
     <div class="stat-block">
@@ -208,16 +1268,15 @@ function fill(el, slot) {
 
     <div class="stat-block">
       <div class="stat-title">실제 능력치</div>
-      ${statGrid(slot.stats)}
+      ${statGrid(stats, on ? slot.stats : null)}
     </div>
 
     <div class="line nature-line">
-      <span class="label">성격</span>${slot.nature.name}
-      (올라간 능력치 ${slot.nature.up || "없음"} / 내려간 능력치 ${slot.nature.down || "없음"})
+      <span class="label">성격</span>${slot.nature.name} ${natureArrows(slot.nature)}
     </div>
     <div class="line ability-line">
-      <span class="label">특성</span>${slot.ability.name}
-      <span class="effect">${slot.ability.effect}</span>
+      <span class="label">특성</span><span class="${on ? "changed" : ""}">${ability.name}</span>
+      <span class="effect">${ability.effect || ""}</span>
     </div>
     <div class="line item-line"><span class="label">지닌 도구</span>${slot.item}</div>
     <div class="line condition-line"><span class="label">상태</span>${slot.condition}</div>
@@ -232,6 +1291,12 @@ function fill(el, slot) {
       `).join("") : `<div class="move-row">없음</div>`}
     </div>
   `;
+
+  // 후보 목록은 열 때마다 el._slot 에서 새로 만든다. PATCH 응답이 슬롯
+  // 전체를 주므로 이름을 바꾸면 다음에 열 때 새 포켓몬 목록이 나온다.
+
+  // 메가는 특성이 고정이라 고를 수 있는 것이 없다.
+  el.querySelector('[data-field="ability"]').disabled = on;
 
   el.querySelector('[data-field="ko_name"]').value = slot.spec.ko_name;
   el.querySelector('[data-field="ko_nature"]').value = slot.spec.ko_nature;
@@ -256,10 +1321,34 @@ function valueFor(el, field) {
   return el.querySelector(`[data-field="${field}"]`).value;
 }
 
+// 이름을 바꾸면 특성·기술이 새 포켓몬 것이 아니게 된다. 검증은 스펙 전체를
+// 보므로 이름만 따로 보내면 반드시 거부된다. 그래서 새 포켓몬의 목록을 먼저
+// 받아 특성을 첫 것으로 채우고 기술을 비운 뒤, 셋을 한 번에 보낸다.
+async function renameBody(el, ko_name) {
+  const res = await fetch(`/api/pokemon/${encodeURIComponent(ko_name)}/options`);
+  if (!res.ok) {
+    const data = await res.json();
+    return {error: data.detail || "존재하지 않는 포켓몬"};
+  }
+  const opts = await res.json();
+  el.querySelectorAll("[data-move]").forEach(i => i.value = "");
+  return {ko_name, ability: opts.selectable_abilities[0] || "", moves: []};
+}
+
 async function onEdit(el, field) {
   const index = el.dataset.index;
-  const body = {};
+  let body = {};
   body[field] = valueFor(el, field);
+
+  // 서버는 NFC 로 정규화해 저장한다. 맥에서 온 분해형 한글을 그대로 비교하면
+  // 같은 이름인데 바뀐 것으로 보여 기술이 지워진다.
+  if (field === "ko_name" && nfc(body.ko_name) !== nfc(el._slot.spec.ko_name)) {
+    body = await renameBody(el, body.ko_name);
+    if (body.error) {
+      el.querySelector(".error").textContent = body.error;
+      return;
+    }
+  }
 
   const res = await fetch(`/api/team/${index}`, {
     method: "PATCH",
@@ -276,13 +1365,685 @@ async function onEdit(el, field) {
 }
 
 async function load() {
-  const res = await fetch("/api/team");
-  const slots = await res.json();
+  // 포켓몬·도구·성격 목록은 슬롯을 가리지 않는다. 여섯 번 받을 이유가
+  // 없어서 여기서 한 번만 받아 카드들이 같이 쓴다.
+  //
+  // 도감 네 탭은 여기서 받지 않는다. 처음 열 때 initDex 가 한 번 받는다 —
+  // 팀만 보려고 들어온 사람이 기술 498줄까지 기다릴 이유가 없다.
+  const [slots, pokemons, items, natures] = await Promise.all([
+    fetch("/api/team").then(r => r.json()),
+    fetch("/api/pokemons").then(r => r.json()),
+    fetch("/api/items").then(r => r.json()),
+    fetch("/api/natures").then(r => r.json()),
+  ]);
+  POKEMONS = pokemons;
+  ITEMS = items;
+  NATURES = natures;
+
   grid.innerHTML = "";
   slots.forEach(slot => grid.appendChild(card(slot)));
 }
 
-load();
+// 계산기 폼이 ITEMS·NATURES 를 그대로 쓴다. 이것들이 채워지기 전에
+// 탭을 누르면 빈 배열로 그려진 채 굳어버리므로, 끝나는 시점을 잡아둔다.
+const LOADED = load();
+
+// ═════════════════════════════════════════════════════════════
+// 계산기 — 데미지 · 결정력 · 내구력
+//
+// 전부 Calc 하나에 담는다. 이 파일은 1,500줄이 전역 스코프를 같이 쓰는
+// 구조라, statGrid 처럼 이름이 겹치면 나중 선언이 앞의 것을 조용히
+// 덮어쓴다. 실제로 그렇게 내 팀 카드가 통째로 죽은 적이 있다.
+//
+// 서버가 숫자를 만든다. 여기서 공식을 다시 쓰지 않는다 — 두 벌이 되는
+// 순간 CLI(check_damage.py)와 값이 갈라지고 어느 쪽이 맞는지 알 수 없다.
+// 이 코드가 하는 일은 입력을 모아 POST 하고 돌아온 것을 그리는 것뿐이다.
+//
+// 예외가 하나 있다. HP 옆의 % 는 여기서 센다. 실능 HP 는 종족값 + 75 + SP
+// 로 성격 보정이 없어 정확히 나오고, 슬라이더를 끌 때마다 서버에 물으면
+// 화면이 끊긴다.
+// ═════════════════════════════════════════════════════════════
+const Calc = {
+  HP_OFFSET: 75,                 // config.py 와 같은 값
+  RANKS: Array.from({length: 13}, (_, i) => i - 6),
+  MODES: [
+    {key: "damage", label: "데미지"},
+    {key: "power", label: "결정력"},
+    {key: "bulk", label: "내구력"},
+  ],
+
+  ready: null, rules: null, names: null, base: null,
+  mode: "damage",
+  // 포켓몬마다 다른 후보. 콤보가 열릴 때 이걸 본다.
+  side: {attacker: {abilities: [], moves: []}, defender: {abilities: [], moves: []}},
+
+  // ── 준비 ───────────────────────────────────────────────────
+
+  async init() {
+    if (this.ready) return this.ready;
+    const panel = document.getElementById("panel-calc");
+    this.ready = this.build(panel).catch(err => {
+      // 실패한 약속을 남겨두면 탭을 다시 눌러도 영영 그 실패가 돌아온다.
+      this.ready = null;
+      panel.innerHTML = `<div class="empty err">계산기를 불러오지 못했습니다 —
+        ${esc(err.message)}<br>탭을 다시 누르면 재시도합니다.</div>`;
+    });
+    return this.ready;
+  },
+
+  async build(panel) {
+    panel.innerHTML = `<div class="empty">불러오는 중…</div>`;
+    const [, rules, dex] = await Promise.all([
+      LOADED,   // ITEMS · NATURES 가 채워질 때까지
+      fetch("/api/calc/rules").then(r => r.json()),
+      // 도감 전체다. 메가폼도 상대로 세울 수 있어야 하므로
+      // /api/pokemons(엔트리용, 메가 제외)를 쓰지 않는다.
+      fetch("/api/dex/pokemons").then(r => r.json()),
+    ]);
+    this.rules = rules;
+    const rows = dex.filter(p => p.ko_name);
+    this.names = rows.map(p => p.ko_name)
+      .sort((a, b) => nfc(a).localeCompare(nfc(b), "ko"));
+    // HP % 를 그리려면 종족값이 필요하다.
+    this.base = Object.fromEntries(rows.map(p => [p.ko_name, p]));
+
+    panel.innerHTML = `
+      <nav class="tabs sub" id="calc-modes">
+        ${this.MODES.map(m => `<button data-mode="${m.key}"
+          class="${m.key === this.mode ? "on" : ""}">${m.label} 계산기</button>`).join("")}
+      </nav>
+      <div id="calc-body"></div>`;
+
+    panel.querySelector("#calc-modes").addEventListener("click", e => {
+      const btn = e.target.closest("button[data-mode]");
+      if (btn) this.setMode(btn.dataset.mode);
+    });
+
+    // 위임이라 여기서 한 번만 건다. setMode 안에서 걸면 모드를 바꿀
+    // 때마다 같은 핸들러가 #calc-body 에 겹겹이 쌓인다.
+    const body = panel.querySelector("#calc-body");
+    body.addEventListener("change", e => this.onChange(e));
+    body.addEventListener("input", e => this.onInput(e));
+
+    await this.setMode(this.mode);
+  },
+
+  async setMode(mode) {
+    this.mode = mode;
+    [...document.querySelectorAll("#calc-modes button")].forEach(
+      b => b.classList.toggle("on", b.dataset.mode === mode));
+
+    const body = document.getElementById("calc-body");
+    body.innerHTML = this[`${mode}Form`]();
+
+    // 버튼과 콤보는 innerHTML 로 매번 새로 생기므로 여기서 건다.
+    body.querySelector(".run").addEventListener("click", () => this[`run${
+      mode[0].toUpperCase() + mode.slice(1)}`]());
+    body.querySelector(".swap")?.addEventListener("click", () => this.swap());
+    body.querySelectorAll("[data-combo]").forEach(
+      input => setupCombo(input, () => this.choices(input)));
+
+    const [first, second] = [this.names[0], this.names[1] || this.names[0]];
+    await Promise.all([...body.querySelectorAll("[data-f='ko_name']")].map(
+      (input, i) => {
+        input.value = i ? second : first;
+        return this.loadSide(input.closest("fieldset").dataset.side, input.value);
+      }));
+    body.querySelectorAll("fieldset[data-side]").forEach(el => this.syncHp(el));
+  },
+
+  // ── 콤보 후보 ──────────────────────────────────────────────
+
+  choices(input) {
+    // 기술 칸 하나는 "기술 · 배틀 상황" 안에 있어 data-side 가 없다.
+    // 그건 언제나 공격자의 기술이다.
+    const who = input.closest("fieldset[data-side]")?.dataset.side || "attacker";
+    const s = this.side[who] || {abilities: [], moves: []};
+    const plain = xs => xs.map(v => ({value: v}));
+    const ko = xs => xs.map(o => ({value: o.ko_name}));
+
+    // 분기 이름은 data-combo 값이고, data-combo 는 곧 필드 이름이다.
+    // 둘을 따로 두면(pokemon vs ko_name) 어긋났을 때 조용히 빈 목록이
+    // 나온다 — 실제로 "후보가 없습니다" 만 뜨는 칸이 생겼었다.
+    switch (input.dataset.combo) {
+      case "ko_name":   return plain(this.names);
+      case "ability":   return plain(s.abilities);
+      case "move":      return plain(s.moves);
+      case "item":      return plain(ITEMS);
+      case "ko_nature": return NATURES.map(n => ({
+        value: n.name,
+        hint: n.up || n.down ? `↑${n.up || "-"} ↓${n.down || "-"}` : "보정 없음",
+      }));
+      case "condition": return ko(this.rules.conditions);
+      case "weather":   return ko(this.rules.weathers);
+      case "terrain":   return ko(this.rules.terrains);
+      default: return [];
+    }
+  },
+
+  // 콤보는 한국어를 보여주고, 서버는 영문 키를 받는다. 그 사이를 잇는다.
+  // 빈 칸은 "없음/정상" 이라 null 이다.
+  keyOf(kind, koName) {
+    const v = nfc(koName || "").trim();
+    if (!v) return null;
+    return (this.rules[kind].find(o => nfc(o.ko_name) === v) || {}).name || null;
+  },
+
+  // ── 입력 폼 ────────────────────────────────────────────────
+
+  // 여섯 칸짜리 입력줄. 칸마다 무슨 능력치인지 위에 적는다 —
+  // 순서를 외우고 있어야 쓸 수 있는 화면은 매번 세어보게 된다.
+  statGrid(cell) {
+    return `<div class="statgrid">${STAT_KEYS.map((k, i) => `<div>
+      <span class="cap">${STAT_SHORT[i]}</span>${cell(k, i)}
+    </div>`).join("")}</div>`;
+  },
+
+  field(label, inner) {
+    return `<div><label>${label}</label>${inner}</div>`;
+  },
+
+  comboInput(name, extra = "") {
+    return combo(`<input type="text" data-f="${name}" data-combo="${name}"
+      autocomplete="off" ${extra}>`);
+  },
+
+  // 아군은 HP 를 숫자로 쓴다 — 내 포켓몬은 실제 수치가 보인다.
+  // 상대는 게임에서도 % 로만 보이므로 막대로 맞춘다.
+  hpControl(who) {
+    return who === "defender"
+      ? `<div class="hpwrap">
+           <label class="inline">남은 HP</label>
+           <input type="range" data-f="hp_pct" min="0" max="100" step="1" value="100">
+           <span class="hpinfo" data-hp-info></span>
+         </div>`
+      : `<div class="hpwrap">
+           <label class="inline">남은 HP
+             <input type="number" data-f="hp" min="1" onfocus="this.select()"></label>
+           <span class="hpinfo" data-hp-info></span>
+         </div>`;
+  },
+
+  sideFields(who, label, {moves = false} = {}) {
+    return `
+    <fieldset data-side="${who}">
+      <legend>${label}</legend>
+      <div class="row">${this.field("포켓몬", this.comboInput("ko_name"))}</div>
+      <div class="row two">
+        ${this.field("특성", this.comboInput("ability"))}
+        ${this.field("성격", this.comboInput("ko_nature"))}
+      </div>
+      <div class="row two">
+        ${this.field("도구", this.comboInput("item", 'placeholder="없음"'))}
+        ${this.field("상태이상", this.comboInput("condition", 'placeholder="정상"'))}
+      </div>
+      <div class="row">
+        <label>SP · 총 66 · 칸당 32</label>
+        ${this.statGrid(k => `<input type="number" data-sp="${k}" min="0" max="32"
+           value="0" onfocus="this.select()">`)}
+      </div>
+      <div class="row">
+        <label>랭크</label>
+        ${this.statGrid(k => `<select data-rank="${k}">${
+          opt(this.RANKS.map(r => [r, r > 0 ? `+${r}` : String(r)]), 0)}</select>`)}
+      </div>
+      ${moves ? `<div class="row">
+        <label>기술 (최대 4개)</label>
+        <div class="row two" style="margin:0">
+          ${[0, 1, 2, 3].map(i => combo(`<input type="text" data-move="${i}"
+            data-combo="move" autocomplete="off" placeholder="없음">`)).join("")}
+        </div></div>` : ""}
+      <div class="hprow">
+        <label class="inline"><input type="checkbox" data-f="grounded" checked> 접지</label>
+        ${this.hpControl(who)}
+      </div>
+    </fieldset>`;
+  },
+
+  // ── HP ─────────────────────────────────────────────────────
+
+  // 실능 HP = 종족값 + 75 + SP. 성격은 HP 에 안 걸린다.
+  maxHp(el) {
+    const row = this.base[nfc(el.querySelector("[data-f='ko_name']").value)];
+    if (!row) return null;
+    return row.h + this.HP_OFFSET + (+el.querySelector("[data-sp='h']").value || 0);
+  },
+
+  syncHp(el) {
+    const max = this.maxHp(el);
+    const info = el.querySelector("[data-hp-info]");
+    if (!info) return;
+    if (max == null) { info.textContent = ""; return; }
+
+    const bar = el.querySelector("[data-f='hp_pct']");
+    if (bar) {
+      const pct = +bar.value;
+      info.textContent = `${pct}%  ≈ ${Math.max(1, Math.round(max * pct / 100))} / ${max}`;
+      return;
+    }
+    // 비워두면 만피로 본다. 그때도 실제 숫자를 보여준다 — "만피" 라고만
+    // 쓰여 있으면 그게 몇인지 알 수 없다.
+    const input = el.querySelector("[data-f='hp']");
+    input.max = max;
+    input.placeholder = max;
+    const cur = input.value ? +input.value : max;
+    info.textContent = `/ ${max}  (${(cur / max * 100).toFixed(1)}%)`;
+  },
+
+  // ── 읽고 쓰기 ──────────────────────────────────────────────
+
+  el(who) { return document.querySelector(`fieldset[data-side="${who}"]`); },
+
+  async loadSide(who, koName) {
+    const el = this.el(who);
+    if (!el) return;
+    const res = await fetch(`/api/pokemon/${encodeURIComponent(koName)}/options`);
+    if (!res.ok) return;
+    const {selectable_abilities, learnable_moves,
+           is_mega, forced_item} = await res.json();
+    this.side[who] = {abilities: selectable_abilities, moves: learnable_moves};
+
+    // 메가폼은 지닐 도구가 하나로 정해져 있다. 메가스톤 없이는 그 폼 자체가
+    // 성립하지 않으므로, 칸을 채우고 잠근다. 고를 여지가 없는 것을 고르게
+    // 두면 다른 도구를 넣어놓고 왜 안 되는지 찾게 된다.
+    const item = el.querySelector("[data-f='item']");
+    item.readOnly = !!is_mega;
+    item.classList.toggle("locked", !!is_mega);
+    if (is_mega) {
+      item.value = forced_item || "";
+      item.title = forced_item ? "메가폼은 이 스톤으로 고정됩니다"
+                               : "이 메가폼의 스톤이 DB에 없습니다";
+    } else {
+      item.title = "";
+    }
+
+    // 이전 포켓몬의 특성이 남아 있으면 서버가 400 을 낸다. 첫 후보로 채운다.
+    const ab = el.querySelector("[data-f='ability']");
+    if (!selectable_abilities.includes(nfc(ab.value))) ab.value = selectable_abilities[0] || "";
+    if (!el.querySelector("[data-f='ko_nature']").value) {
+      el.querySelector("[data-f='ko_nature']").value = "성실";
+    }
+    // 기술도 마찬가지. 배울 수 없는 게 남으면 계산이 안 된다.
+    //
+    // 기술 칸은 공격자만 건드린다. 방어자를 바꿨다고 공격자의 기술이
+    // 지워지면, 상대만 갈아끼우며 비교하는 흔한 흐름이 매번 끊긴다.
+    if (who !== "attacker") return;
+    const learn = new Set(learnable_moves);
+    const one = document.querySelector('.calc .wide [data-f="move"]');
+    el.querySelectorAll("[data-move]").forEach(
+      i => { if (!learn.has(nfc(i.value))) i.value = ""; });
+    if (one) {
+      if (!learn.has(nfc(one.value))) one.value = "";
+      if (!one.value) one.value = learnable_moves[0] || "";
+    }
+  },
+
+  read(who) {
+    const el = this.el(who);
+    const v = f => el.querySelector(`[data-f="${f}"]`);
+    const rank = {};
+    el.querySelectorAll("[data-rank]").forEach(s => {
+      const n = +s.value;
+      if (n) rank[s.dataset.rank] = n;      // 0 은 안 보낸다. 기본값이다
+    });
+
+    const bar = v("hp_pct");
+    const max = this.maxHp(el);
+    let hp = null;
+    if (bar) {
+      // 100% 는 만피와 같으므로 안 보낸다. 서버의 기본값이 그것이다.
+      if (+bar.value < 100 && max) hp = Math.max(1, Math.round(max * +bar.value / 100));
+    } else if (v("hp").value) {
+      hp = +v("hp").value;
+    }
+
+    return {
+      ko_name: nfc(v("ko_name").value),
+      ability: nfc(v("ability").value),
+      item: nfc(v("item").value) || null,
+      ko_nature: nfc(v("ko_nature").value) || "성실",
+      sp_values: [...el.querySelectorAll("[data-sp]")].map(i => +i.value || 0),
+      rank,
+      condition: this.keyOf("conditions", v("condition").value),
+      hp,
+      grounded: v("grounded").checked,
+    };
+  },
+
+  // 공격자와 방어자를 통째로 맞바꾼다. "이번엔 내가 맞는 쪽" 을 보려고
+  // 열 몇 칸을 다시 고르는 일이 제일 잦다.
+  async swap() {
+    const [a, b] = [this.read("attacker"), this.read("defender")];
+    await this.write("attacker", b);
+    await this.write("defender", a);
+    // HP 는 스펙을 다 옮긴 뒤에 넣는다. 종족값과 SP 가 자리를 잡아야
+    // 절대값 ↔ % 환산의 분모(만피)가 정해진다.
+    this.setHp("attacker", b.hp);
+    this.setHp("defender", a.hp);
+  },
+
+  // 한쪽은 숫자 칸이고 한쪽은 % 막대다. 어느 쪽이든 절대값으로 받아 넣는다.
+  setHp(who, hp) {
+    const el = this.el(who), max = this.maxHp(el);
+    const bar = el.querySelector("[data-f='hp_pct']");
+    if (bar) bar.value = (hp && max) ? Math.round(hp / max * 100) : 100;
+    else el.querySelector("[data-f='hp']").value = hp ?? "";
+    this.syncHp(el);
+  },
+
+  async write(who, spec) {
+    const el = this.el(who);
+    el.querySelector("[data-f='ko_name']").value = spec.ko_name;
+    await this.loadSide(who, spec.ko_name);   // 후보 목록을 먼저 갈아끼운다
+    const v = f => el.querySelector(`[data-f="${f}"]`);
+    v("ability").value = spec.ability;
+    // 메가폼이면 loadSide 가 스톤으로 채우고 잠갔다. 덮어쓰지 않는다.
+    if (!v("item").readOnly) v("item").value = spec.item || "";
+    v("ko_nature").value = spec.ko_nature;
+    v("condition").value = this.koOf("conditions", spec.condition);
+    v("grounded").checked = spec.grounded;
+    el.querySelectorAll("[data-sp]").forEach((i, n) => i.value = spec.sp_values[n]);
+    el.querySelectorAll("[data-rank]").forEach(
+      s => s.value = spec.rank[s.dataset.rank] || 0);
+    this.syncHp(el);
+  },
+
+  koOf(kind, name) {
+    if (!name) return "";
+    return (this.rules[kind].find(o => o.name === name) || {}).ko_name || "";
+  },
+
+  // ── 이벤트 ─────────────────────────────────────────────────
+
+  onChange(e) {
+    const input = e.target.closest("[data-f='ko_name']");
+    if (input) {
+      const el = input.closest("fieldset");
+      this.loadSide(el.dataset.side, nfc(input.value));
+      this.syncHp(el);
+    }
+  },
+
+  onInput(e) {
+    const el = e.target.closest("fieldset[data-side]");
+    if (el && e.target.matches("[data-sp], [data-f='hp'], [data-f='hp_pct']")) {
+      this.syncHp(el);
+    }
+  },
+
+  // ── 데미지 ─────────────────────────────────────────────────
+
+  damageForm() {
+    return `
+    <div class="calc">
+      ${this.sideFields("attacker", "공격자")}
+      ${this.sideFields("defender", "방어자")}
+
+      <fieldset class="wide">
+        <legend>기술 · 배틀 상황</legend>
+        <div class="row two">
+          ${this.field("기술", combo(`<input type="text" data-f="move"
+            data-combo="move" autocomplete="off">`))}
+          <div class="row two" style="margin:0">
+            ${this.field("날씨", combo(`<input type="text" data-f="weather"
+              data-combo="weather" autocomplete="off" placeholder="없음">`))}
+            ${this.field("필드", combo(`<input type="text" data-f="terrain"
+              data-combo="terrain" autocomplete="off" placeholder="없음">`))}
+          </div>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" data-f="is_critical"> 급소</label>
+          <label><input type="checkbox" data-f="reflect"> 리플렉터</label>
+          <label><input type="checkbox" data-f="light_screen"> 빛의장막</label>
+          <label><input type="checkbox" data-f="is_doubles"> 더블</label>
+          <button class="swap" type="button">공수 교대</button>
+          <button class="run" type="button" style="margin-left:auto">계산</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="wide result" id="calc-result" hidden></fieldset>
+    </div>`;
+  },
+
+  async runDamage() {
+    const g = f => document.querySelector(`.calc .wide [data-f="${f}"]`);
+    await this.post("/api/calc/damage", {
+      attacker: this.read("attacker"),
+      defender: this.read("defender"),
+      move: nfc(g("move").value),
+      weather: this.keyOf("weathers", g("weather").value),
+      terrain: this.keyOf("terrains", g("terrain").value),
+      is_critical: g("is_critical").checked,
+      reflect: g("reflect").checked,
+      light_screen: g("light_screen").checked,
+      is_doubles: g("is_doubles").checked,
+    }, d => this.damageResult(d));
+  },
+
+  // ── 결정력 ─────────────────────────────────────────────────
+
+  powerForm() {
+    return `
+    <div class="calc">
+      ${this.sideFields("attacker", "포켓몬", {moves: true})}
+      <fieldset>
+        <legend>결정력이란</legend>
+        <p class="note">공격 실능 × 기술 위력 × 자속(1.5)입니다.
+        상성 · 랭크 · 날씨는 상대와 판이 있어야 정해지므로 빠집니다.
+        절대값 자체에는 의미가 없고, <b>기술끼리 · 포켓몬끼리 견주는 데만</b>
+        씁니다.</p>
+        <div class="checks"><button class="run" type="button">계산</button></div>
+      </fieldset>
+      <fieldset class="wide result" id="calc-result" hidden></fieldset>
+    </div>`;
+  },
+
+  async runPower() {
+    const moves = [...this.el("attacker").querySelectorAll("[data-move]")]
+      .map(i => nfc(i.value)).filter(Boolean);
+    await this.post("/api/calc/power",
+      {side: this.read("attacker"), moves}, d => this.powerResult(d));
+  },
+
+  // ── 내구력 ─────────────────────────────────────────────────
+
+  bulkForm() {
+    return `
+    <div class="calc">
+      ${this.sideFields("attacker", "포켓몬")}
+      <fieldset>
+        <legend>내구력이란</legend>
+        <p class="note">HP × 방어, HP × 특수방어입니다.
+        HP만 봐도 방어만 봐도 몇 방 버티는지가 안 나옵니다. 받는 데미지가
+        방어에 반비례하고 남은 턴이 HP에 비례하므로 두 값의 곱이 기준이
+        됩니다. 이것도 <b>비교용</b>입니다.</p>
+        <div class="checks"><button class="run" type="button">계산</button></div>
+      </fieldset>
+      <fieldset class="wide result" id="calc-result" hidden></fieldset>
+    </div>`;
+  },
+
+  async runBulk() {
+    await this.post("/api/calc/bulk",
+      {side: this.read("attacker")}, d => this.bulkResult(d));
+  },
+
+  // ── 결과 ───────────────────────────────────────────────────
+
+  async post(url, body, render) {
+    const box = document.getElementById("calc-result");
+    box.hidden = false;
+    box.innerHTML = `<div class="empty">계산 중…</div>`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    box.innerHTML = res.ok ? render(data)
+      : `<legend>결과</legend><div class="err">${esc(
+          typeof data.detail === "string" ? data.detail : "계산 실패")}</div>`;
+  },
+
+  EFF_KO: {0: "무효", 0.25: "반의 반감", 0.5: "반감", 2: "효과가 굉장함", 4: "4배"},
+
+  // 랭크를 그대로 적는다. used 에 없는 능력치는 이 계산에 안 쓰이므로
+  // "무시됨" 이라고 밝힌다 — 체력 랭크를 올려놓고 왜 안 변하나 하게 된다.
+  rankText(rank, used) {
+    const all = Object.entries(rank || {});
+    if (!all.length) return "랭크 보정 없음";
+    const fmt = ([k, v]) => `${STAT_KO[k]} ${v > 0 ? "+" : ""}${v}`;
+    const on = all.filter(([k]) => used.includes(k));
+    const off = all.filter(([k]) => !used.includes(k));
+    return j(
+      on.length ? `적용됨 — ${on.map(fmt).map(esc).join(" · ")}` : "적용된 랭크 없음",
+      off.length ? `　(이 계산에 안 쓰임 — ${off.map(fmt).map(esc).join(" · ")})` : "");
+  },
+
+  // 서버가 실제로 무엇을 받아 계산했는지 적는다. 랭크를 올렸는데 숫자가
+  // 그대로일 때, 안 보낸 건지 안 걸리는 건지를 여기서 가른다.
+  appliedText(d) {
+    const c = d.context || {};
+    const rankKo = r => Object.entries(r || {})
+      .map(([k, v]) => `${STAT_KO[k]} ${v > 0 ? "+" : ""}${v}`).join(" ");
+    const parts = [
+      rankKo(c.attacker_rank) && `공격자 랭크 ${rankKo(c.attacker_rank)}`,
+      rankKo(c.defender_rank) && `방어자 랭크 ${rankKo(c.defender_rank)}`,
+      c.weather && this.koOf("weathers", c.weather),
+      c.terrain && this.koOf("terrains", c.terrain),
+      d.attacker.condition && this.koOf("conditions", d.attacker.condition) + "(공격자)",
+      d.defender.condition && this.koOf("conditions", d.defender.condition) + "(방어자)",
+      c.is_critical && "급소",
+      c.reflect && "리플렉터",
+      c.light_screen && "빛의장막",
+      c.is_doubles && "더블",
+      c.defender_hp && `방어자 잔여 HP ${c.defender_hp}`,
+    ].filter(Boolean);
+    return parts.length
+      ? `적용됨 — ${parts.map(esc).join(" · ")}`
+      : "적용된 보정 없음 (싱글 · 랭크 0 · 날씨 없음 · 만피)";
+  },
+
+  damageResult(d) {
+    const {damage: dm, ko} = d;
+    const p = v => v / dm.defender_hp * 100;
+    const pct1 = v => v.toFixed(1);
+    const avg = Math.round(dm.rolls.reduce((s, x) => s + x, 0) / dm.rolls.length);
+    const eff = d.type_effect;
+
+    return `
+      <legend>결과</legend>
+
+      <div class="verdict">
+        <div class="ko">${esc(ko.text)}</div>
+        <div class="line">
+          ${esc(d.attacker.name)} 의 <b>${esc(d.move.name)}</b>
+          ${iconImg(d.move.icon, typeKo(d.move.type), "tiny")}
+          (${CATEGORY_KO[d.move.category]} · 위력 ${dash(d.move.power)})
+          → ${esc(d.defender.name)}
+          ${eff !== 1 ? `<span class="chip ${eff > 1 ? "warn" : ""}">${
+            esc(this.EFF_KO[eff] || `×${eff}`)}</span>` : ""}
+        </div>
+      </div>
+
+      <div class="applied">${this.appliedText(d)}</div>
+
+      <div class="hpbar">
+        <i class="hi" style="width:${Math.min(100, p(dm.max))}%"></i>
+        <i class="lo" style="width:${Math.min(100, p(dm.min))}%"></i>
+      </div>
+      <div class="hpscale"><span>0</span><span>방어자 HP ${dm.defender_hp}</span></div>
+
+      <table class="rolltable">
+        <thead><tr><th></th><th class="num">데미지</th><th class="num">HP 대비</th>
+          <th class="num">남는 HP</th></tr></thead>
+        <tbody>
+          <tr><td>최소 (운 나쁠 때)</td><td class="num">${dm.min}</td>
+            <td class="num">${pct1(dm.percent_min)}%</td>
+            <td class="num">${Math.max(0, dm.defender_hp - dm.min)}</td></tr>
+          <tr><td>평균</td><td class="num">${avg}</td>
+            <td class="num">${pct1(p(avg))}%</td>
+            <td class="num">${Math.max(0, dm.defender_hp - avg)}</td></tr>
+          <tr><td>최대 (운 좋을 때)</td><td class="num">${dm.max}</td>
+            <td class="num">${pct1(dm.percent_max)}%</td>
+            <td class="num">${Math.max(0, dm.defender_hp - dm.max)}</td></tr>
+        </tbody>
+      </table>
+
+      ${ko.turns.length > 1 ? `
+      <table class="rolltable">
+        <thead><tr><th>턴</th><th class="num">맞기 전 HP</th>
+          <th class="num">데미지</th><th class="num">맞은 뒤</th></tr></thead>
+        <tbody>${ko.turns.map((t, i) => `<tr>
+          <td>${i + 1}턴</td>
+          <td class="num">${t.hp_before}</td>
+          <td class="num">${t.damage_min}~${t.damage_max}</td>
+          <td class="num">${Math.max(0, t.hp_before - t.damage_max)}~${
+            Math.max(0, t.hp_before - t.damage_min)}</td>
+        </tr>`).join("")}</tbody>
+      </table>` : ""}
+
+      <details class="rolls">
+        <summary>난수 16단계 펼치기</summary>
+        <div>본가는 데미지에 85~100% 를 16단계로 굴린다. 아래가 그 16개다.</div>
+        <div class="rollgrid">${dm.rolls.map(
+          r => `<span>${r}<em>${pct1(p(r))}%</em></span>`).join("")}</div>
+      </details>`;
+  },
+
+  powerResult(d) {
+    if (!d.moves.length) {
+      return `<legend>결과</legend><div class="empty">기술을 하나 이상 고르세요.</div>`;
+    }
+    const top = d.moves[0].index || 1;
+    return `
+      <legend>결과 — ${esc(d.side.name)}</legend>
+      <div class="sub2">공격 ${d.side.stats.a} · 특수공격 ${d.side.stats.c}</div>
+      <div class="applied">${this.rankText(d.side.rank, ["a", "c"])}</div>
+      <table class="rolltable">
+        <thead><tr><th>기술</th><th class="mid">분류</th><th class="num">위력</th>
+          <th class="mid">자속</th><th class="num">결정력</th><th></th></tr></thead>
+        <tbody>${d.moves.map(m => `<tr>
+          <td>${iconImg(m.icon, typeKo(m.type), "tiny")} ${esc(m.name)}</td>
+          <td class="mid">${CATEGORY_KO[m.category]}</td>
+          <td class="num">${dash(m.power)}</td>
+          <td class="mid">${m.stab ? "○" : ""}</td>
+          <td class="num"><b>${m.index.toLocaleString()}</b></td>
+          <td style="width:40%"><span class="minibar"><i style="width:${
+            m.index / top * 100}%"></i></span></td>
+        </tr>`).join("")}</tbody>
+      </table>`;
+  },
+
+  bulkResult(d) {
+    const s = d.side.stats;
+    const max = Math.max(d.bulk.physical, d.bulk.special) || 1;
+    const row = (label, value, stat) => `<tr>
+      <td>${label}</td>
+      <td class="num">${s.h} × ${stat}</td>
+      <td class="num"><b>${value.toLocaleString()}</b></td>
+      <td style="width:45%"><span class="minibar"><i style="width:${
+        value / max * 100}%"></i></span></td></tr>`;
+    return `
+      <legend>결과 — ${esc(d.side.name)}</legend>
+      <div class="sub2">체력 ${s.h} · 방어 ${s.b} · 특수방어 ${s.d}</div>
+      <div class="applied">${this.rankText(d.side.rank, ["b", "d"])}</div>
+      <table class="rolltable">
+        <thead><tr><th>구분</th><th class="num">계산</th>
+          <th class="num">내구력</th><th></th></tr></thead>
+        <tbody>
+          ${row("물리 내구", d.bulk.physical, s.b)}
+          ${row("특수 내구", d.bulk.special, s.d)}
+        </tbody>
+      </table>`;
+  },
+};
+
+// 랭크만 남은 <select>. 나머지는 전부 검색 가능한 콤보다.
+function opt(list, sel) {
+  return list.map(([v, l]) =>
+    `<option value="${esc(v)}"${v === sel ? " selected" : ""}>${esc(l)}</option>`).join("");
+}
 </script>
 </body>
 </html>
