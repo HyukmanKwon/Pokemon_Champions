@@ -1,19 +1,26 @@
-"""채용률을 우리 DB 와 맞춰 한국어로 돌려준다.
+"""채용률을 우리 DB 와 맞춰 돌려준다.
 
 battledata.py 가 받아온 영문 행과 DB 의 한국어 이름을 잇는 자리다.
 받아오기(battledata.py)와 잇기(여기)를 나눈 이유는, 네트워크가 안 될 때와
 DB 에 없을 때가 서로 다른 문제이기 때문이다. 한 일의 두 단계라 이름도
 usage 로 맞춰 두고, 어느 쪽인지는 계층(패키지 뿌리 / services)으로 가른다.
 
-── 영문 -> 우리 이름 ──
+── 영문 이름을 그대로 두고 한국어를 곁들인다 ──
   채용률 쪽은 사람이 읽는 표기(Focus Sash), 우리 DB 는 PokeAPI 슬러그
   (focus-sash) 를 쓴다. 소문자로 낮추고 공백을 하이픈으로 바꾸고 기호를
-  털면 대부분 맞는다. 안 맞는 것은 한국어로 못 바꾸고 영문 그대로 둔다 —
-  빈칸으로 두면 "그런 기술이 없다" 로 오해된다.
+  털면 대부분 맞는다.
 
-── 왜 category 를 우리 말로 바꾸나 ──
+  예전에는 한국어로 바꿔 내보내고 못 바꾼 것만 영문을 덧붙였다. 지금은
+  반대다 — name 은 늘 영문이고 ko_name 이 곁에 붙는다. 이 결과를 읽는
+  것이 LLM 인데, 모델은 Focus Sash 를 기합의띠보다 훨씬 잘 알고, 한국어
+  이름은 스스로 번역하지 말고 ko_name 을 글자 그대로 옮겨야 하기
+  때문이다. 못 찾으면 ko_name 은 null 이다. 칸을 빼지는 않는다 — 빼면
+  모델이 그 칸이 있다는 것 자체를 잊는다.
+
+── 왜 category 를 우리 키로 바꾸나 ──
   move / held_item / stat_alignment / stat_points 를 그대로 내보내면
-  화면과 LLM 이 각자 번역하게 된다. 한 곳에서 바꾼다.
+  화면과 LLM 이 각자 옮긴다. 한 곳에서 바꾼다. 복수형으로 두는 것은
+  값이 목록이라서다.
 """
 
 import re
@@ -21,13 +28,13 @@ import re
 from .. import battledata
 from ..db.repositories import lookup_repo
 
-CATEGORY_KO = {
-    "move": "기술",
-    "held_item": "도구",
-    "ability": "특성",
-    "teammate": "함께쓰는포켓몬",
-    "stat_alignment": "성격",
-    "stat_points": "SP배분",
+CATEGORY_KEY = {
+    "move": "moves",
+    "held_item": "items",
+    "ability": "abilities",
+    "teammate": "teammates",
+    "stat_alignment": "natures",
+    "stat_points": "spreads",
 }
 
 # 채용률 category -> 한국어 이름을 찾을 DB 테이블
@@ -39,11 +46,15 @@ CATEGORY_TABLE = {
     "stat_alignment": "pokemon_natures",
 }
 
-SP_COLUMNS = [("hp_points", "체력"), ("attack_points", "공격"),
-              ("defense_points", "방어"), ("sp_atk_points", "특수공격"),
-              ("sp_def_points", "특수방어"), ("speed_points", "스피드")]
+SP_COLUMNS = [("hp_points", "hp"), ("attack_points", "atk"),
+              ("defense_points", "def"), ("sp_atk_points", "spa"),
+              ("sp_def_points", "spd"), ("speed_points", "spe")]
 
-# 성격 보정 칸이 영문으로 온다. 여섯 개뿐이라 표 하나로 끝난다.
+# 성격 보정 칸이 사람 읽는 표기(Sp. Atk)로 온다. 여섯 개뿐이라 표 둘로
+# 끝난다. 키 쪽을 배분(spread)과 같은 이름으로 맞춰야, 한 답 안에서
+# "atk 에 몰고 atk 를 올린다" 가 같은 낱말로 읽힌다.
+STAT_KEY = {"HP": "hp", "Attack": "atk", "Defense": "def",
+            "Sp. Atk": "spa", "Sp. Def": "spd", "Speed": "spe"}
 STAT_KO = {"HP": "체력", "Attack": "공격", "Defense": "방어",
            "Sp. Atk": "특수공격", "Sp. Def": "특수방어", "Speed": "스피드"}
 
@@ -115,43 +126,47 @@ def usage_of(conn, en_name, ko_name=None, fmt="Singles", top=8):
     out = {}
     for row in data.get("rows", []):
         cat = row.get("category")
-        if cat not in CATEGORY_KO:
+        if cat not in CATEGORY_KEY:
             continue
-        bucket = out.setdefault(CATEGORY_KO[cat], [])
+        bucket = out.setdefault(CATEGORY_KEY[cat], [])
         if len(bucket) >= top:
             continue
 
         if cat == "stat_points":
             bucket.append({
-                "배분": {label: row.get(col) or 0 for col, label in SP_COLUMNS},
-                "비율": row.get("percentage_value"),
+                "spread": {key: row.get(col) or 0 for col, key in SP_COLUMNS},
+                "percent": row.get("percentage_value"),
             })
             continue
 
         en = row.get("name") or ""
         ko = (_pokemon_ko(maps, en) if cat == "teammate"
               else maps.get(cat, {}).get(slugify(en)))
-        entry = {"이름": ko or en, "비율": row.get("percentage_value")}
-        if ko is None:
-            # 못 바꾼 것은 영문임을 밝힌다. 조용히 두면 오타로 보인다.
-            entry["영문"] = en
+        # name 은 찾았든 못 찾았든 받은 영문 그대로다. 예전처럼 못 찾은
+        # 것만 영문으로 두면 한 목록 안에 두 모양이 섞여, 읽는 쪽이
+        # 어느 칸이 이름인지 매번 다시 판단해야 한다.
+        entry = {"name": en, "ko_name": ko,
+                 "percent": row.get("percentage_value")}
         if cat == "stat_alignment":
             up, down = row.get("stat_up"), row.get("stat_down")
-            entry["보정"] = (f"↑{STAT_KO.get(up, up) or '-'} "
-                             f"↓{STAT_KO.get(down, down) or '-'}")
+            entry["up"] = STAT_KEY.get(up)
+            entry["up_ko_name"] = STAT_KO.get(up)
+            entry["down"] = STAT_KEY.get(down)
+            entry["down_ko_name"] = STAT_KO.get(down)
         bucket.append(entry)
 
     result = {
-        "포켓몬": who,
-        "집계대상": data.get("pokemon"),
-        "포맷": fmt,
-        "시즌": data.get("season"),
-        "출처": "championsbattledata.com (게임 내 배틀 데이터를 옮긴 팬 사이트)",
+        "pokemon": en_name,
+        "ko_name": ko_name,
+        "counted_as": data.get("pokemon"),
+        "format": fmt,
+        "season": data.get("season"),
+        "source": "championsbattledata.com (게임 내 배틀 데이터를 옮긴 팬 사이트)",
     }
     if was_mega:
         # 밝히지 않으면 "메가갸라도스 채용률" 로 읽힌다. 실제로는 원종 통계다.
-        result["주의"] = ("메가는 배틀 중 상태라 채용률이 원종으로 집계됩니다. "
+        result["note"] = ("메가는 배틀 중 상태라 채용률이 원종으로 집계됩니다. "
                           "아래는 원종 기준이고, 메가로 가는 비율은 "
-                          "'도구' 항목의 메가스톤 비율로 보세요.")
+                          "items 항목의 메가스톤 비율로 보세요.")
     result.update(out)
     return result
