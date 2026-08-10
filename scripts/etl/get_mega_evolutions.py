@@ -24,7 +24,7 @@ from pokemon_champions.db import connect
 
 from . import paths
 from . import schema
-from .get_pokemons import split_mega
+from .get_pokemons import MANUAL_BASE, split_mega
 from .parse_utils import render, mogrify_rows
 
 FILENAME = "10_mega_evolutions.sql"
@@ -33,19 +33,17 @@ COLUMNS = ["mega_name", "base_name", "variant", "item_name"]
 DDL = schema.MEGA_EVOLUTIONS
 USES_API = False   # 생성 시 PokeAPI를 호출하는가
 
-# 이름 규칙으로 베이스를 못 찾는 예외.
-#   pyroar-mega 의 베이스는 pyroar 인데, 목록에는 pyroar-male 로 들어 있다.
-MANUAL_BASE = {
-    "pyroar-mega": "pyroar-male",
-}
+# 이름 규칙으로 베이스를 못 찾는 예외는 get_pokemons.MANUAL_BASE 에 있다.
+# can_mega 를 켜는 쪽과 같은 표를 봐야 둘이 어긋나지 않는다.
 
 # 접두사가 이만큼은 겹쳐야 같은 포켓몬으로 본다
 MIN_PREFIX_RATIO = 0.6
 MIN_PREFIX_LEN = 4
 
-# 스톤 이름에는 성별 구분이 없다. meowstic-male 과 meowstic-female 이
-# 똑같이 meowsticite 를 쓴다. 매칭할 때만 이 꼬리를 떼어낸다.
-FORM_SUFFIXES = ("-male", "-female")
+# 스톤 이름에는 폼 구분이 없다. meowstic-male 과 meowstic-female 이
+# 똑같이 meowsticite 를 쓰고, floette-eternal 의 스톤도 floette 기준이다.
+# 꼬리를 안 떼면 이름이 길어진 만큼 겹침 비율이 떨어져 매칭이 깨진다.
+FORM_SUFFIXES = ("-male", "-female", "-eternal")
 
 
 def match_key(base):

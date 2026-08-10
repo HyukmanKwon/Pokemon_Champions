@@ -60,7 +60,8 @@ CREATE TABLE pokemon_natures (
 )
 
 POKEMONS = f"""CREATE TABLE pokemons (
-    id        INT,
+    id         INT,   -- PokeAPI 번호. 폼마다 다르고 폼 변이는 10000번대다
+    pokemon_id INT,   -- 원종 도감 번호. 폼이 달라도 같다 (메가리자몽 -> 6)
     name      VARCHAR(50) PRIMARY KEY,
     ko_name   VARCHAR(50),
     type1     {TYPES_ENUM} NOT NULL,
@@ -152,11 +153,17 @@ ABILITIES = """CREATE TABLE abilities (
 ITEMS = """CREATE TABLE items (
     id           INT PRIMARY KEY,
     name         VARCHAR(50) UNIQUE NOT NULL,
-    ko_name      VARCHAR(50),   
+    ko_name      VARCHAR(50),
     category     VARCHAR(50),
-    fling_power  INT,          
+    fling_power  INT,
     description  TEXT,
-    effect       TEXT
+    effect       TEXT,
+
+    -- 포챔스에서 지니게 할 수 있는가. PokeAPI 는 이 구분을 주지 않아서
+    -- 일단 전부 TRUE 로 두고 사람이 확인한다. (annotator/items.py)
+    -- 확정값은 overrides/item_usable.json 에 쌓이고 get_items.py 가 덮어씌운다.
+    usable      BOOLEAN NOT NULL DEFAULT TRUE,
+    reviewed    BOOLEAN NOT NULL DEFAULT FALSE   -- 사람이 usable 을 확인했는가
 );
 """
 

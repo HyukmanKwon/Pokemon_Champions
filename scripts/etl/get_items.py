@@ -16,18 +16,25 @@ items 테이블용 06_items.sql 을 생성한다.
 
 from pokemon_champions.db import connect
 
+from . import overrides
 from . import paths
 from . import schema
 from .parse_utils import (get_json, pick_korean, pick_korean_flavor,
                          pick_english_effect, render, mogrify_rows)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/item"
+KO_OVERRIDE_KEY = "item_ko_names"
+USABLE_OVERRIDE_KEY = "item_usable"
 POKEAPI_CATEGORY = "https://pokeapi.co/api/v2/item-category"
+
+# 카테고리로 긁어온 목록이라 대전에서 쓸 수 없는 것이 섞인다. PokeAPI 는 그
+# 구분을 주지 않으므로 일단 전부 TRUE 로 두고 사람이 확인한다.
+DEFAULT_USABLE = True
 
 FILENAME = "06_items.sql"
 TABLE = "items"
 COLUMNS = ["id", "name", "ko_name", "category",
-           "fling_power", "description", "effect"]
+           "fling_power", "description", "effect", "usable", "reviewed"]
 DDL = schema.ITEMS
 USES_API = True   # 생성 시 PokeAPI를 호출하는가
 
@@ -36,18 +43,62 @@ USES_API = True   # 생성 시 PokeAPI를 호출하는가
 #   포챔스 룰에 따라 z-crystals, memories, jewels 등을 넣고 빼면 된다
 # ─────────────────────────────────────────────────────────────
 ITEM_CATEGORIES = [
-    "held-items",        # 72  먹다남은음식, 생명의구슬 ...
-    "choice",            #  3  구애 시리즈
-    "bad-held-items",    #  6  검은진흙, 끈적끈적바늘 ...
-    "type-enhancement",  # 22  차콜, 신비의물방울 ...
-    "species-specific",  # 22  전기구슬, 이상한부적 ...
+    "type-enhancement",  # 22  목탄, 신비의물방울 ... (기술 위력 상승류)
     "mega-stones",       # 92  메가스톤 전체
-    "stat-boosts",       #  9
-    "in-a-pinch",        #  9  기합의띠 계열 열매
-    "type-protection",   # 19  ○○열매
-    "picky-healing",     #  5
-    "effort-training",   #  7  파워 시리즈
-    "plates",            # 19
+    "type-protection",   # 19  오카열매, 꼬시개열매 ... (타입 데미지 반감 열매)
+]
+
+# 카테고리 통째로 담기에는 아까운 것들. 카테고리 안에 대전에서 못 쓰는
+# 것이 더 많아서, 쓸 것만 이름으로 집는다.
+#
+# held-items 만 해도 72개인데 그중 남길 건 아래 정도다. 카테고리를 통째로
+# 넣고 나중에 usable 플래그로 거르는 방법도 있지만, 그러면 도감이 안 쓰는
+# 도구로 뒤덮인다.
+EXTRA_ITEMS = [
+    # 열매 — 상태이상 회복. status-cures 카테고리를 통째로 넣으면 해독제·
+    # 만병통치제 같은 가방 아이템이 딸려 온다. 지니는 열매만 집는다.
+    "aspear-berry",    # 얼음
+    "cheri-berry",     # 마비
+    "chesto-berry",    # 잠듦
+    "lum-berry",       # 상태이상 전부 + 혼란
+    "pecha-berry",     # 독
+    "persim-berry",    # 혼란
+    "rawst-berry",     # 화상
+    # 열매 — 회복
+    "sitrus-berry",    # 자뭉열매
+    # 허브류
+    "mental-herb", "mirror-herb", "power-herb", "white-herb",
+    # 렌즈류 (노력치용 파워렌즈는 대전에서 안 쓴다)
+    "scope-lens", "wide-lens", "zoom-lens",
+    # 바위류 — 날씨를 늘리는 것들. 딱딱한돌·가벼운돌은 여기가 아니다
+    "damp-rock", "heat-rock", "icy-rock", "smooth-rock",
+    # 구애 시리즈
+    "choice-band", "choice-scarf", "choice-specs",
+    # 기합 시리즈
+    "focus-band", "focus-sash",
+    # 낱개
+    "big-root",        # 큰뿌리
+    "bright-powder",   # 반짝가루
+    "expert-belt",     # 달인의띠
+    "iron-ball",       # 검은철구
+    "kings-rock",      # 왕의징표석
+    "leftovers",       # 먹다남은음식
+    "life-orb",        # 생명의구슬
+    "light-ball",      # 전기구슬
+    "light-clay",      # 빛의점토
+    "metronome",       # 메트로놈
+    "muscle-band",     # 힘의머리띠
+    "quick-claw",      # 선제공격손톱
+    "shed-shell",      # 아름다운허물
+    "shell-bell",      # 조개껍질방울
+    "wise-glasses",    # 박식안경
+]
+
+# type-enhancement 안에 섞여 있는 향로류. 하는 일은 목탄·자석과 같은데
+# 위력 배수가 더 낮아, 목록에 두면 고를 일 없는 줄만 늘어난다.
+EXCLUDE_ITEMS = [
+    "odd-incense", "rock-incense", "rose-incense",
+    "sea-incense", "wave-incense",
 ]
 
 
@@ -60,7 +111,7 @@ def fetch_category(category):
 
 
 def collect_item_names():
-    """ITEM_CATEGORIES 전체를 돌며 중복 없는 도구 이름 목록을 만든다."""
+    """카테고리 + EXTRA_ITEMS 에서 EXCLUDE_ITEMS 를 뺀 이름 목록."""
     names = set()
     for category in ITEM_CATEGORIES:
         got = fetch_category(category)
@@ -69,6 +120,10 @@ def collect_item_names():
             continue
         names.update(got)
         print(f"{category} - {len(got)}개")
+    names.update(EXTRA_ITEMS)
+    print(f"낱개 지정 - {len(EXTRA_ITEMS)}개")
+    names -= set(EXCLUDE_ITEMS)
+    print(f"제외 - {len(EXCLUDE_ITEMS)}개")
     return sorted(names)
 
 
@@ -78,14 +133,32 @@ def fetch_item(name):
 
 
 def parse_item(data):
+    # 신규 메가스톤 등 PokeAPI 에 한국어가 없는 도구가 많다. annotator 로
+    # 손본 이름·설명을 덮어씌운다.
+    #   python -m scripts.etl.annotator.ko_names items
+    ko = {
+        "ko_name": pick_korean(data["names"]),
+        "description": pick_korean_flavor(data["flavor_text_entries"],
+                                          key="text"),
+    }
+    overrides.apply(KO_OVERRIDE_KEY, data["name"], ko)
+
+    # 지닐 수 있는 도구인지의 판정. 이 적용이 없으면
+    # python -m scripts.etl.build 한 번에 손으로 찍은 것이 전부 날아간다.
+    #   python -m scripts.etl.annotator.items
+    flags = {"usable": DEFAULT_USABLE}
+    reviewed = overrides.apply(USABLE_OVERRIDE_KEY, data["name"], flags)
+
     return {
         "id": data["id"],
         "name": data["name"],
-        "ko_name": pick_korean(data["names"]),
+        "ko_name": ko["ko_name"],
         "category": data["category"]["name"],
         "fling_power": data["fling_power"],   # 던질 수 없는 도구는 None
-        "description": pick_korean_flavor(data["flavor_text_entries"], key="text"),
+        "description": ko["description"],
         "effect": pick_english_effect(data["effect_entries"]),
+        "usable": flags["usable"],
+        "reviewed": reviewed,
     }
 
 
@@ -113,6 +186,9 @@ def build(conn):
     print(f"\n수집 {len(values)}개")
     print(f"한국어 이름 없음: {len(no_ko)}개 - {no_ko}")
     print(f"실패: {len(failed)}개 - {failed}")
+    judged = len(overrides.load(USABLE_OVERRIDE_KEY)["values"])
+    print(f"지닐 수 없다고 확인된 도구: {judged}개 "
+          f"(annotator/items.py 로 확인합니다)")
     return render(schema.ITEMS, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
 
