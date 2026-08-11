@@ -28,6 +28,11 @@ const TYPE_KO = {};
 // 전환 UI 가 생기면 여기에 덱 id 를 넣기만 하면 된다.
 let ACTIVE_DECK = null;
 
+// 덱을 붙이는 자리는 여기 하나다. 라우트마다 손으로 이어붙이면 한 군데를
+// 빠뜨리고, 그러면 "고친 덱" 과 "보는 덱" 이 갈린다.
+const deckQuery = (sep = "?") =>
+  ACTIVE_DECK ? `${sep}deck=${encodeURIComponent(ACTIVE_DECK)}` : "";
+
 const TYPES_READY = fetch("/api/types")
   .then(r => r.json())
   .then(rows => rows.forEach(t => { TYPE_KO[t.name] = t.ko_name; }));

@@ -366,7 +366,7 @@ async function onEdit(el, field) {
     }
   }
 
-  const res = await fetch(`/api/team/${index}`, {
+  const res = await fetch(`/api/team/${index}${deckQuery()}`, {
     method: "PATCH",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(body),
@@ -388,7 +388,7 @@ async function load() {
   // 팀만 보려고 들어온 사람이 기술 498줄까지 기다릴 이유가 없다.
   const [slots, pokemons, items, natures] = await Promise.all([
     TYPES_READY,
-    fetch("/api/team").then(r => r.json()),
+    fetch(`/api/team${deckQuery()}`).then(r => r.json()),
     fetch("/api/pokemons").then(r => r.json()),
     fetch("/api/items").then(r => r.json()),
     fetch("/api/natures").then(r => r.json()),

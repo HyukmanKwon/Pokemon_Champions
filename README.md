@@ -129,7 +129,8 @@ Pokemon_Champions/
 │           └── static/
 │               ├── index.html  뼈대만. 순서대로 js 를 부른다
 │               ├── css/app.css
-│               └── js/         common · tabs · dex · team · calc
+│               └── js/         common · tabs · dex · team ·
+│                               decks · calc · agent
 │
 └── tests/                      계산 테스트는 DB 없이, 도구·라우트는 DB 로
     ├── conftest.py             overrides 격리 · db 픽스처 · 덱 격리

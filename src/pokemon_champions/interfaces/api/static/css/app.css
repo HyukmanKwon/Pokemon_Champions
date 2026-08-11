@@ -413,3 +413,38 @@
   }
   .chat-form { display: flex; gap: 8px; margin-top: 12px; }
   .chat-form input { flex: 1; }
+
+  /* ── 덱 바 ────────────────────────────────────────────────── */
+  .deckbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .deckbar .deck {
+    padding: 5px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    cursor: pointer;
+  }
+  .deckbar .deck.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  /* 만들기·지우기는 덱 고르기와 성격이 다르다. 한 칸 띄우고 작게 둔다 —
+     붙여 놓으면 덱을 고르려다 삭제를 누른다 */
+  .deckbar .deck-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: 12px;
+    padding-left: 12px;
+    border-left: 1px solid var(--border);
+  }
+  .deckbar .deck-actions button {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
