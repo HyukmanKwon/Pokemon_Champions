@@ -28,6 +28,7 @@ from pathlib import Path
 import pytest
 
 from pokemon_champions.agent import schemas, tools
+from pokemon_champions.usecases import naming
 
 GOLDEN = Path(__file__).parent / "golden" / "tools.json"
 
@@ -87,20 +88,16 @@ def _key(name, args):
 
 @pytest.fixture
 def results(db, fixed_team):
-    """도구 14개를 전부 한 번씩 부른 결과.
+    """도구를 전부 한 번씩 부른 결과.
 
-    db 가 없으면 그 픽스처가 skip 시킨다. fixed_team 은 엔트리를 고정한다.
+    db 가 없으면 그 픽스처가 skip 시킨다. fixed_team 은 덱을 고정한다.
 
-    도구는 자기 커넥션을 스스로 열고 캐시한다(_state). 끝나면 닫아서 다음
-    테스트에 남지 않게 한다 — 지금은 tools 가 conn 을 혼자 들고 있어서
-    이렇게 뒤처리를 해야 한다. 조립 층이 생기면 conn 을 인자로 받게 되고
-    이 줄은 사라진다.
+    세션을 만들어 넘긴다 — 도구가 커넥션을 스스로 열던 시절에는 여기서
+    close() 로 뒤처리를 해야 했다. 이제 커넥션의 수명은 db 픽스처가 쥔다.
     """
-    out = {}
-    for name, args in CALLS:
-        out[_key(name, args)] = tools.call(name, args)
-    tools.close()
-    return out
+    s = tools.session(db)
+    naming.clear()      # 앞 테스트가 다른 DB 를 읽어뒀을 수 있다
+    return {_key(name, args): tools.call(s, name, args) for name, args in CALLS}
 
 
 def test_golden(results):
@@ -137,7 +134,8 @@ def test_스키마와_함수의_짝():
     assert set(schemas.TOOLS) == set(tools.HANDLERS)
 
 
-def test_없는_도구는_값으로_돌려준다():
-    """예외를 올리면 루프가 죽는다. DB 없이도 도는 검사다."""
-    assert "error" in tools.call("그런건없다", {})
-    assert "error" in tools.call("find_move", {"틀린인자": 1})
+def test_없는_도구는_값으로_돌려준다(db):
+    """예외를 올리면 루프가 죽는다."""
+    s = tools.session(db)
+    assert "error" in tools.call(s, "그런건없다", {})
+    assert "error" in tools.call(s, "find_move", {"틀린인자": 1})

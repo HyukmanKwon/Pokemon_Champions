@@ -367,3 +367,49 @@
     text-align: center; font-variant-numeric: tabular-nums; color: var(--text);
   }
   .rollgrid em { display: block; font-style: normal; font-size: 0.68rem; color: var(--muted); }
+
+  /* ── 도우미 ──────────────────────────────────────────────── */
+  .chat-log {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 320px;
+    max-height: calc(100vh - 260px);
+    overflow-y: auto;
+    padding: 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .bubble {
+    max-width: 78%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    line-height: 1.6;
+  }
+  /* 내 말은 오른쪽. 누가 한 말인지 색보다 위치로 먼저 읽힌다 */
+  .bubble.me { align-self: flex-end; background: var(--accent); color: #fff; }
+  .bubble.bot { align-self: flex-start; background: var(--bg); }
+  .bubble.err { align-self: flex-start; background: var(--bg); color: var(--error); }
+  .bubble.waiting { align-self: flex-start; color: var(--muted); font-size: 0.85rem; }
+  /* 도구 호출은 대화가 아니라 근거다. 폭을 다 쓰고 글자를 줄인다 */
+  .bubble.tool {
+    align-self: stretch;
+    max-width: none;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-size: 0.78rem;
+    padding: 6px 10px;
+  }
+  .bubble.tool summary { cursor: pointer; }
+  .bubble.tool .sub { color: var(--muted); }
+  .bubble.tool pre {
+    margin: 8px 0 0;
+    padding: 8px;
+    background: var(--card-bg);
+    border-radius: 6px;
+    overflow-x: auto;
+    max-height: 260px;
+  }
+  .chat-form { display: flex; gap: 8px; margin-top: 12px; }
+  .chat-form input { flex: 1; }

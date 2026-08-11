@@ -13,9 +13,11 @@ function showTab(kind) {
     b => b.classList.toggle("on", b.dataset.tab === kind));
   document.querySelectorAll(".panel").forEach(
     p => p.hidden = p.id !== `panel-${kind}`);
-  // 계산기는 목록/상세 구조가 아니라 DEX 를 안 탄다.
+  // 도감 탭인지는 DEX 에 있는지로 판정한다. "team 이 아니면 도감" 으로
+  // 적어두면 탭을 하나 더할 때마다 여기가 조용히 틀린다 — 실제로 도우미
+  // 탭을 더했을 때 initDex("agent") 를 부를 뻔했다.
   if (kind === "calc") Calc.init();
-  else if (kind !== "team") initDex(kind);
+  else if (DEX[kind]) initDex(kind);
 }
 
 // 다른 탭의 상세로 건너뛴다. 기술 상세에서 "배우는 포켓몬"을 눌렀을 때처럼

@@ -15,6 +15,7 @@
   <button data-tab="ability">특성</button>
   <button data-tab="item">도구</button>
   <button data-tab="calc">계산기</button>
+  <button data-tab="agent">도우미</button>
 </nav>
 
 <section class="panel" id="panel-team"><div id="grid" class="grid"></div></section>
@@ -23,6 +24,14 @@
 <section class="panel" id="panel-ability" hidden></section>
 <section class="panel" id="panel-item" hidden></section>
 <section class="panel" id="panel-calc" hidden></section>
+<section class="panel" id="panel-agent" hidden>
+  <div id="chat-log" class="chat-log"></div>
+  <form id="chat-form" class="chat-form">
+    <input id="chat-input" autocomplete="off"
+           placeholder="예: 내 팀이 한카리아스 지진을 버티나?">
+    <button type="submit">묻기</button>
+  </form>
+</section>
 
 
 <!-- 순서가 곧 의존 순서다. common 이 먼저 오지 않으면 나머지가
@@ -33,5 +42,6 @@
 <script src="/static/js/dex.js"></script>
 <script src="/static/js/team.js"></script>
 <script src="/static/js/calc.js"></script>
+<script src="/static/js/agent.js"></script>
 </body>
 </html>

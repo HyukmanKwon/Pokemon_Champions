@@ -61,6 +61,7 @@ import random
 
 import requests
 
+from ..usecases import naming
 from . import schemas, tools
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
@@ -119,7 +120,7 @@ Rules you must follow:
    "초능력", and dark is "악", not "어둠"."""
 
 
-def system_prompt():
+def system_prompt(session):
     """SYSTEM 에 타입 이름 열여덟 줄을 붙여 돌려준다.
 
     표를 프롬프트에 박아두지 않고 매번 DB 에서 읽는 이유는, 박아두면 그
@@ -127,7 +128,8 @@ def system_prompt():
     고치게 되고, 모델은 낡은 쪽을 읽는다.
     """
     listing = ", ".join(f"{en}={ko}"
-                        for en, ko in sorted(tools.type_names().items()))
+                        for en, ko in sorted(
+                            naming.type_names(session.conn).items()))
     return f"{SYSTEM}\n\nType names (pokemon_type_names, ko):\n{listing}"
 
 
@@ -173,14 +175,18 @@ def chat(messages, model=DEFAULT_MODEL, url=OLLAMA_URL, use_tools=True):
         return res.json()["message"]
 
 
-def ask(question, model=DEFAULT_MODEL, history=None, on_tool=None):
+def ask(question, session, model=DEFAULT_MODEL, history=None, on_tool=None):
     """질문 하나에 답한다. 돌려주는 값은 (답변, 갱신된 history).
+
+    session 은 도구가 쓸 커넥션·참조표·덱이다(tools.Session). 부르는 쪽이
+    만들어 넘긴다 — CLI 는 자기 커넥션으로, 웹은 요청마다 하나씩.
 
     on_tool(name, args, result) 를 주면 도구를 부를 때마다 불러준다.
     화면에 무엇을 물었는지 보여주려는 것 — 답만 나오면 그 숫자가 어디서
     왔는지 알 수 없다.
     """
-    messages = list(history or [{"role": "system", "content": system_prompt()}])
+    messages = list(history
+                    or [{"role": "system", "content": system_prompt(session)}])
     messages.append({"role": "user", "content": question})
 
     for _ in range(MAX_TURNS):
@@ -201,7 +207,7 @@ def ask(question, model=DEFAULT_MODEL, history=None, on_tool=None):
                     args = json.loads(args)
                 except json.JSONDecodeError:
                     args = {}
-            result = tools.call(fn["name"], args)
+            result = tools.call(session, fn["name"], args)
             if on_tool:
                 on_tool(fn["name"], args, result)
             messages.append({

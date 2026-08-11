@@ -5,17 +5,23 @@ CLI(interfaces/cli.py)와 완전히 같은 services 를 쓴다 — 검증/부분
 호출만 한다. 이 파일에 계산이나 SQL 이 생기면 CLI 와 웹의 동작이 갈라진다.
 """
 
+import json
+import queue
+import threading
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import requests
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import (FileResponse, HTMLResponse, StreamingResponse)
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from ... import assets
 from ...config import IMAGES_DIR
-from ...db import connect
+from ...agent import runner
+from ...agent import tools as agent_tools
+from ...db import connect, connection
 from ...db.repositories import (ability_repo, item_repo, move_repo,
                                 nature_repo, pokemon_repo, rules_repo)
 from ...domain import STAT_LABELS, STAT_ORDER
@@ -309,6 +315,90 @@ def dex_item(name: str):
         row["mega"]["mega_icon"] = assets.url_pokemon_icon(
             row["mega"]["mega_id"])
     return row
+
+
+# ─────────────────────────────────────────────────────────────
+# 도우미 — 로컬 LLM 에게 묻고, 무엇을 부르는지 실시간으로 보여준다
+#
+# ── 왜 SSE 인가 ──
+#   한 질문에 2분이 걸린다. 다 끝난 뒤에 한 번에 주면 그동안 화면이 죽어
+#   있고, 사용자는 멈춘 건지 도는 건지 알 수 없다. runner 가 이미
+#   on_tool 콜백으로 "지금 무엇을 부르는지" 를 알려주므로, 그걸 그대로
+#   이벤트로 흘린다.
+#
+#   WebSocket 이 아닌 이유는 방향이 한쪽뿐이어서다. 질문은 POST 한 번이고
+#   그 뒤로는 서버가 말하기만 한다.
+#
+# ── 왜 커넥션을 따로 여나 ──
+#   state["conn"] 을 쓰면 이 요청이 2분 동안 그걸 붙잡는다. 그 사이 다른
+#   탭이 도감을 열면 같은 psycopg2 커넥션을 두 스레드가 나눠 쓰게 되고,
+#   그건 안전하지 않다. 대화 하나가 자기 커넥션을 열고 끝나면 닫는다.
+# ─────────────────────────────────────────────────────────────
+
+class ChatRequest(BaseModel):
+    question: str
+    # 지금 화면이 보고 있는 덱. 모델이 고르는 값이 아니라 화면이 묶는 값이다.
+    deck: Optional[str] = None
+    model: Optional[str] = None
+    # 이어 묻기. 앞 턴이 돌려준 것을 그대로 되돌려준다.
+    history: Optional[List[Dict]] = None
+
+
+def _sse(event, data):
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False, default=str)}\n\n"
+
+
+@app.post("/api/chat")
+def chat(req: ChatRequest):
+    """질문 하나를 받아 도구 호출과 답을 이벤트로 흘린다.
+
+    이벤트는 셋이다.
+      tool    {name, args, result}   도구를 부를 때마다
+      answer  {text, history}        다 끝났을 때
+      error   {message}              Ollama 가 없거나 죽었을 때
+    """
+    # ── 왜 스레드인가 ──
+    #   runner.ask 는 블로킹이다. on_tool 은 그 안에서 불리므로, 같은
+    #   흐름에서 받으면 ask 가 끝난 뒤에야 이벤트를 내보내게 된다 — 그러면
+    #   2분을 기다렸다가 한꺼번에 쏟는 셈이라 스트리밍한 값이 없다.
+    #   ask 를 스레드에 넣고 큐로 받아야 부르는 즉시 흘러나간다.
+    def stream():
+        box = queue.Queue()
+
+        def work():
+            try:
+                with connection() as conn:
+                    sess = agent_tools.session(conn, deck_id=req.deck)
+                    answer, history = runner.ask(
+                        req.question, sess,
+                        model=req.model or runner.DEFAULT_MODEL,
+                        history=req.history,
+                        on_tool=lambda name, args, result: box.put(
+                            ("tool", {"name": name, "args": args,
+                                      "result": result})))
+                    box.put(("answer", {"text": answer, "history": history}))
+            except requests.ConnectionError:
+                box.put(("error", {"message":
+                                   "Ollama 에 연결하지 못했습니다. "
+                                   "`ollama serve` 가 떠 있나요?"}))
+            except requests.HTTPError as e:
+                box.put(("error", {"message": f"Ollama 오류: {e}"}))
+            except Exception as e:      # noqa: BLE001 - 화면이 멎으면 안 된다
+                box.put(("error", {"message": f"{type(e).__name__}: {e}"}))
+            finally:
+                box.put(None)
+
+        threading.Thread(target=work, daemon=True).start()
+
+        while True:
+            item = box.get()
+            if item is None:
+                return
+            yield _sse(*item)
+
+    return StreamingResponse(stream(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache",
+                                      "X-Accel-Buffering": "no"})
 
 
 # ─────────────────────────────────────────────────────────────

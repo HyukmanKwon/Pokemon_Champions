@@ -22,6 +22,7 @@ import time
 
 import requests
 
+from pokemon_champions.db import connection
 from pokemon_champions.agent import runner, tools
 
 
@@ -73,13 +74,19 @@ def main():
 
     on_tool = show_tool if args.tools else None
     history = None
+    # 커넥션은 진입점에서 연다. CLI 는 한 사람이 한 줄씩 묻는 곳이라
+    # 하나면 충분하고, with 를 벗어나면 반드시 닫힌다.
+    conn_box = connection()
+    conn = conn_box.__enter__()
+    sess = tools.session(conn)
 
     def once(q):
         nonlocal history
         started = time.monotonic()
         try:
             with waiting():
-                answer, history = runner.ask(q, args.model, history, on_tool)
+                answer, history = runner.ask(
+                    q, sess, args.model, history, on_tool)
         except requests.ConnectionError:
             print("Ollama 에 연결하지 못했습니다. `ollama serve` 가 떠 있나요?")
             return 1
@@ -108,7 +115,7 @@ def main():
             print()
             once(q)
     finally:
-        tools.close()
+        conn_box.__exit__(None, None, None)
 
 
 if __name__ == "__main__":

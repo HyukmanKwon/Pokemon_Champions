@@ -23,6 +23,11 @@ const STAT_KO = {
 // 계속 본다.
 const TYPE_KO = {};
 
+// 화면이 보고 있는 덱. 아직 덱 전환 UI 가 없어서 null 이고, null 이면
+// 서버가 활성 덱을 쓴다 — 지금 화면에 뜨는 것과 도우미가 보는 것이 같다.
+// 전환 UI 가 생기면 여기에 덱 id 를 넣기만 하면 된다.
+let ACTIVE_DECK = null;
+
 const TYPES_READY = fetch("/api/types")
   .then(r => r.json())
   .then(rows => rows.forEach(t => { TYPE_KO[t.name] = t.ko_name; }));

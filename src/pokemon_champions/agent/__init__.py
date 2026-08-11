@@ -16,6 +16,6 @@
 """
 
 from .schemas import TOOLS, as_array
-from .tools import HANDLERS, call, close
+from .tools import HANDLERS, Session, call, session
 
-__all__ = ["TOOLS", "HANDLERS", "as_array", "call", "close"]
+__all__ = ["TOOLS", "HANDLERS", "Session", "as_array", "call", "session"]

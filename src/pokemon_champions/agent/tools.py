@@ -26,7 +26,8 @@
   철자를 고쳐 다시 부를 수 있다.
 """
 
-from ..db import connect
+from dataclasses import dataclass
+
 from ..db.repositories import (ability_repo, item_repo, move_repo,
                                pokemon_repo, rules_repo)
 from ..domain import STAT_ORDER
@@ -41,60 +42,63 @@ from . import schemas
 STAT_KEYS = {"h": "hp", "a": "atk", "b": "def",
              "c": "spa", "d": "spd", "s": "spe"}
 
-# ── 커넥션을 여기서 여는 것은 임시다 ──
-#   CLI 에서는 chat.py 가 진입점이라 이게 맞았다. 웹에 붙이면 app.py 가
-#   이미 연 커넥션과 두 벌이 되고, threadpool 에서 같은 커넥션을 나눠 쓴다.
-#   도구가 conn 을 인자로 받게 고칠 때 이 dict 는 사라진다.
-_state = {"conn": None, "rules": None}
+@dataclass
+class Session:
+    """도구 한 벌이 보는 바깥 세상 — 커넥션 · 참조표 · 지금 보는 덱.
+
+    ── 왜 모듈에 안 들고 있나 ──
+      예전에는 tools 가 스스로 connect() 해서 모듈 전역에 캐시했다. CLI 는
+      진입점이 하나라 그게 맞았지만, 웹에 붙이는 순간 두 가지가 깨진다.
+
+      하나는 커넥션이 두 벌이 되는 것이다. app.py 가 이미 하나 열어뒀는데
+      도구가 또 연다. 다른 하나가 더 나쁘다 — FastAPI 는 sync 라우트를
+      threadpool 에서 돌리는데, psycopg2 커넥션은 스레드 간 공유가 안전하지
+      않다. 모듈 전역이면 동시 요청이 같은 커넥션을 나눠 쓴다.
+
+      그래서 부르는 쪽이 만들어 넘긴다. db/connection.py 첫머리의
+      "진입점에서 한 번 열고 인자로 내려보낸다" 가 여기까지 온 것이다.
+
+    ── deck_id ──
+      이 대화가 볼 덱. None 이면 활성 덱이다. 모델이 고르는 값이 아니라
+      부르는 쪽이 묶는 값이다 — 웹은 화면이 보고 있는 덱을 넣는다.
+    """
+
+    conn: object
+    rules: object = None
+    deck_id: str = None
 
 
-def _conn():
-    if _state["conn"] is None:
-        _state["conn"] = connect()
-    return _state["conn"]
+def load_rules(conn):
+    """상성표 324행 + 날씨 + 필드. 한 번 읽어 세션 내내 돌려쓴다."""
+    return Rules(
+        chart=rules_repo.fetch_type_chart(conn),
+        weathers=rules_repo.fetch_weathers(conn),
+        terrains=rules_repo.fetch_terrains(conn),
+    )
 
 
-def _rules():
-    """상성표 324행. 한 번 읽어 계속 돌려쓴다."""
-    if _state["rules"] is None:
-        c = _conn()
-        _state["rules"] = Rules(
-            chart=rules_repo.fetch_type_chart(c),
-            weathers=rules_repo.fetch_weathers(c),
-            terrains=rules_repo.fetch_terrains(c),
-        )
-    return _state["rules"]
-
-
-def type_names():
-    """{영문 타입: 한국어 표기} 18줄. 시스템 프롬프트가 쓴다."""
-    return naming.type_names(_conn())
-
-
-def close():
-    if _state["conn"] is not None:
-        _state["conn"].close()
-    _state["conn"] = _state["rules"] = None
-    naming.clear()
+def session(conn, deck_id=None, rules=None):
+    """도구를 부를 준비가 된 세션. rules 를 이미 들고 있으면 넘겨서 아낀다."""
+    return Session(conn=conn, rules=rules or load_rules(conn), deck_id=deck_id)
 
 
 # ─────────────────────────────────────────────────────────────
 # 이름 — usecases/naming 에 conn 을 얹어 부른다
 # ─────────────────────────────────────────────────────────────
 
-def _resolve(table, name):
-    return naming.resolve(_conn(), table, name)
+def _resolve(s, table, name):
+    return naming.resolve(s.conn, table, name)
 
 
-def _ko(table, en):
-    return naming.ko(_conn(), table, en)
+def _ko(s, table, en):
+    return naming.ko(s.conn, table, en)
 
 
-def _types_of(en):
-    return naming.types_of(_conn(), en)
+def _types_of(s, en):
+    return naming.types_of(s.conn, en)
 
 
-def _named(table, value, key="name"):
+def _named(s, table, value, key="name"):
     """이름 한 칸을 영문 + 한국어 두 칸으로 편다.
 
         _named("items", "기합의띠")
@@ -112,9 +116,9 @@ def _named(table, value, key="name"):
     못 찾은 이름은 받은 것을 그대로 둔다. 빈칸으로 만들면 "그런 게 없다"
     로 읽히는데, 실제로는 우리 표에 아직 안 실린 것일 수 있다.
     """
-    en = _resolve(table, value)
+    en = _resolve(s, table, value)
     ko_key = "ko_name" if key == "name" else f"{key}_ko_name"
-    return {key: en or value, ko_key: _ko(table, en)}
+    return {key: en or value, ko_key: _ko(s, table, en)}
 
 
 def _stats(source):
@@ -126,12 +130,12 @@ def _stats(source):
 # 도감
 # ─────────────────────────────────────────────────────────────
 
-def find_pokemon(name):
+def find_pokemon(s, name):
     """한 마리의 종족값·타입·특성·메가 관계."""
-    en = _resolve("pokemons", name)
+    en = _resolve(s, "pokemons", name)
     if en is None:
         return {"error": f"'{name}' 은(는) 포챔스 목록에 없습니다."}
-    row = pokemon_repo.fetch_detail(_conn(), en)
+    row = pokemon_repo.fetch_detail(s.conn, en)
     return {
         "name": row["name"], "ko_name": row["ko_name"],
         "pokemon_id": row["pokemon_id"],
@@ -155,7 +159,7 @@ _ORDER_KEYS = {"hp": "h", "atk": "a", "def": "b",
                "spa": "c", "spd": "d", "spe": "s"}
 
 
-def search_pokemon(type=None, min_total=None, order_by=None, limit=8):
+def search_pokemon(s, type=None, min_total=None, order_by=None, limit=8):
     """조건에 맞는 포켓몬 목록. 비교·후보 추리기용.
 
     ── 종족값 여섯 칸을 안 싣는다 ──
@@ -167,7 +171,7 @@ def search_pokemon(type=None, min_total=None, order_by=None, limit=8):
       정렬 기준으로 삼은 칸은 실어 준다. "스피드 빠른 순" 을 물어놓고
       스피드가 안 보이면 다시 물어야 한다.
     """
-    rows = list(naming.rows_of(_conn(), "pokemons").values())
+    rows = list(naming.rows_of(s.conn, "pokemons").values())
     if type:
         t = normalize(type)
         rows = [r for r in rows if t in (r["type1"], r["type2"])]
@@ -192,7 +196,7 @@ def search_pokemon(type=None, min_total=None, order_by=None, limit=8):
             "results": [one(r) for r in rows[:limit]]}
 
 
-def type_matchup(pokemon):
+def type_matchup(s, pokemon):
     """그 포켓몬을 칠 때 18타입이 각각 몇 배로 들어가는가 — 한 번에 전부.
 
     ── 왜 한 타입씩이 아니라 통째로인가 ──
@@ -208,12 +212,12 @@ def type_matchup(pokemon):
     배수별로 묶어서 돌려준다. 열여덟 줄을 나열하면 그 자체가 길고,
     모델이 다시 정렬해야 한다.
     """
-    en = _resolve("pokemons", pokemon)
+    en = _resolve(s, "pokemons", pokemon)
     if en is None:
         return {"error": f"'{pokemon}' 은(는) 포챔스 목록에 없습니다."}
 
-    chart = _rules().chart
-    types = _types_of(en)
+    chart = s.rules.chart
+    types = _types_of(s, en)
     grouped = {}
     for atk in sorted({t for (t, _) in chart}):
         mult = damage.type_multiplier(atk, types, chart)
@@ -222,7 +226,7 @@ def type_matchup(pokemon):
         grouped.setdefault(key, []).append(atk)
 
     return {
-        "pokemon": en, "ko_name": _ko("pokemons", en),
+        "pokemon": en, "ko_name": _ko(s, "pokemons", en),
         "types": list(types),
         # 키가 곧 배수다. "이 타입으로 치면 몇 배" 를 뜻한다.
         "damage_taken": {k: grouped[k]
@@ -231,35 +235,35 @@ def type_matchup(pokemon):
     }
 
 
-def type_effectiveness(attack_type, defender):
+def type_effectiveness(s, attack_type, defender):
     """기술 타입 하나가 그 포켓몬에게 몇 배로 들어가는가.
 
     타입을 이미 정해놓고 확인만 할 때 쓴다. "뭐에 약해?" 처럼 열어놓고
     묻는 질문에는 type_matchup 이 맞다.
     """
-    en = _resolve("pokemons", defender)
+    en = _resolve(s, "pokemons", defender)
     if en is None:
         return {"error": f"'{defender}' 은(는) 포챔스 목록에 없습니다."}
     at = normalize(attack_type)
-    types = _types_of(en)
+    types = _types_of(s, en)
     return {"attack_type": at,
-            "defender": en, "defender_ko_name": _ko("pokemons", en),
+            "defender": en, "defender_ko_name": _ko(s, "pokemons", en),
             "defender_types": list(types),
-            "multiplier": damage.type_multiplier(at, types, _rules().chart)}
+            "multiplier": damage.type_multiplier(at, types, s.rules.chart)}
 
 
-def find_move(name):
-    en = _resolve("moves", name)
+def find_move(s, name):
+    en = _resolve(s, "moves", name)
     if en is None:
         return {"error": f"'{name}' 이라는 기술이 없습니다."}
-    m = move_repo.fetch_detail(_conn(), en)
+    m = move_repo.fetch_detail(s.conn, en)
     return {"name": m["name"], "ko_name": m["ko_name"], "type": m["type"],
             "category": m["category"], "power": m["power"],
             "accuracy": m["accuracy"], "pp": m["pp"],
             "priority": m["priority"], "description": m["description"]}
 
 
-def moves_of(pokemon, type=None, category=None, min_power=None, limit=40):
+def moves_of(s, pokemon, type=None, category=None, min_power=None, limit=40):
     """그 포켓몬이 배울 수 있는 기술. 거르지 않으면 전부.
 
     move_repo.fetch_learnable 이 아니라 도감 상세를 쓴다. 그쪽은 ko_name
@@ -274,11 +278,11 @@ def moves_of(pokemon, type=None, category=None, min_power=None, limit=40):
     위력을 같이 싣는다. 그게 없으면 "제일 센 거" 를 묻는 순간 기술마다
     find_move 를 다시 부르게 된다.
     """
-    en = _resolve("pokemons", pokemon)
+    en = _resolve(s, "pokemons", pokemon)
     if en is None:
         return {"error": f"'{pokemon}' 은(는) 포챔스 목록에 없습니다."}
 
-    rows = pokemon_repo.fetch_detail(_conn(), en)["moves"]
+    rows = pokemon_repo.fetch_detail(s.conn, en)["moves"]
     if type:
         t = normalize(type)
         rows = [m for m in rows if m["type"] == t]
@@ -289,7 +293,7 @@ def moves_of(pokemon, type=None, category=None, min_power=None, limit=40):
         rows = [m for m in rows if (m["power"] or 0) >= min_power]
     rows.sort(key=lambda m: -(m["power"] or 0))
 
-    return {"pokemon": en, "ko_name": _ko("pokemons", en),
+    return {"pokemon": en, "ko_name": _ko(s, "pokemons", en),
             "total": len(rows), "shown": min(limit, len(rows)),
             "moves": [{"name": m["name"], "ko_name": m["ko_name"],
                        "type": m["type"], "category": m["category"],
@@ -297,22 +301,22 @@ def moves_of(pokemon, type=None, category=None, min_power=None, limit=40):
                       for m in rows[:limit]]}
 
 
-def find_ability(name):
-    en = _resolve("abilities", name)
+def find_ability(s, name):
+    en = _resolve(s, "abilities", name)
     if en is None:
         return {"error": f"'{name}' 이라는 특성이 없습니다."}
-    a = ability_repo.fetch_detail(_conn(), en)
+    a = ability_repo.fetch_detail(s.conn, en)
     return {"name": a["name"], "ko_name": a["ko_name"],
             "description": a["description"], "effect_en": a["effect"],
             "pokemon": [{"name": p["name"], "ko_name": p["ko_name"]}
                         for p in a["pokemons"]]}
 
 
-def find_item(name):
-    en = _resolve("items", name)
+def find_item(s, name):
+    en = _resolve(s, "items", name)
     if en is None:
         return {"error": f"'{name}' 이라는 도구가 없습니다."}
-    i = item_repo.fetch_detail(_conn(), en)
+    i = item_repo.fetch_detail(s.conn, en)
     return {"name": i["name"], "ko_name": i["ko_name"],
             "category": i["category"], "description": i["description"],
             "usable": i["usable"]}
@@ -322,24 +326,24 @@ def find_item(name):
 # 계산
 # ─────────────────────────────────────────────────────────────
 
-def _build(spec, move_ko=None):
+def _build(s, spec, move_ko=None):
     """도구 인자를 Pokemon 으로. 기본값 채우기는 조립 층이 한다."""
-    return battle.build_side(_conn(), spec, move_ko)
+    return battle.build_side(s.conn, spec, move_ko)
 
 
-def _side_view(p, en):
+def _side_view(s, p, en):
     """계산에 실제로 쓰인 한 쪽을 모델이 읽을 모양으로.
 
     특성·도구·성격을 안 말하면 기본값으로 채워진다. 무엇으로 쟀는지를
     같이 돌려주지 않으면, 모델은 사용자가 말한 조건으로 계산된 줄 안다.
     """
     return {"name": en, "ko_name": p.name,
-            **_named("abilities", p.ability, "ability"),
-            **_named("items", p.item, "item"),
-            **_named("pokemon_natures", p.nature, "nature")}
+            **_named(s, "abilities", p.ability, "ability"),
+            **_named(s, "items", p.item, "item"),
+            **_named(s, "pokemon_natures", p.nature, "nature")}
 
 
-def calc_damage(attacker, defender, move, weather=None, terrain=None,
+def calc_damage(s, attacker, defender, move, weather=None, terrain=None,
                 is_critical=False, is_doubles=False):
     """데미지 난수 16개와 확정 N타 판정.
 
@@ -352,7 +356,7 @@ def calc_damage(attacker, defender, move, weather=None, terrain=None,
       열어줄지는 따로 정할 일이라, 지금은 웹만 쓴다.
     """
     try:
-        shot = battle.one_hit(_conn(), _rules(), attacker, defender, move,
+        shot = battle.one_hit(s.conn, s.rules, attacker, defender, move,
                               weather=weather, terrain=terrain,
                               is_critical=is_critical, is_doubles=is_doubles)
     except ValueError as e:
@@ -362,9 +366,9 @@ def calc_damage(attacker, defender, move, weather=None, terrain=None,
     lo, hi = shot.percent()
 
     return {
-        "attacker": {**_side_view(shot.attacker, shot.attacker_en),
+        "attacker": {**_side_view(s, shot.attacker, shot.attacker_en),
                      "atk": shot.attacker.stats.a, "spa": shot.attacker.stats.c},
-        "defender": {**_side_view(shot.defender, shot.defender_en),
+        "defender": {**_side_view(s, shot.defender, shot.defender_en),
                      "hp": shot.defender.stats.h, "def": shot.defender.stats.b,
                      "spd": shot.defender.stats.d},
         "move": {"name": m["name"], "ko_name": m["ko_name"], "type": m["type"],
@@ -377,20 +381,20 @@ def calc_damage(attacker, defender, move, weather=None, terrain=None,
     }
 
 
-def power_index(pokemon, moves):
+def power_index(s, pokemon, moves):
     """결정력 — 공격 실능 × 위력 × 자속. 기술끼리 견주는 데 쓴다."""
     try:
-        p, en = _build(pokemon)
+        p, en = _build(s, pokemon)
     except ValueError as e:
         return {"error": str(e)}
 
     out = []
     for name in moves:
-        en_move = _resolve("moves", name)
+        en_move = _resolve(s, "moves", name)
         if en_move is None:
             out.append({"name": name, "ko_name": None, "error": "없는 기술"})
             continue
-        m = move_repo.fetch_detail(_conn(), en_move)
+        m = move_repo.fetch_detail(s.conn, en_move)
         out.append({"name": m["name"], "ko_name": m["ko_name"],
                     "type": m["type"], "category": m["category"],
                     "power": m["power"], "stab": m["type"] in p.types,
@@ -400,10 +404,10 @@ def power_index(pokemon, moves):
             "atk": p.stats.a, "spa": p.stats.c, "moves": out}
 
 
-def bulk_index(pokemon):
+def bulk_index(s, pokemon):
     """내구력 — 체력 × 방어, 체력 × 특수방어."""
     try:
-        p, en = _build(pokemon)
+        p, en = _build(s, pokemon)
     except ValueError as e:
         return {"error": str(e)}
     b = damage.bulk_index(p)
@@ -424,52 +428,48 @@ def bulk_index(pokemon):
 #   같은 취급이다.
 # ─────────────────────────────────────────────────────────────
 
-_bound_deck = None
+def _deck_id(s, deck=None):
+    """모델이 이름으로 부른 덱 -> id. 못 찾으면 세션에 묶인 덱(없으면 활성).
 
-
-def bind_deck(deck_id):
-    """이 대화가 볼 덱을 못 박는다. None 이면 활성 덱."""
-    global _bound_deck
-    _bound_deck = deck_id
-
-
-def _deck_id(deck=None):
-    """모델이 이름으로 부른 덱 -> id. 못 찾으면 묶인 덱(없으면 활성)."""
+    모델이 엉뚱한 이름을 대도 조용히 활성 덱으로 떨어진다. 없는 덱이라고
+    되묻는 편이 정확하지만, 그러면 "내 팀 뭐야" 에 되묻는 일이 생긴다 —
+    기본값이 사용자가 보고 있는 덱이라 틀릴 일이 거의 없다.
+    """
     if deck:
         found = roster.by_name(roster.load(), deck)
         if found:
             return found["id"]
-    return _bound_deck
+    return s.deck_id
 
 
-def my_team(deck=None):
+def my_team(s, deck=None):
     """등록해둔 6마리의 실제 스펙과 실능치."""
     try:
-        slots = roster.slots(_deck_id(deck))
+        slots = roster.slots(_deck_id(s, deck))
     except LookupError as e:
         return {"error": str(e)}
 
     out = []
     for spec in slots:
-        en = _resolve("pokemons", spec.get("ko_name"))
+        en = _resolve(s, "pokemons", spec.get("ko_name"))
         try:
-            p = team.build_pokemon(_conn(), **spec)
+            p = team.build_pokemon(s.conn, **spec)
         except ValueError as e:
             out.append({"name": en, "ko_name": spec.get("ko_name"),
                         "error": str(e)})
             continue
         out.append({
             "name": en, "ko_name": p.name, "types": list(p.types),
-            **_named("abilities", p.ability, "ability"),
-            **_named("items", p.item, "item"),
-            **_named("pokemon_natures", p.nature, "nature"),
+            **_named(s, "abilities", p.ability, "ability"),
+            **_named(s, "items", p.item, "item"),
+            **_named(s, "pokemon_natures", p.nature, "nature"),
             "stats": _stats(p.stats),
-            "moves": [_named("moves", mv) for mv in (p.moves or [])],
+            "moves": [_named(s, "moves", mv) for mv in (p.moves or [])],
         })
     return {"team": out}
 
 
-def list_decks():
+def list_decks(s):
     """저장해둔 덱 목록과 지금 보고 있는 덱."""
     book = roster.summary()
     active = next((d for d in book["decks"] if d["id"] == book["active"]), None)
@@ -478,7 +478,7 @@ def list_decks():
                       for d in book["decks"]]}
 
 
-def team_weaknesses(deck=None):
+def team_weaknesses(s, deck=None):
     """엔트리 전체의 타입 상성 표. 어느 타입에 몇 마리가 약한가.
 
     "우리 팀이 뭐에 약해" 를 모델이 상성표를 외워서 답하면 반드시 틀린다.
@@ -488,21 +488,21 @@ def team_weaknesses(deck=None):
     한국어까지 적으면 표가 배로 불어난다. 한국어는 team 에 한 번 있고,
     모델은 거기서 짝을 찾는다.
     """
-    chart = _rules().chart
+    chart = s.rules.chart
     types = sorted({t for (t, _) in chart})
 
     try:
-        slots = roster.slots(_deck_id(deck))
+        slots = roster.slots(_deck_id(s, deck))
     except LookupError as e:
         return {"error": str(e)}
 
     members = []
     for spec in slots:
-        en = _resolve("pokemons", spec["ko_name"])
+        en = _resolve(s, "pokemons", spec["ko_name"])
         if en is None:
             return {"error": f"엔트리의 '{spec['ko_name']}' 을(를) "
                              "포챔스 목록에서 찾지 못했습니다."}
-        members.append((en, _types_of(en)))
+        members.append((en, _types_of(s, en)))
 
     table = {}
     for t in types:
@@ -514,17 +514,17 @@ def team_weaknesses(deck=None):
         }
     # 위험한 순서로. 2배 이상 맞는 머릿수가 많은 타입이 곧 팀의 구멍이다.
     order = sorted(types, key=lambda t: -len(table[t]["weak_to"]))
-    return {"team": [{"name": n, "ko_name": _ko("pokemons", n)}
+    return {"team": [{"name": n, "ko_name": _ko(s, "pokemons", n)}
                      for n, _ in members],
             "by_type": {t: table[t] for t in order}}
 
 
-def usage_stats(pokemon, format="Singles"):
+def usage_stats(s, pokemon, format="Singles"):
     """랭크배틀 채용률 — 기술·도구·특성·성격·SP·함께 쓰는 포켓몬."""
-    en = _resolve("pokemons", pokemon)
+    en = _resolve(s, "pokemons", pokemon)
     if en is None:
         return {"error": f"'{pokemon}' 은(는) 포챔스 목록에 없습니다."}
-    return usage.usage_of(_conn(), en, ko_name=_ko("pokemons", en),
+    return usage.usage_of(s.conn, en, ko_name=_ko(s, "pokemons", en),
                           fmt=format if format in ("Singles", "Doubles")
                           else "Singles")
 
@@ -563,13 +563,13 @@ if _only_schema or _only_handler:
         f"함수만 있음: {sorted(_only_handler)}")
 
 
-def call(name, args):
+def call(s, name, args):
     """도구 하나를 실행한다. 무엇이 잘못돼도 값으로 돌려준다."""
     fn = HANDLERS.get(name)
     if fn is None:
         return {"error": f"그런 도구가 없습니다: {name}"}
     try:
-        return fn(**(args or {}))
+        return fn(s, **(args or {}))
     except TypeError as e:
         return {"error": f"인자가 맞지 않습니다: {e}"}
     except Exception as e:      # noqa: BLE001 - 루프가 죽으면 안 된다
