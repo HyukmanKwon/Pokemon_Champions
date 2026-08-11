@@ -20,6 +20,7 @@
   곳에서도 pytest 는 그대로 초록이다.
 """
 
+import json
 from pathlib import Path
 
 import pytest
@@ -53,23 +54,33 @@ def db():
 
 @pytest.fixture
 def fixed_team(tmp_path, monkeypatch):
-    """엔트리를 tests/data/team.json 의 사본으로 고정한다.
+    """덱 파일을 임시 폴더에 하나 만들어 그것만 보게 한다.
 
     ── 왜 고정하나 ──
-      my_team·team_weaknesses 는 data/my_team.json 을 읽는다. 그걸 그대로
-      쓰면 사용자가 덱을 고칠 때마다 테스트가 깨진다 — 코드가 바뀐 게
-      아닌데 빨개지는 테스트는 곧 아무도 안 본다.
+      my_team·team_weaknesses 는 사용자의 덱을 읽는다. 진짜 파일을 그대로
+      쓰면 덱을 고칠 때마다 테스트가 깨진다 — 코드가 바뀐 게 아닌데
+      빨개지는 테스트는 곧 아무도 안 본다.
 
     ── 왜 사본인가 ──
-      엔트리는 읽기만 하는 게 아니다. PATCH /api/team/{index} 가 파일에
-      쓴다. 픽스처 파일을 직접 가리키면 테스트 한 번에 기준값이 덮어써진다.
-      overrides 를 임시 폴더로 돌려놓는 것과 같은 이유다.
-    """
-    from pokemon_champions.services import team
+      덱은 읽기만 하는 게 아니다. PATCH /api/team/{index} 와 덱 만들기·
+      지우기가 전부 파일에 쓴다. 진짜 파일을 가리키면 테스트 한 번에
+      사용자의 덱이 덮어써진다. overrides 를 임시 폴더로 돌려놓는 것과
+      같은 이유이고, 이쪽이 더 위험하다 — 덱은 다시 만들 수 없다.
 
-    box = tmp_path / "my_team.json"
-    box.write_text(
-        (Path(__file__).parent / "data" / "team.json").read_text(encoding="utf-8"),
-        encoding="utf-8")
-    monkeypatch.setattr(team, "TEAM_PATH", box)
+    ── my_team.json 도 막는다 ──
+      decks.json 이 없으면 roster 가 my_team.json 에서 옮겨온다. 그
+      경로도 임시 폴더로 돌려놓지 않으면 테스트가 사용자의 엔트리를 읽는다.
+    """
+    from pokemon_champions.usecases import roster
+
+    box = tmp_path / "decks.json"
+    slots = json.loads(
+        (Path(__file__).parent / "data" / "team.json").read_text(encoding="utf-8"))
+    box.write_text(json.dumps(
+        {"active": "test1",
+         "decks": [{"id": "test1", "name": "테스트 덱", "slots": slots}]},
+        ensure_ascii=False), encoding="utf-8")
+
+    monkeypatch.setattr(roster, "DECKS_PATH", box)
+    monkeypatch.setattr(roster, "TEAM_PATH", tmp_path / "없는-my_team.json")
     return box

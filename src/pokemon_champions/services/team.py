@@ -9,15 +9,15 @@
   CLI 와 웹 API 가 이 모듈을 그대로 공유한다. 출력 형식을 여기서 정하는
   순간 둘 중 하나는 못 쓰게 된다.
 
-── 저장 위치 ──
-  data/my_team.json (config.TEAM_PATH). 패키지 안이 아니라 data/ 에 둔다.
-  사용자 데이터라서, 코드를 재설치해도 살아남아야 한다.
+── 저장은 여기가 아니다 ──
+  덱을 읽고 쓰는 일은 usecases/roster.py 가 한다. 덱이 여러 벌이 되면서
+  "어느 덱인가" 가 붙었는데, 그건 이 모듈이 알 필요가 없는 것이다.
+  여기는 스펙 한 벌을 받아 검증하고 Pokemon 으로 만드는 데까지만 한다.
+
+  DEFAULT_TEAM 은 남는다 — 새 덱이 무엇으로 시작하는지는 팀의 규칙이다.
 """
 
-import copy
-import json
-
-from ..config import MAX_MOVES, TEAM_PATH
+from ..config import MAX_MOVES
 from ..db.repositories import (item_repo, mega_repo, move_repo, nature_repo,
                                pokemon_repo)
 from ..domain import Pokemon
@@ -49,24 +49,8 @@ DEFAULT_TEAM = [
 
 
 # ─────────────────────────────────────────────────────────────
-# 스펙 저장/수정
+# 스펙 수정
 # ─────────────────────────────────────────────────────────────
-
-def load_specs():
-    """저장된 팀이 있으면 그걸, 없으면 기본 팀을 돌려준다."""
-    if TEAM_PATH.exists():
-        return json.loads(TEAM_PATH.read_text(encoding="utf-8"))
-    return copy.deepcopy(DEFAULT_TEAM)
-
-
-def save_specs(specs):
-    """현재 팀 스펙을 그대로 파일에 저장한다."""
-    TEAM_PATH.parent.mkdir(parents=True, exist_ok=True)
-    TEAM_PATH.write_text(
-        json.dumps(specs, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-
 
 def edit_spec(specs, index, **fields):
     """specs[index] 중 fields 로 넘어온 필드만 바꾼다. 나머지는 그대로 둔다."""

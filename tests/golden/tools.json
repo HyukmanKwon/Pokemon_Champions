@@ -295,6 +295,22 @@
     ],
     "weight_kg": 95.0
   },
+  "list_decks({})": {
+    "active": "테스트 덱",
+    "decks": [
+      {
+        "members": [
+          "이상해꽃",
+          "히스이 대검귀",
+          "알로라 나인테일",
+          "누리레느",
+          "메타그로스",
+          "하마돈"
+        ],
+        "name": "테스트 덱"
+      }
+    ]
+  },
   "moves_of({\"min_power\": 80, \"pokemon\": \"한카리아스\", \"type\": \"ground\"})": {
     "ko_name": "한카리아스",
     "moves": [
@@ -330,6 +346,492 @@
     "pokemon": "garchomp",
     "shown": 0,
     "total": 0
+  },
+  "my_team({\"deck\": \"없는 덱\"})": {
+    "team": [
+      {
+        "ability": "overgrow",
+        "ability_ko_name": "심록",
+        "item": "venusaurite",
+        "item_ko_name": "이상해꽃나이트",
+        "ko_name": "이상해꽃",
+        "moves": [
+          {
+            "ko_name": "기가드레인",
+            "name": "giga-drain"
+          },
+          {
+            "ko_name": "오물폭탄",
+            "name": "sludge-bomb"
+          },
+          {
+            "ko_name": "씨뿌리기",
+            "name": "leech-seed"
+          },
+          {
+            "ko_name": "대지의힘",
+            "name": "earth-power"
+          }
+        ],
+        "name": "venusaur",
+        "nature": "modest",
+        "nature_ko_name": "조심",
+        "stats": {
+          "atk": 91,
+          "def": 105,
+          "hp": 187,
+          "spa": 167,
+          "spd": 120,
+          "spe": 100
+        },
+        "types": [
+          "grass",
+          "poison"
+        ]
+      },
+      {
+        "ability": "sharpness",
+        "ability_ko_name": "예리함",
+        "item": "life-orb",
+        "item_ko_name": "생명의구슬",
+        "ko_name": "히스이 대검귀",
+        "moves": [
+          {
+            "ko_name": "비검천중파",
+            "name": "ceaseless-edge"
+          },
+          {
+            "ko_name": "아쿠아커터",
+            "name": "aqua-cutter"
+          },
+          {
+            "ko_name": "기습",
+            "name": "sucker-punch"
+          },
+          {
+            "ko_name": "성스러운칼",
+            "name": "sacred-sword"
+          }
+        ],
+        "name": "samurott-hisui",
+        "nature": "adamant",
+        "nature_ko_name": "고집",
+        "stats": {
+          "atk": 176,
+          "def": 100,
+          "hp": 167,
+          "spa": 108,
+          "spd": 85,
+          "spe": 137
+        },
+        "types": [
+          "water",
+          "dark"
+        ]
+      },
+      {
+        "ability": "snow-warning",
+        "ability_ko_name": "눈퍼뜨리기",
+        "item": "light-clay",
+        "item_ko_name": "빛의점토",
+        "ko_name": "알로라 나인테일",
+        "moves": [
+          {
+            "ko_name": "오로라베일",
+            "name": "aurora-veil"
+          },
+          {
+            "ko_name": "프리즈드라이",
+            "name": "freeze-dry"
+          },
+          {
+            "ko_name": "문포스",
+            "name": "moonblast"
+          },
+          {
+            "ko_name": "앙코르",
+            "name": "encore"
+          }
+        ],
+        "name": "ninetales-alola",
+        "nature": "modest",
+        "nature_ko_name": "조심",
+        "stats": {
+          "atk": 78,
+          "def": 95,
+          "hp": 150,
+          "spa": 146,
+          "spd": 120,
+          "spe": 161
+        },
+        "types": [
+          "ice",
+          "fairy"
+        ]
+      },
+      {
+        "ability": "torrent",
+        "ability_ko_name": "급류",
+        "item": "leftovers",
+        "item_ko_name": "먹다남은음식",
+        "ko_name": "누리레느",
+        "moves": [
+          {
+            "ko_name": "물거품아리아",
+            "name": "sparkling-aria"
+          },
+          {
+            "ko_name": "문포스",
+            "name": "moonblast"
+          },
+          {
+            "ko_name": "아쿠아제트",
+            "name": "aqua-jet"
+          },
+          {
+            "ko_name": "명상",
+            "name": "calm-mind"
+          }
+        ],
+        "name": "primarina",
+        "nature": "modest",
+        "nature_ko_name": "조심",
+        "stats": {
+          "atk": 84,
+          "def": 94,
+          "hp": 157,
+          "spa": 195,
+          "spd": 136,
+          "spe": 112
+        },
+        "types": [
+          "water",
+          "fairy"
+        ]
+      },
+      {
+        "ability": "clear-body",
+        "ability_ko_name": "클리어바디",
+        "item": "metagrossite",
+        "item_ko_name": "메타그로스나이트",
+        "ko_name": "메타그로스",
+        "moves": [
+          {
+            "ko_name": "지진",
+            "name": "earthquake"
+          },
+          {
+            "ko_name": "아이언헤드",
+            "name": "iron-head"
+          },
+          {
+            "ko_name": "번개펀치",
+            "name": "thunder-punch"
+          },
+          {
+            "ko_name": "사이코팽",
+            "name": "psychic-fangs"
+          }
+        ],
+        "name": "metagross",
+        "nature": "adamant",
+        "nature_ko_name": "고집",
+        "stats": {
+          "atk": 205,
+          "def": 150,
+          "hp": 157,
+          "spa": 103,
+          "spd": 110,
+          "spe": 122
+        },
+        "types": [
+          "steel",
+          "psychic"
+        ]
+      },
+      {
+        "ability": "sand-stream",
+        "ability_ko_name": "모래날림",
+        "item": "sitrus-berry",
+        "item_ko_name": "자뭉열매",
+        "ko_name": "하마돈",
+        "moves": [
+          {
+            "ko_name": "지진",
+            "name": "earthquake"
+          },
+          {
+            "ko_name": "스텔스록",
+            "name": "stealth-rock"
+          },
+          {
+            "ko_name": "하품",
+            "name": "yawn"
+          },
+          {
+            "ko_name": "날려버리기",
+            "name": "whirlwind"
+          }
+        ],
+        "name": "hippowdon",
+        "nature": "impish",
+        "nature_ko_name": "장난꾸러기",
+        "stats": {
+          "atk": 134,
+          "def": 187,
+          "hp": 215,
+          "spa": 79,
+          "spd": 92,
+          "spe": 67
+        },
+        "types": [
+          "ground"
+        ]
+      }
+    ]
+  },
+  "my_team({\"deck\": \"테스트 덱\"})": {
+    "team": [
+      {
+        "ability": "overgrow",
+        "ability_ko_name": "심록",
+        "item": "venusaurite",
+        "item_ko_name": "이상해꽃나이트",
+        "ko_name": "이상해꽃",
+        "moves": [
+          {
+            "ko_name": "기가드레인",
+            "name": "giga-drain"
+          },
+          {
+            "ko_name": "오물폭탄",
+            "name": "sludge-bomb"
+          },
+          {
+            "ko_name": "씨뿌리기",
+            "name": "leech-seed"
+          },
+          {
+            "ko_name": "대지의힘",
+            "name": "earth-power"
+          }
+        ],
+        "name": "venusaur",
+        "nature": "modest",
+        "nature_ko_name": "조심",
+        "stats": {
+          "atk": 91,
+          "def": 105,
+          "hp": 187,
+          "spa": 167,
+          "spd": 120,
+          "spe": 100
+        },
+        "types": [
+          "grass",
+          "poison"
+        ]
+      },
+      {
+        "ability": "sharpness",
+        "ability_ko_name": "예리함",
+        "item": "life-orb",
+        "item_ko_name": "생명의구슬",
+        "ko_name": "히스이 대검귀",
+        "moves": [
+          {
+            "ko_name": "비검천중파",
+            "name": "ceaseless-edge"
+          },
+          {
+            "ko_name": "아쿠아커터",
+            "name": "aqua-cutter"
+          },
+          {
+            "ko_name": "기습",
+            "name": "sucker-punch"
+          },
+          {
+            "ko_name": "성스러운칼",
+            "name": "sacred-sword"
+          }
+        ],
+        "name": "samurott-hisui",
+        "nature": "adamant",
+        "nature_ko_name": "고집",
+        "stats": {
+          "atk": 176,
+          "def": 100,
+          "hp": 167,
+          "spa": 108,
+          "spd": 85,
+          "spe": 137
+        },
+        "types": [
+          "water",
+          "dark"
+        ]
+      },
+      {
+        "ability": "snow-warning",
+        "ability_ko_name": "눈퍼뜨리기",
+        "item": "light-clay",
+        "item_ko_name": "빛의점토",
+        "ko_name": "알로라 나인테일",
+        "moves": [
+          {
+            "ko_name": "오로라베일",
+            "name": "aurora-veil"
+          },
+          {
+            "ko_name": "프리즈드라이",
+            "name": "freeze-dry"
+          },
+          {
+            "ko_name": "문포스",
+            "name": "moonblast"
+          },
+          {
+            "ko_name": "앙코르",
+            "name": "encore"
+          }
+        ],
+        "name": "ninetales-alola",
+        "nature": "modest",
+        "nature_ko_name": "조심",
+        "stats": {
+          "atk": 78,
+          "def": 95,
+          "hp": 150,
+          "spa": 146,
+          "spd": 120,
+          "spe": 161
+        },
+        "types": [
+          "ice",
+          "fairy"
+        ]
+      },
+      {
+        "ability": "torrent",
+        "ability_ko_name": "급류",
+        "item": "leftovers",
+        "item_ko_name": "먹다남은음식",
+        "ko_name": "누리레느",
+        "moves": [
+          {
+            "ko_name": "물거품아리아",
+            "name": "sparkling-aria"
+          },
+          {
+            "ko_name": "문포스",
+            "name": "moonblast"
+          },
+          {
+            "ko_name": "아쿠아제트",
+            "name": "aqua-jet"
+          },
+          {
+            "ko_name": "명상",
+            "name": "calm-mind"
+          }
+        ],
+        "name": "primarina",
+        "nature": "modest",
+        "nature_ko_name": "조심",
+        "stats": {
+          "atk": 84,
+          "def": 94,
+          "hp": 157,
+          "spa": 195,
+          "spd": 136,
+          "spe": 112
+        },
+        "types": [
+          "water",
+          "fairy"
+        ]
+      },
+      {
+        "ability": "clear-body",
+        "ability_ko_name": "클리어바디",
+        "item": "metagrossite",
+        "item_ko_name": "메타그로스나이트",
+        "ko_name": "메타그로스",
+        "moves": [
+          {
+            "ko_name": "지진",
+            "name": "earthquake"
+          },
+          {
+            "ko_name": "아이언헤드",
+            "name": "iron-head"
+          },
+          {
+            "ko_name": "번개펀치",
+            "name": "thunder-punch"
+          },
+          {
+            "ko_name": "사이코팽",
+            "name": "psychic-fangs"
+          }
+        ],
+        "name": "metagross",
+        "nature": "adamant",
+        "nature_ko_name": "고집",
+        "stats": {
+          "atk": 205,
+          "def": 150,
+          "hp": 157,
+          "spa": 103,
+          "spd": 110,
+          "spe": 122
+        },
+        "types": [
+          "steel",
+          "psychic"
+        ]
+      },
+      {
+        "ability": "sand-stream",
+        "ability_ko_name": "모래날림",
+        "item": "sitrus-berry",
+        "item_ko_name": "자뭉열매",
+        "ko_name": "하마돈",
+        "moves": [
+          {
+            "ko_name": "지진",
+            "name": "earthquake"
+          },
+          {
+            "ko_name": "스텔스록",
+            "name": "stealth-rock"
+          },
+          {
+            "ko_name": "하품",
+            "name": "yawn"
+          },
+          {
+            "ko_name": "날려버리기",
+            "name": "whirlwind"
+          }
+        ],
+        "name": "hippowdon",
+        "nature": "impish",
+        "nature_ko_name": "장난꾸러기",
+        "stats": {
+          "atk": 134,
+          "def": 187,
+          "hp": 215,
+          "spa": 79,
+          "spd": 92,
+          "spe": 67
+        },
+        "types": [
+          "ground"
+        ]
+      }
+    ]
   },
   "my_team({})": {
     "team": [

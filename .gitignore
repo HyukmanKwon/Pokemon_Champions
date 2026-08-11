@@ -13,3 +13,5 @@ data/cache/
 data/images/
 data/sql/
 data/my_team.json
+data/decks.json
+data/decks.json.tmp

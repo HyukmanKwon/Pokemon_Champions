@@ -20,7 +20,10 @@ SQL_DIR = DATA_DIR / "sql"            # ETL 이 생성한 SQL (재생성 가능)
 OVERRIDE_DIR = DATA_DIR / "overrides"  # 사람이 확정한 값 (git 커밋 대상)
 CACHE_DIR = DATA_DIR / "cache"        # 내려받은 원본 (재생성 가능)
 IMAGES_DIR = DATA_DIR / "images"      # 스프라이트·타입 아이콘 캐시
-TEAM_PATH = DATA_DIR / "my_team.json"  # 내 포켓몬 6마리 스펙
+DECKS_PATH = DATA_DIR / "decks.json"  # 덱 여러 벌 + 지금 보고 있는 덱
+# 덱 하나뿐이던 시절의 파일. decks.json 이 없을 때 여기서 옮겨온다.
+# 옮긴 뒤에도 지우지 않는다 — 다시 만들 수 없는 파일이다.
+TEAM_PATH = DATA_DIR / "my_team.json"
 
 # ─────────────────────────────────────────────────────────────
 # DB 접속

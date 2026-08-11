@@ -33,7 +33,7 @@ from ..domain import STAT_ORDER
 from ..services import damage, team, usage
 from ..services.damage import Rules
 from ..text import normalize
-from ..usecases import battle, naming
+from ..usecases import battle, naming, roster
 from . import schemas
 
 # domain 의 능력치 글자를 모델이 읽을 이름으로. 종족값·실능 dict 의 키가
@@ -413,13 +413,44 @@ def bulk_index(pokemon):
 
 
 # ─────────────────────────────────────────────────────────────
-# 내 엔트리
+# 내 덱
+#
+# ── 어느 덱인지는 모델이 고르지 않는다 ──
+#   덱이 여러 벌이 되면서 "내 팀" 이 모호해졌다. 답은 사용자가 화면에서
+#   보고 있는 덱이다. 그래서 기본은 활성 덱이고, 스키마에는 이름으로 부르는
+#   선택 인자만 열어둔다 — id 를 노출하면 모델이 짐작해서 고른다.
+#
+#   웹에 붙일 때는 bind_deck() 으로 요청이 보고 있는 덱을 묶는다. conn 과
+#   같은 취급이다.
 # ─────────────────────────────────────────────────────────────
 
-def my_team():
+_bound_deck = None
+
+
+def bind_deck(deck_id):
+    """이 대화가 볼 덱을 못 박는다. None 이면 활성 덱."""
+    global _bound_deck
+    _bound_deck = deck_id
+
+
+def _deck_id(deck=None):
+    """모델이 이름으로 부른 덱 -> id. 못 찾으면 묶인 덱(없으면 활성)."""
+    if deck:
+        found = roster.by_name(roster.load(), deck)
+        if found:
+            return found["id"]
+    return _bound_deck
+
+
+def my_team(deck=None):
     """등록해둔 6마리의 실제 스펙과 실능치."""
+    try:
+        slots = roster.slots(_deck_id(deck))
+    except LookupError as e:
+        return {"error": str(e)}
+
     out = []
-    for spec in team.load_specs():
+    for spec in slots:
         en = _resolve("pokemons", spec.get("ko_name"))
         try:
             p = team.build_pokemon(_conn(), **spec)
@@ -438,7 +469,16 @@ def my_team():
     return {"team": out}
 
 
-def team_weaknesses():
+def list_decks():
+    """저장해둔 덱 목록과 지금 보고 있는 덱."""
+    book = roster.summary()
+    active = next((d for d in book["decks"] if d["id"] == book["active"]), None)
+    return {"active": active["name"] if active else None,
+            "decks": [{"name": d["name"], "members": d["members"]}
+                      for d in book["decks"]]}
+
+
+def team_weaknesses(deck=None):
     """엔트리 전체의 타입 상성 표. 어느 타입에 몇 마리가 약한가.
 
     "우리 팀이 뭐에 약해" 를 모델이 상성표를 외워서 답하면 반드시 틀린다.
@@ -451,8 +491,13 @@ def team_weaknesses():
     chart = _rules().chart
     types = sorted({t for (t, _) in chart})
 
+    try:
+        slots = roster.slots(_deck_id(deck))
+    except LookupError as e:
+        return {"error": str(e)}
+
     members = []
-    for spec in team.load_specs():
+    for spec in slots:
         en = _resolve("pokemons", spec["ko_name"])
         if en is None:
             return {"error": f"엔트리의 '{spec['ko_name']}' 을(를) "
@@ -502,6 +547,7 @@ HANDLERS = {
     "power_index": power_index,
     "bulk_index": bulk_index,
     "my_team": my_team,
+    "list_decks": list_decks,
     "team_weaknesses": team_weaknesses,
     "usage_stats": usage_stats,
 }

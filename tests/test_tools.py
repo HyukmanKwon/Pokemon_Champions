@@ -71,7 +71,10 @@ CALLS = [
                      "moves": ["지진", "아이언헤드", "없는기술"]}),
     ("bulk_index", {"pokemon": {"name": "하마돈"}}),
 
-    ("my_team", {}),
+    ("my_team", {}),                              # 활성 덱
+    ("my_team", {"deck": "테스트 덱"}),             # 이름으로 부른 덱
+    ("my_team", {"deck": "없는 덱"}),               # 못 찾으면 활성 덱으로
+    ("list_decks", {}),
     ("team_weaknesses", {}),
     ("usage_stats", {"pokemon": "한카리아스"}),
 ]

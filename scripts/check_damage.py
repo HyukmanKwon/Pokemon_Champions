@@ -27,9 +27,8 @@ import sys
 
 from pokemon_champions.db import connection
 from pokemon_champions.db.repositories import rules_repo
-from pokemon_champions.services import team
 from pokemon_champions.services.damage import Rules
-from pokemon_champions.usecases import battle
+from pokemon_champions.usecases import battle, roster
 
 # 대조용 기준 케이스. 자속·상성·도구·특성이 골고루 걸리도록 골랐다 —
 # 전부 등배 무보정이면 대조해도 얻는 게 없다.
@@ -135,7 +134,7 @@ def main():
         parser.error("공격자, 기술, 방어자 셋을 주세요.")
 
     with connection() as conn:
-        specs = team.load_specs()
+        specs = roster.slots()
         rules = Rules(
             chart=rules_repo.fetch_type_chart(conn),
             weathers=rules_repo.fetch_weathers(conn),

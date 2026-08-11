@@ -22,7 +22,7 @@ from ...services import damage, team
 from ...services.damage import Rules
 from ...services.stats import calc_stats, make_sp
 from ...text import normalize
-from ...usecases import battle
+from ...usecases import battle, roster
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -30,13 +30,14 @@ IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI()
 
-state = {"conn": None, "specs": None, "rules": None}
+# specs 를 캐시하지 않는다. 덱이 여러 벌이 되면서 "지금 보고 있는 덱" 이
+# 요청마다 달라질 수 있고, 캐시해두면 덱을 바꿔도 옛 덱이 그려진다.
+state = {"conn": None, "rules": None}
 
 
 @app.on_event("startup")
 def on_startup():
     state["conn"] = connect()
-    state["specs"] = team.load_specs()
     # 참조표는 배틀 중에 안 바뀐다. 계산 한 번마다 324행을 다시 읽으면
     # 확정 N타 분석에서 턴 수만큼 쿼리가 나간다. 뜰 때 한 번만 읽는다.
     state["rules"] = Rules(
@@ -100,8 +101,7 @@ def _mega_view(spec):
     }, stones
 
 
-def _slot_view(index):
-    spec = state["specs"][index]
+def _slot_view(index, spec):
     conn = state["conn"]
 
     base = pokemon_repo.fetch_base(conn, spec["ko_name"])
@@ -304,9 +304,65 @@ def dex_item(name: str):
     return row
 
 
+# ─────────────────────────────────────────────────────────────
+# 덱 — 여러 벌 중 하나가 "지금 보고 있는" 덱이다
+#
+# 6칸을 읽고 고치는 것은 아래 /api/team 이 그대로 한다. 여기는 덱 자체를
+# 만들고 지우고 갈아타는 것만 다룬다.
+# ─────────────────────────────────────────────────────────────
+
+class DeckEdit(BaseModel):
+    name: str
+
+
+@app.get("/api/decks")
+def list_decks():
+    return roster.summary()
+
+
+@app.post("/api/decks")
+def create_deck(edit: DeckEdit):
+    return roster.create(edit.name)
+
+
+@app.post("/api/decks/{deck_id}/copy")
+def copy_deck(deck_id: str):
+    return _deck_op(roster.copy_deck, deck_id)
+
+
+@app.patch("/api/decks/{deck_id}")
+def rename_deck(deck_id: str, edit: DeckEdit):
+    return _deck_op(roster.rename, deck_id, edit.name)
+
+
+@app.delete("/api/decks/{deck_id}")
+def delete_deck(deck_id: str):
+    return {"active": _deck_op(roster.delete, deck_id)}
+
+
+@app.post("/api/decks/{deck_id}/activate")
+def activate_deck(deck_id: str):
+    return {"active": _deck_op(roster.set_active, deck_id)}
+
+
+def _deck_op(fn, deck_id, *args):
+    """없는 덱은 404, 규칙 위반(마지막 덱 삭제)은 400."""
+    try:
+        return fn(deck_id, *args)
+    except LookupError as e:
+        raise HTTPException(404, str(e))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
 @app.get("/api/team")
-def get_team():
-    return [_slot_view(i) for i in range(len(state["specs"]))]
+def get_team(deck: Optional[str] = None):
+    """지금 보고 있는 덱의 6칸. deck 을 주면 그 덱."""
+    try:
+        slots = roster.slots(deck)
+    except LookupError as e:
+        raise HTTPException(404, str(e))
+    return [_slot_view(i, spec) for i, spec in enumerate(slots)]
 
 
 @app.get("/api/pokemon/{ko_name}/options")
@@ -386,25 +442,27 @@ def get_natures():
 
 
 @app.patch("/api/team/{index}")
-def patch_team(index: int, edit: SlotEdit):
-    specs = state["specs"]
-    if not 0 <= index < len(specs):
+def patch_team(index: int, edit: SlotEdit, deck: Optional[str] = None):
+    try:
+        slots = roster.slots(deck)
+    except LookupError as e:
+        raise HTTPException(404, str(e))
+    if not 0 <= index < len(slots):
         raise HTTPException(404, f"슬롯 {index}는 존재하지 않습니다.")
 
     fields = edit.dict(exclude_unset=True)
-    before = dict(specs[index])
-    team.edit_spec(specs, index, **fields)
+    merged = {**slots[index], **fields}
     try:
         # _slot_view 는 repositories 를 직접 부르므로 build_pokemon 을 거치지
         # 않는다. 여기서 부르지 않으면 CLI 만 검증되고 웹은 무엇이든 통과한다.
-        team.validate_spec(state["conn"], specs[index])
-        view = _slot_view(index)
+        team.validate_spec(state["conn"], merged)
     except ValueError as e:
-        specs[index] = before
+        # 파일에 쓰기 전에 막는다. 예전에는 고쳤다가 되돌렸는데, 덱이 여러
+        # 벌이 되면서 되돌릴 대상이 캐시가 아니라 파일이 됐다.
         raise HTTPException(400, str(e))
 
-    team.save_specs(specs)
-    return view
+    saved = roster.edit_slot(index, deck, **fields)
+    return _slot_view(index, saved)
 
 
 # ─────────────────────────────────────────────────────────────

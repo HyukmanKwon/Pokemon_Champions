@@ -59,6 +59,12 @@ _SIDE = {
 
 _STR = {"type": "string"}
 
+# 덱은 이름으로만 부를 수 있다. id 를 열어두면 모델이 짐작해서 고르고,
+# 사용자가 보고 있는 것과 다른 덱을 답하게 된다.
+_DECK_DESC = ("Deck name, exactly as the user wrote it. Omit this to use the "
+              "deck the user currently has open — that is almost always what "
+              "'my team' means. Call list_decks first if you need the names.")
+
 # {도구 이름: 스키마}. 실행할 함수는 tools.HANDLERS 에 같은 열쇠로 있고,
 # 두 열쇠 집합이 어긋나면 tools.py 가 import 할 때 잡는다.
 TOOLS = {
@@ -181,17 +187,26 @@ TOOLS = {
         "required": ["pokemon"]},
 
     "my_team": {
-        "description": "The specs and computed stats of the six Pokemon the "
-                       "user has registered. Call this first whenever "
-                       "'my team' or 'my entry' comes up.",
+        "description": "The specs and computed stats of the six Pokemon in "
+                       "the user's deck. Call this first whenever 'my team', "
+                       "'my entry' or 'my deck' comes up. Defaults to the "
+                       "deck the user is currently looking at.",
+        "properties": {"deck": {**_STR, "description": _DECK_DESC}},
+        "required": []},
+
+    "list_decks": {
+        "description": "The user's saved decks and which one is currently "
+                       "open. Use it when the user asks what decks they have, "
+                       "or before answering about a deck you cannot name.",
         "properties": {}, "required": []},
 
     "team_weaknesses": {
-        "description": "Type matchup table for all six registered Pokemon. "
+        "description": "Type matchup table for all six Pokemon in the deck. "
                        "Computes how many members are weak to each type. "
-                       "When asked about the team's weaknesses, call this "
+                       "When asked about the deck's weaknesses, call this "
                        "instead of recalling the type chart from memory.",
-        "properties": {}, "required": []},
+        "properties": {"deck": {**_STR, "description": _DECK_DESC}},
+        "required": []},
 
     "usage_stats": {
         "description": "Ranked battle usage stats. What moves, items, "

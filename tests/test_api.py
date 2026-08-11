@@ -4,13 +4,11 @@ test_tools.py 와 같은 이유, 같은 방법이다. 다른 점은 대상이다
 브라우저가 받는 JSON 이고, 저기는 모델이 받는 JSON 이다.
 
 ── 왜 둘 다 필요한가 ──
-  지금 데미지 계산은 app.py 와 tools.py 가 각자 조립한다. 둘을 조립 층
-  하나로 합칠 때 알고 싶은 것은 "합쳐도 양쪽 답이 그대로인가" 다. 한쪽만
-  박아두면 나머지 한쪽이 조용히 바뀐다.
+  데미지 계산은 이제 usecases/battle.py 한 곳에서 조립한다. 그래서 한쪽을
+  고치면 다른 쪽도 같이 움직인다 — 둘 다 박아둬야 그 움직임이 보인다.
 
-  실제로 지금도 갈려 있다. 웹 계산기는 리플렉터·빛의장막·상태이상·남은
-  HP·접지를 받는데 도구는 못 받는다. 합칠 때 이 차이를 어느 쪽으로
-  맞출지가 결정 사항이고, 그때 이 파일이 기준이 된다.
+  웹만 받는 칸(리플렉터·빛의장막·상태이상·남은 HP·접지)이 아직 있다.
+  도구에도 열어줄지는 따로 정할 일이고, 그때 이 파일이 기준이 된다.
 
 ── 다시 적기 ──
       UPDATE_GOLDEN=1 pytest tests/test_api.py
@@ -81,8 +79,8 @@ CALLS = [
 def client(db, fixed_team):
     """startup 이 도는 TestClient. db 가 없으면 skip 된다.
 
-    fixed_team 을 먼저 받는 이유는 startup 이 team.load_specs() 를
-    부르기 때문이다. 순서가 뒤집히면 진짜 엔트리를 읽는다.
+    fixed_team 이 덱 파일을 임시 폴더로 돌려놓는다. 이게 없으면 테스트가
+    사용자의 진짜 덱을 읽고, 더 나쁘게는 고친다.
     """
     from fastapi.testclient import TestClient
 
@@ -121,12 +119,73 @@ def test_golden(responses):
         assert have[key] == want[key], f"{key} 의 응답이 달라졌습니다"
 
 
-def test_엔트리_수정은_사본에만_쓴다(client, fixed_team):
-    """PATCH 가 진짜 data/my_team.json 을 건드리지 않는지."""
+def test_덱_한살이(client):
+    """만들고 → 갈아타고 → 이름 바꾸고 → 지운다.
+
+    골든으로 안 박는 이유는 덱 id 가 매번 새로 뽑히기 때문이다. 모양이
+    아니라 규칙을 본다.
+    """
+    first = client.get("/api/decks").json()
+    assert len(first["decks"]) == 1
+    assert first["decks"][0]["name"] == "테스트 덱"
+    assert len(first["decks"][0]["members"]) == 6
+
+    made = client.post("/api/decks", json={"name": "트릭룸"}).json()
+    assert made["name"] == "트릭룸"
+    # 만들기만 해서는 보고 있는 덱이 안 바뀐다. 편집 중에 화면이 튀면 안 된다.
+    assert client.get("/api/decks").json()["active"] == first["active"]
+
+    assert client.post(f"/api/decks/{made['id']}/activate").json()["active"] \
+        == made["id"]
+
+    renamed = client.patch(f"/api/decks/{made['id']}",
+                           json={"name": "트릭룸 v2"}).json()
+    assert renamed["name"] == "트릭룸 v2"
+
+    # 지우면 활성 덱이 남은 것으로 옮겨간다
+    left = client.delete(f"/api/decks/{made['id']}").json()["active"]
+    assert left == first["active"]
+    assert len(client.get("/api/decks").json()["decks"]) == 1
+
+
+def test_마지막_덱은_못_지운다(client):
+    """다 지우면 활성 덱이 없어진다. 그 상태를 다루는 코드를 곳곳에
+    두느니 애초에 못 만들게 한다."""
+    only = client.get("/api/decks").json()["active"]
+    r = client.delete(f"/api/decks/{only}")
+    assert r.status_code == 400
+    assert "마지막" in r.json()["detail"]
+
+
+def test_없는_덱은_404(client):
+    assert client.delete("/api/decks/없는id").status_code == 404
+    assert client.get("/api/team", params={"deck": "없는id"}).status_code == 404
+
+
+def test_덱마다_따로_고쳐진다(client):
+    """한 덱을 고쳐도 다른 덱은 그대로여야 한다. 덱을 나눈 이유 자체다."""
+    a = client.get("/api/decks").json()["active"]
+    b = client.post("/api/decks/%s/copy" % a).json()["id"]
+
+    before = client.get("/api/team", params={"deck": b}).json()[0]["nature"]["name"]
+    client.patch("/api/team/0", params={"deck": a}, json={"ko_nature": "고집"})
+
+    assert client.get("/api/team", params={"deck": a}).json()[0]["nature"]["name"] \
+        == "고집"
+    assert client.get("/api/team", params={"deck": b}).json()[0]["nature"]["name"] \
+        == before
+
+
+def test_덱_수정은_사본에만_쓴다(client, fixed_team):
+    """PATCH 가 진짜 data/decks.json 을 건드리지 않는지.
+
+    덱은 다시 만들 수 없는 파일이다. 픽스처가 새는지를 테스트가 직접
+    확인해두지 않으면, 언젠가 한 번 새고 그때는 이미 늦다.
+    """
     before = fixed_team.read_text(encoding="utf-8")
     r = client.patch("/api/team/0", json={"ko_nature": "고집"})
     assert r.status_code == 200
 
-    from pokemon_champions.config import TEAM_PATH
-    assert fixed_team != TEAM_PATH
+    from pokemon_champions.config import DECKS_PATH
+    assert fixed_team != DECKS_PATH
     assert fixed_team.read_text(encoding="utf-8") != before

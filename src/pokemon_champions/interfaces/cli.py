@@ -14,6 +14,7 @@ import unicodedata
 from ..db import connect
 from ..domain import STAT_LABELS, STAT_ORDER
 from ..services import team
+from ..usecases import roster
 from ..text import normalize
 
 FIELDS = ["ko_name", "sp_values", "ko_nature", "ability", "item", "moves"]
@@ -111,7 +112,8 @@ def edit_slot(conn, specs, index):
 
 def main():
     conn = connect()
-    specs = team.load_specs()
+    # 지금 보고 있는 덱. CLI 는 덱을 바꾸지 않는다 — 그건 화면의 일이다.
+    specs = roster.slots()
     try:
         while True:
             print()
@@ -130,7 +132,7 @@ def main():
     except KeyboardInterrupt:
         print()
     finally:
-        team.save_specs(specs)
+        roster.save_slots(specs)
         conn.close()
 
 

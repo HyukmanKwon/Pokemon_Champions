@@ -54,7 +54,8 @@ Pokemon_Champions/
 │   │   ├── move_flag_map.csv   PokeAPI 기술 플래그 원본
 │   │   └── usage/              배틀 데이터(채용률) 응답
 │   ├── images/                 스프라이트·타입 아이콘 캐시  (git 제외)
-│   └── my_team.json            내 엔트리 6마리             (git 제외)
+│   ├── decks.json              덱 여러 벌 + 활성 덱        (git 제외)
+│   └── my_team.json            덱 하나뿐이던 시절의 파일   (git 제외)
 │
 ├── scripts/                    손으로 돌리는 것. 런타임 아님
 │   ├── chat.py                 LLM 도우미와 대화
@@ -255,7 +256,8 @@ Python은 "현재 실행 위치"를 기준으로 모듈을 찾는다. 파일이 
 |---|---|---|
 | `overrides/` | 커밋 | 사람이 눈으로 확인해 확정한 값. 다시 만들 수 없다 |
 | `sql/` `cache/` `images/` | 제외 | 스크립트가 언제든 다시 만든다 |
-| `my_team.json` | 제외 | 개인 데이터 |
+| `decks.json` | 제외 | 개인 데이터 |
+| `my_team.json` | 제외 | 개인 데이터. decks.json 이 없을 때 한 번 옮겨온다 |
 
 내려받은 이미지를 패키지 폴더가 아니라 `data/images/`에 두는 이유도 같다. wheel로
 설치하면 패키지 폴더에 쓰기 권한이 없어 깨진다.
