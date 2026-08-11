@@ -61,7 +61,7 @@ import random
 
 import requests
 
-from . import tools
+from . import schemas, tools
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 DEFAULT_MODEL = "qwen3.5:9b"
@@ -159,7 +159,7 @@ def chat(messages, model=DEFAULT_MODEL, url=OLLAMA_URL, use_tools=True):
         "options": {"temperature": 0.2, "num_ctx": NUM_CTX},
     }
     if use_tools:
-        payload["tools"] = tools.schemas()
+        payload["tools"] = schemas.as_array()
 
     for attempt in range(RETRIES):
         # seed 를 우리가 준다. 맡겨두면 재시도가 같은 값을 물려받아 같은

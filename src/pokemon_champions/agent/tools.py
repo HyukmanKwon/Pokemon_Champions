@@ -1,15 +1,8 @@
-"""도구 정의 — 모델이 부를 수 있는 함수와 그 스키마.
+"""도구 본문 — 모델이 부를 수 있는 함수들.
 
-── 스키마를 손으로 적는 이유 ──
-  파이썬 시그니처에서 자동 생성할 수도 있지만, 도구 설명은 모델에게 주는
-  프롬프트다. "언제 이걸 부르는가" 를 사람이 써야 한다. 자동 생성하면
-  타입만 맞고 판단 근거가 빠져서, 모델이 엉뚱한 도구를 고른다.
-
-── 인자를 적게 ──
-  포켓몬 하나를 세우는 데 필요한 것은 이름·SP·성격·특성·도구 다섯이지만,
-  대부분의 질문은 "메가갸라도스가 한카리아스를 몇 방에" 처럼 이름 둘과
-  기술 하나뿐이다. 나머지는 기본값(SP 0 · 성실 · 첫 특성 · 도구 없음)으로
-  두고, 모델이 말한 것만 채우게 한다.
+  모델에게 주는 설명(무엇을 언제 부르는가)은 schemas.py 에 있다. 여기는
+  그 도구가 실제로 하는 일이다. 두 파일의 열쇠가 어긋나면 아래 HANDLERS
+  옆에서 import 때 잡는다.
 
 ── 모델에게는 영어로 ──
   모델은 Garchomp · Earthquake · Focus Sash 를 한카리아스 · 지진 ·
@@ -40,6 +33,7 @@ from ..domain import STAT_ORDER
 from ..services import damage, team, usage
 from ..services.damage import BattleContext, Rules
 from ..text import normalize
+from . import schemas
 
 NEUTRAL_NATURE = "성실"
 
@@ -618,210 +612,48 @@ def usage_stats(pokemon, format="Singles"):
 
 
 # ─────────────────────────────────────────────────────────────
-# 스키마 — 모델에게 주는 설명이다. 타입만 맞추면 도구를 잘못 고른다.
+# 부르기
 # ─────────────────────────────────────────────────────────────
 
-# 이름 인자는 전부 양방향이다. 모델이 한국어 질문을 그대로 옮겨 적기도
-# 하고 영문으로 바꿔 주기도 하는데, 둘 중 하나만 받으면 나머지 절반이
-# "그런 포켓몬은 없습니다" 가 된다.
-_NAME_DESC = ("Korean name or English slug. "
-              "Both 한카리아스 and garchomp work")
-_MOVE_DESC = ("Korean name or English slug. "
-              "Both 지진 and earthquake work")
-
-_SIDE = {
-    "type": "object",
-    "description": "A single Pokemon. Only name is required; the rest fall "
-                   "back to defaults (SP 0 · Serious nature · first ability "
-                   "· no item).",
-    "properties": {
-        "name": {"type": "string",
-                 "description": f"{_NAME_DESC}. Mega forms work too"},
-        "ability": {"type": "string", "description":
-                    "Ability name. Both 까칠한피부 and rough-skin work"},
-        "item": {"type": "string", "description":
-                 "Item name. Both 기합의띠 and focus-sash work"},
-        "nature": {"type": "string", "description":
-                   "Nature name. Both 고집 and adamant work. "
-                   "Defaults to Serious"},
-        "sp": {"type": "array", "items": {"type": "integer"},
-               "description": "6 values in hp, atk, def, spa, spd, spe order. "
-                              "66 total"},
-        "rank": {"type": "object",
-                 "description": 'Stat stage changes. e.g. {"a": 2} is +2 Atk'},
-    },
-    "required": ["name"],
+# {도구 이름: 실행할 함수}. 설명은 schemas.TOOLS 에 같은 열쇠로 있다.
+HANDLERS = {
+    "find_pokemon": find_pokemon,
+    "search_pokemon": search_pokemon,
+    "type_matchup": type_matchup,
+    "type_effectiveness": type_effectiveness,
+    "find_move": find_move,
+    "moves_of": moves_of,
+    "find_ability": find_ability,
+    "find_item": find_item,
+    "calc_damage": calc_damage,
+    "power_index": power_index,
+    "bulk_index": bulk_index,
+    "my_team": my_team,
+    "team_weaknesses": team_weaknesses,
+    "usage_stats": usage_stats,
 }
 
-_STR = {"type": "string"}
-
-TOOLS = {
-    "find_pokemon": (find_pokemon, {
-        "description": "Base stats, types, abilities and mega relations of a "
-                       "single Pokemon. Call this first whenever the user "
-                       "asks about a specific Pokemon.",
-        "properties": {"name": {**_STR, "description": _NAME_DESC}},
-        "required": ["name"]}),
-
-    "search_pokemon": (search_pokemon, {
-        "description": "Narrow down Pokemon by criteria. Use this when "
-                       "looking for candidates rather than one Pokemon, "
-                       "e.g. 'fast Fire types'.",
-        "properties": {
-            "type": {**_STR, "description":
-                     "English type. fire, water, dragon …"},
-            "min_total": {"type": "integer",
-                          "description": "Minimum base stat total"},
-            "order_by": {**_STR, "description":
-                         "Sort key. hp/atk/def/spa/spd/spe/bst"},
-            "limit": {"type": "integer",
-                      "description": "Max results. Defaults to 8"}},
-        "required": []}),
-
-    "type_matchup": (type_matchup, {
-        "description": "How much damage that Pokemon takes from each of the "
-                       "18 types, all at once. 'What is it weak to?', 'What "
-                       "should I hit it with?', 'What does it wall?' are all "
-                       "answered by this one tool. Do not call "
-                       "type_effectiveness once per type — types you never "
-                       "checked stay blank, and filling those blanks from "
-                       "memory produces wrong answers.",
-        "properties": {"pokemon": {**_STR, "description": _NAME_DESC}},
-        "required": ["pokemon"]}),
-
-    "type_effectiveness": (type_effectiveness, {
-        "description": "How much damage one attacking type deals to that "
-                       "Pokemon. Use only when the attacking type is already "
-                       "decided. If you are still looking for what works, "
-                       "call type_matchup.",
-        "properties": {
-            "attack_type": {**_STR, "description":
-                            "English type. fire, ground …"},
-            "defender": {**_STR, "description":
-                         f"The defending Pokemon. {_NAME_DESC}"}},
-        "required": ["attack_type", "defender"]}),
-
-    "find_move": (find_move, {
-        "description": "Power, type, category and effect of a single move.",
-        "properties": {"name": {**_STR, "description": _MOVE_DESC}},
-        "required": ["name"]}),
-
-    "moves_of": (moves_of, {
-        "description": "Moves that Pokemon can learn, ordered by power. "
-                       "Never guess whether it learns a move — check here. "
-                       "One Pokemon can learn over sixty moves, so prefer "
-                       "narrowing with type, category or min_power.",
-        "properties": {
-            "pokemon": {**_STR, "description": _NAME_DESC},
-            "type": {**_STR, "description":
-                     "Filter by English type. fire, ground …"},
-            "category": {**_STR, "description":
-                         "Filter by one of physical / special / status"},
-            "min_power": {"type": "integer",
-                          "description": "Only moves at or above this power"},
-            "limit": {"type": "integer",
-                      "description": "Max results. Defaults to 40"}},
-        "required": ["pokemon"]}),
-
-    "find_ability": (find_ability, {
-        "description": "The effect of a single ability and the Pokemon "
-                       "that have it.",
-        "properties": {"name": {**_STR, "description":
-                                "Ability name. Both 까칠한피부 and "
-                                "rough-skin work"}},
-        "required": ["name"]}),
-
-    "find_item": (find_item, {
-        "description": "The effect and category of a single item.",
-        "properties": {"name": {**_STR, "description":
-                                "Item name. Both 기합의띠 and "
-                                "focus-sash work"}},
-        "required": ["name"]}),
-
-    "calc_damage": (calc_damage, {
-        "description": "Damage rolls and guaranteed-KO analysis. Every "
-                       "'how many hits to KO', 'does it survive', 'is it a "
-                       "OHKO' question goes through this. Do not multiply it "
-                       "out yourself — the official formula rounds in "
-                       "unusual places, and hand calculation flips "
-                       "guaranteed vs. rolled KO verdicts.",
-        "properties": {
-            "attacker": _SIDE, "defender": _SIDE,
-            "move": {**_STR, "description": _MOVE_DESC},
-            "weather": {**_STR, "description":
-                        "One of sun, rain, sandstorm, snow"},
-            "terrain": {**_STR, "description":
-                        "One of electric, grassy, misty, psychic"},
-            "is_critical": {"type": "boolean",
-                            "description": "Whether the hit is a critical"},
-            "is_doubles": {"type": "boolean",
-                           "description": "Whether this is a double battle"}},
-        "required": ["attacker", "defender", "move"]}),
-
-    "power_index": (power_index, {
-        "description": "Offensive power index. Ranks one Pokemon's moves by "
-                       "output. Use it for 'which move hits hardest?' when "
-                       "no specific target is given.",
-        "properties": {
-            "pokemon": _SIDE,
-            "moves": {"type": "array", "items": _STR,
-                      "description": f"Move names. {_MOVE_DESC}"}},
-        "required": ["pokemon", "moves"]}),
-
-    "bulk_index": (bulk_index, {
-        "description": "Bulk index. HP × Def and HP × SpD. Use it to "
-                       "compare how sturdy Pokemon are against each other.",
-        "properties": {"pokemon": _SIDE},
-        "required": ["pokemon"]}),
-
-    "my_team": (my_team, {
-        "description": "The specs and computed stats of the six Pokemon the "
-                       "user has registered. Call this first whenever "
-                       "'my team' or 'my entry' comes up.",
-        "properties": {}, "required": []}),
-
-    "team_weaknesses": (team_weaknesses, {
-        "description": "Type matchup table for all six registered Pokemon. "
-                       "Computes how many members are weak to each type. "
-                       "When asked about the team's weaknesses, call this "
-                       "instead of recalling the type chart from memory.",
-        "properties": {}, "required": []}),
-
-    "usage_stats": (usage_stats, {
-        "description": "Ranked battle usage stats. What moves, items, "
-                       "abilities, natures and SP spreads that Pokemon "
-                       "actually shows up with, and who it is paired with. "
-                       "Use it for 'what is it running lately?', 'the "
-                       "popular spread', 'what item does it hold?'. Do not "
-                       "answer from memory — the metagame shifts daily and "
-                       "these numbers come from in-game battle data.",
-        "properties": {
-            "pokemon": {**_STR, "description": _NAME_DESC},
-            "format": {**_STR, "description":
-                       "Singles or Doubles. Defaults to Singles"}},
-        "required": ["pokemon"]}),
-}
-
-
-def schemas():
-    """Ollama·OpenAI 형식의 tools 배열."""
-    return [{"type": "function",
-             "function": {"name": name,
-                          "description": spec["description"],
-                          "parameters": {"type": "object",
-                                         "properties": spec["properties"],
-                                         "required": spec["required"]}}}
-            for name, (_, spec) in TOOLS.items()]
+# 함수와 설명이 두 파일로 갈렸으니 한쪽만 고치는 일이 생긴다. 스키마만
+# 있고 함수가 없으면 모델이 부를 수 있는 도구가 터지고, 반대면 있는 도구를
+# 아무도 모른다. 둘 다 import 할 때 잡는 편이 낫다.
+_only_schema = set(schemas.TOOLS) - set(HANDLERS)
+_only_handler = set(HANDLERS) - set(schemas.TOOLS)
+if _only_schema or _only_handler:
+    raise RuntimeError(
+        f"도구 짝이 맞지 않습니다 — 설명만 있음: {sorted(_only_schema)}, "
+        f"함수만 있음: {sorted(_only_handler)}")
 
 
 def call(name, args):
     """도구 하나를 실행한다. 무엇이 잘못돼도 값으로 돌려준다."""
-    entry = TOOLS.get(name)
-    if entry is None:
+    fn = HANDLERS.get(name)
+    if fn is None:
         return {"error": f"그런 도구가 없습니다: {name}"}
     try:
-        return entry[0](**(args or {}))
+        return fn(**(args or {}))
     except TypeError as e:
         return {"error": f"인자가 맞지 않습니다: {e}"}
     except Exception as e:      # noqa: BLE001 - 루프가 죽으면 안 된다
         return {"error": f"{type(e).__name__}: {e}"}
+
+

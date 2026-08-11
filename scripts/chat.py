@@ -96,7 +96,7 @@ def main():
         if args.question:
             return once(" ".join(args.question))
 
-        print(f"모델: {args.model} · 도구 {len(tools.TOOLS)}개 · 빈 줄이면 종료")
+        print(f"모델: {args.model} · 도구 {len(tools.HANDLERS)}개 · 빈 줄이면 종료")
         while True:
             try:
                 q = input("\n> ").strip()
