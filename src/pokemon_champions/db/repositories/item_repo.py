@@ -2,9 +2,15 @@
 
 ── usable 이 무엇인가 ──
   PokeAPI 는 "포챔스에서 지니게 할 수 있는 도구인가"를 알려주지 않는다.
-  카테고리로 긁어온 284개 안에는 대전에서 쓸 수 없는 것이 섞여 있다.
-  그래서 사람이 눈으로 확인한 결과를 items.usable 에 담는다.
-      python -m scripts.etl.annotator.items
+  거르는 자리가 두 군데인데, 지금 일하는 쪽은 앞쪽이다.
+
+    1. 수집할 때   get_items.py 의 ITEM_CATEGORIES 3개 + EXTRA_ITEMS 낱개
+                   지정으로 애초에 좁게 받는다. 지금 166개가 이것이다
+    2. 받은 뒤     items.usable 로 거른다. annotator.items 로 찍는다
+
+  1 이 먼저 좁혀 주기 때문에 지금 DB 는 166개 전부 usable=true 이고,
+  이 함수의 WHERE usable 은 사실상 통과다. 그래도 조건을 남겨 둔다 —
+  카테고리를 넓히는 순간 2 가 유일한 방어선이 된다.
 """
 
 from ._rows import one, rows
