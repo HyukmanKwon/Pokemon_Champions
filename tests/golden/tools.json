@@ -1,0 +1,1275 @@
+{
+  "bulk_index({\"pokemon\": {\"name\": \"하마돈\"}})": {
+    "def": 138,
+    "hp": 183,
+    "ko_name": "하마돈",
+    "physical_bulk": 25254,
+    "pokemon": "hippowdon",
+    "spd": 92,
+    "special_bulk": 16836
+  },
+  "calc_damage({\"attacker\": {\"name\": \"맘모꾸리\"}, \"defender\": {\"name\": \"한카리아스\"}, \"move\": \"고드름떨구기\"})": {
+    "attacker": {
+      "ability": "oblivious",
+      "ability_ko_name": "둔감",
+      "atk": 150,
+      "item": null,
+      "item_ko_name": null,
+      "ko_name": "맘모꾸리",
+      "name": "mamoswine",
+      "nature": "serious",
+      "nature_ko_name": "성실",
+      "spa": 90
+    },
+    "damage": {
+      "max": 300,
+      "min": 252,
+      "percent": "137.7~163.9%",
+      "rolls": [
+        252,
+        256,
+        256,
+        264,
+        264,
+        268,
+        268,
+        276,
+        276,
+        280,
+        280,
+        288,
+        288,
+        292,
+        292,
+        300
+      ]
+    },
+    "defender": {
+      "ability": "sand-veil",
+      "ability_ko_name": "모래숨기",
+      "def": 115,
+      "hp": 183,
+      "item": null,
+      "item_ko_name": null,
+      "ko_name": "한카리아스",
+      "name": "garchomp",
+      "nature": "serious",
+      "nature_ko_name": "성실",
+      "spd": 105
+    },
+    "move": {
+      "category": "physical",
+      "ko_name": "고드름떨구기",
+      "name": "icicle-crash",
+      "power": 85,
+      "type": "ice"
+    },
+    "type_effect": 4.0,
+    "verdict": "확정 1타"
+  },
+  "calc_damage({\"attacker\": {\"name\": \"메가갸라도스\", \"nature\": \"고집\", \"sp\": [0, 32, 0, 0, 0, 32]}, \"defender\": {\"name\": \"한카리아스\", \"rank\": {\"b\": 2}}, \"move\": \"지진\", \"weather\": \"sandstorm\"})": {
+    "attacker": {
+      "ability": "mold-breaker",
+      "ability_ko_name": "틀깨기",
+      "atk": 227,
+      "item": null,
+      "item_ko_name": null,
+      "ko_name": "메가갸라도스",
+      "name": "gyarados-mega",
+      "nature": "adamant",
+      "nature_ko_name": "고집",
+      "spa": 81
+    },
+    "damage": {
+      "max": 45,
+      "min": 38,
+      "percent": "20.8~24.6%",
+      "rolls": [
+        38,
+        38,
+        39,
+        39,
+        40,
+        40,
+        40,
+        41,
+        41,
+        42,
+        42,
+        43,
+        43,
+        44,
+        44,
+        45
+      ]
+    },
+    "defender": {
+      "ability": "sand-veil",
+      "ability_ko_name": "모래숨기",
+      "def": 115,
+      "hp": 183,
+      "item": null,
+      "item_ko_name": null,
+      "ko_name": "한카리아스",
+      "name": "garchomp",
+      "nature": "serious",
+      "nature_ko_name": "성실",
+      "spd": 105
+    },
+    "move": {
+      "category": "physical",
+      "ko_name": "지진",
+      "name": "earthquake",
+      "power": 100,
+      "type": "ground"
+    },
+    "type_effect": 1.0,
+    "verdict": "4타 이내로는 쓰러지지 않음"
+  },
+  "calc_damage({\"attacker\": {\"name\": \"없는포켓몬\"}, \"defender\": {\"name\": \"한카리아스\"}, \"move\": \"지진\"})": {
+    "error": "'없는포켓몬' 은(는) 포챔스 목록에 없습니다."
+  },
+  "find_ability({\"name\": \"까칠한피부\"})": {
+    "description": "공격을 받았을 때 자신에게 접촉한 상대를 까칠까칠한 피부로 상처를 입힌다.",
+    "effect_en": "Damages attacking Pokémon for 1/8 their max HP on contact.",
+    "ko_name": "까칠한피부",
+    "name": "rough-skin",
+    "pokemon": [
+      {
+        "ko_name": "샤크니아",
+        "name": "sharpedo"
+      },
+      {
+        "ko_name": "한카리아스",
+        "name": "garchomp"
+      }
+    ]
+  },
+  "find_item({\"name\": \"기합의띠\"})": {
+    "category": "held-items",
+    "description": "지니게 하면 HP가 꽉 찼을 때 기절할 듯한 기술을 당해도 HP 1로 한 번은 버틴다.",
+    "ko_name": "기합의띠",
+    "name": "focus-sash",
+    "usable": true
+  },
+  "find_move({\"name\": \"earthquake\"})": {
+    "accuracy": 100,
+    "category": "physical",
+    "description": "지진의 충격으로 자신의 주위에 있는 포켓몬을 공격한다.",
+    "ko_name": "지진",
+    "name": "earthquake",
+    "power": 100,
+    "pp": 10,
+    "priority": 0,
+    "type": "ground"
+  },
+  "find_move({\"name\": \"없는기술\"})": {
+    "error": "'없는기술' 이라는 기술이 없습니다."
+  },
+  "find_move({\"name\": \"지진\"})": {
+    "accuracy": 100,
+    "category": "physical",
+    "description": "지진의 충격으로 자신의 주위에 있는 포켓몬을 공격한다.",
+    "ko_name": "지진",
+    "name": "earthquake",
+    "power": 100,
+    "pp": 10,
+    "priority": 0,
+    "type": "ground"
+  },
+  "find_pokemon({\"name\": \"garchomp\"})": {
+    "abilities": [
+      {
+        "description": "모래바람일 때 회피율이 올라간다.",
+        "is_hidden": false,
+        "ko_name": "모래숨기",
+        "name": "sand-veil"
+      },
+      {
+        "description": "공격을 받았을 때 자신에게 접촉한 상대를 까칠까칠한 피부로 상처를 입힌다.",
+        "is_hidden": true,
+        "ko_name": "까칠한피부",
+        "name": "rough-skin"
+      }
+    ],
+    "base_stats": {
+      "atk": 130,
+      "def": 95,
+      "hp": 108,
+      "spa": 80,
+      "spd": 85,
+      "spe": 102
+    },
+    "bst": 600,
+    "can_mega": true,
+    "height_m": 1.9,
+    "is_mega": false,
+    "ko_name": "한카리아스",
+    "mega_forms": [
+      {
+        "ko_name": "메가한카리아스",
+        "name": "garchomp-mega"
+      }
+    ],
+    "name": "garchomp",
+    "pokemon_id": 445,
+    "types": [
+      "dragon",
+      "ground"
+    ],
+    "weight_kg": 95.0
+  },
+  "find_pokemon({\"name\": \"메가입치트\"})": {
+    "abilities": [
+      {
+        "description": "물리공격의 위력이 2배가 된다.",
+        "is_hidden": false,
+        "ko_name": "천하장사",
+        "name": "huge-power"
+      }
+    ],
+    "base_stats": {
+      "atk": 105,
+      "def": 125,
+      "hp": 50,
+      "spa": 55,
+      "spd": 95,
+      "spe": 50
+    },
+    "bst": 480,
+    "can_mega": false,
+    "height_m": 1.0,
+    "is_mega": true,
+    "ko_name": "메가입치트",
+    "mega_forms": [],
+    "name": "mawile-mega",
+    "pokemon_id": 303,
+    "types": [
+      "steel",
+      "fairy"
+    ],
+    "weight_kg": 23.5
+  },
+  "find_pokemon({\"name\": \"없는포켓몬\"})": {
+    "error": "'없는포켓몬' 은(는) 포챔스 목록에 없습니다."
+  },
+  "find_pokemon({\"name\": \"한카리아스\"})": {
+    "abilities": [
+      {
+        "description": "모래바람일 때 회피율이 올라간다.",
+        "is_hidden": false,
+        "ko_name": "모래숨기",
+        "name": "sand-veil"
+      },
+      {
+        "description": "공격을 받았을 때 자신에게 접촉한 상대를 까칠까칠한 피부로 상처를 입힌다.",
+        "is_hidden": true,
+        "ko_name": "까칠한피부",
+        "name": "rough-skin"
+      }
+    ],
+    "base_stats": {
+      "atk": 130,
+      "def": 95,
+      "hp": 108,
+      "spa": 80,
+      "spd": 85,
+      "spe": 102
+    },
+    "bst": 600,
+    "can_mega": true,
+    "height_m": 1.9,
+    "is_mega": false,
+    "ko_name": "한카리아스",
+    "mega_forms": [
+      {
+        "ko_name": "메가한카리아스",
+        "name": "garchomp-mega"
+      }
+    ],
+    "name": "garchomp",
+    "pokemon_id": 445,
+    "types": [
+      "dragon",
+      "ground"
+    ],
+    "weight_kg": 95.0
+  },
+  "moves_of({\"min_power\": 80, \"pokemon\": \"한카리아스\", \"type\": \"ground\"})": {
+    "ko_name": "한카리아스",
+    "moves": [
+      {
+        "category": "physical",
+        "ko_name": "지진",
+        "name": "earthquake",
+        "power": 100,
+        "type": "ground"
+      },
+      {
+        "category": "special",
+        "ko_name": "대지의힘",
+        "name": "earth-power",
+        "power": 90,
+        "type": "ground"
+      },
+      {
+        "category": "physical",
+        "ko_name": "구멍파기",
+        "name": "dig",
+        "power": 80,
+        "type": "ground"
+      }
+    ],
+    "pokemon": "garchomp",
+    "shown": 3,
+    "total": 3
+  },
+  "moves_of({\"pokemon\": \"한카리아스\", \"type\": \"ice\"})": {
+    "ko_name": "한카리아스",
+    "moves": [],
+    "pokemon": "garchomp",
+    "shown": 0,
+    "total": 0
+  },
+  "my_team({})": {
+    "team": [
+      {
+        "ability": "overgrow",
+        "ability_ko_name": "심록",
+        "item": "venusaurite",
+        "item_ko_name": "이상해꽃나이트",
+        "ko_name": "이상해꽃",
+        "moves": [
+          {
+            "ko_name": "기가드레인",
+            "name": "giga-drain"
+          },
+          {
+            "ko_name": "오물폭탄",
+            "name": "sludge-bomb"
+          },
+          {
+            "ko_name": "씨뿌리기",
+            "name": "leech-seed"
+          },
+          {
+            "ko_name": "대지의힘",
+            "name": "earth-power"
+          }
+        ],
+        "name": "venusaur",
+        "nature": "modest",
+        "nature_ko_name": "조심",
+        "stats": {
+          "atk": 91,
+          "def": 105,
+          "hp": 187,
+          "spa": 167,
+          "spd": 120,
+          "spe": 100
+        },
+        "types": [
+          "grass",
+          "poison"
+        ]
+      },
+      {
+        "ability": "sharpness",
+        "ability_ko_name": "예리함",
+        "item": "life-orb",
+        "item_ko_name": "생명의구슬",
+        "ko_name": "히스이 대검귀",
+        "moves": [
+          {
+            "ko_name": "비검천중파",
+            "name": "ceaseless-edge"
+          },
+          {
+            "ko_name": "아쿠아커터",
+            "name": "aqua-cutter"
+          },
+          {
+            "ko_name": "기습",
+            "name": "sucker-punch"
+          },
+          {
+            "ko_name": "성스러운칼",
+            "name": "sacred-sword"
+          }
+        ],
+        "name": "samurott-hisui",
+        "nature": "adamant",
+        "nature_ko_name": "고집",
+        "stats": {
+          "atk": 176,
+          "def": 100,
+          "hp": 167,
+          "spa": 108,
+          "spd": 85,
+          "spe": 137
+        },
+        "types": [
+          "water",
+          "dark"
+        ]
+      },
+      {
+        "ability": "snow-warning",
+        "ability_ko_name": "눈퍼뜨리기",
+        "item": "light-clay",
+        "item_ko_name": "빛의점토",
+        "ko_name": "알로라 나인테일",
+        "moves": [
+          {
+            "ko_name": "오로라베일",
+            "name": "aurora-veil"
+          },
+          {
+            "ko_name": "프리즈드라이",
+            "name": "freeze-dry"
+          },
+          {
+            "ko_name": "문포스",
+            "name": "moonblast"
+          },
+          {
+            "ko_name": "앙코르",
+            "name": "encore"
+          }
+        ],
+        "name": "ninetales-alola",
+        "nature": "modest",
+        "nature_ko_name": "조심",
+        "stats": {
+          "atk": 78,
+          "def": 95,
+          "hp": 150,
+          "spa": 146,
+          "spd": 120,
+          "spe": 161
+        },
+        "types": [
+          "ice",
+          "fairy"
+        ]
+      },
+      {
+        "ability": "torrent",
+        "ability_ko_name": "급류",
+        "item": "leftovers",
+        "item_ko_name": "먹다남은음식",
+        "ko_name": "누리레느",
+        "moves": [
+          {
+            "ko_name": "물거품아리아",
+            "name": "sparkling-aria"
+          },
+          {
+            "ko_name": "문포스",
+            "name": "moonblast"
+          },
+          {
+            "ko_name": "아쿠아제트",
+            "name": "aqua-jet"
+          },
+          {
+            "ko_name": "명상",
+            "name": "calm-mind"
+          }
+        ],
+        "name": "primarina",
+        "nature": "modest",
+        "nature_ko_name": "조심",
+        "stats": {
+          "atk": 84,
+          "def": 94,
+          "hp": 157,
+          "spa": 195,
+          "spd": 136,
+          "spe": 112
+        },
+        "types": [
+          "water",
+          "fairy"
+        ]
+      },
+      {
+        "ability": "clear-body",
+        "ability_ko_name": "클리어바디",
+        "item": "metagrossite",
+        "item_ko_name": "메타그로스나이트",
+        "ko_name": "메타그로스",
+        "moves": [
+          {
+            "ko_name": "지진",
+            "name": "earthquake"
+          },
+          {
+            "ko_name": "아이언헤드",
+            "name": "iron-head"
+          },
+          {
+            "ko_name": "번개펀치",
+            "name": "thunder-punch"
+          },
+          {
+            "ko_name": "사이코팽",
+            "name": "psychic-fangs"
+          }
+        ],
+        "name": "metagross",
+        "nature": "adamant",
+        "nature_ko_name": "고집",
+        "stats": {
+          "atk": 205,
+          "def": 150,
+          "hp": 157,
+          "spa": 103,
+          "spd": 110,
+          "spe": 122
+        },
+        "types": [
+          "steel",
+          "psychic"
+        ]
+      },
+      {
+        "ability": "sand-stream",
+        "ability_ko_name": "모래날림",
+        "item": "sitrus-berry",
+        "item_ko_name": "자뭉열매",
+        "ko_name": "하마돈",
+        "moves": [
+          {
+            "ko_name": "지진",
+            "name": "earthquake"
+          },
+          {
+            "ko_name": "스텔스록",
+            "name": "stealth-rock"
+          },
+          {
+            "ko_name": "하품",
+            "name": "yawn"
+          },
+          {
+            "ko_name": "날려버리기",
+            "name": "whirlwind"
+          }
+        ],
+        "name": "hippowdon",
+        "nature": "impish",
+        "nature_ko_name": "장난꾸러기",
+        "stats": {
+          "atk": 134,
+          "def": 187,
+          "hp": 215,
+          "spa": 79,
+          "spd": 92,
+          "spe": 67
+        },
+        "types": [
+          "ground"
+        ]
+      }
+    ]
+  },
+  "power_index({\"moves\": [\"지진\", \"아이언헤드\", \"없는기술\"], \"pokemon\": {\"name\": \"메타그로스\", \"nature\": \"고집\"}})": {
+    "atk": 170,
+    "ko_name": "메타그로스",
+    "moves": [
+      {
+        "category": "physical",
+        "ko_name": "아이언헤드",
+        "name": "iron-head",
+        "power": 80,
+        "power_index": 20400,
+        "stab": true,
+        "type": "steel"
+      },
+      {
+        "category": "physical",
+        "ko_name": "지진",
+        "name": "earthquake",
+        "power": 100,
+        "power_index": 17000,
+        "stab": false,
+        "type": "ground"
+      },
+      {
+        "error": "없는 기술",
+        "ko_name": null,
+        "name": "없는기술"
+      }
+    ],
+    "pokemon": "metagross",
+    "spa": 103
+  },
+  "search_pokemon({\"limit\": 3, \"order_by\": \"bst\"})": {
+    "results": [
+      {
+        "bst": 700,
+        "ko_name": "메가망나뇽",
+        "name": "dragonite-mega",
+        "types": [
+          "dragon",
+          "flying"
+        ]
+      },
+      {
+        "bst": 700,
+        "ko_name": "메가마기라스",
+        "name": "tyranitar-mega",
+        "types": [
+          "rock",
+          "dark"
+        ]
+      },
+      {
+        "bst": 700,
+        "ko_name": "메가메타그로스",
+        "name": "metagross-mega",
+        "types": [
+          "steel",
+          "psychic"
+        ]
+      }
+    ],
+    "shown": 3,
+    "total": 317
+  },
+  "search_pokemon({\"limit\": 5, \"min_total\": 500, \"order_by\": \"spe\", \"type\": \"ice\"})": {
+    "results": [
+      {
+        "bst": 510,
+        "ko_name": "포푸니라",
+        "name": "weavile",
+        "spe": 125,
+        "types": [
+          "dark",
+          "ice"
+        ]
+      },
+      {
+        "bst": 580,
+        "ko_name": "메가눈여아",
+        "name": "froslass-mega",
+        "spe": 120,
+        "types": [
+          "ice",
+          "ghost"
+        ]
+      },
+      {
+        "bst": 505,
+        "ko_name": "알로라 나인테일",
+        "name": "ninetales-alola",
+        "spe": 109,
+        "types": [
+          "ice",
+          "fairy"
+        ]
+      },
+      {
+        "bst": 580,
+        "ko_name": "메가얼음귀신",
+        "name": "glalie-mega",
+        "spe": 100,
+        "types": [
+          "ice"
+        ]
+      },
+      {
+        "bst": 520,
+        "ko_name": "프로스트로토무",
+        "name": "rotom-frost",
+        "spe": 86,
+        "types": [
+          "electric",
+          "ice"
+        ]
+      }
+    ],
+    "shown": 5,
+    "total": 15
+  },
+  "team_weaknesses({})": {
+    "by_type": {
+      "bug": {
+        "immune": [],
+        "resists": [
+          "ninetales-alola",
+          "primarina"
+        ],
+        "weak_to": [
+          "samurott-hisui"
+        ]
+      },
+      "dark": {
+        "immune": [],
+        "resists": [
+          "samurott-hisui",
+          "ninetales-alola",
+          "primarina"
+        ],
+        "weak_to": [
+          "metagross"
+        ]
+      },
+      "dragon": {
+        "immune": [
+          "ninetales-alola",
+          "primarina"
+        ],
+        "resists": [
+          "metagross"
+        ],
+        "weak_to": []
+      },
+      "electric": {
+        "immune": [
+          "hippowdon"
+        ],
+        "resists": [
+          "venusaur"
+        ],
+        "weak_to": [
+          "samurott-hisui",
+          "primarina"
+        ]
+      },
+      "fairy": {
+        "immune": [],
+        "resists": [
+          "venusaur",
+          "metagross"
+        ],
+        "weak_to": [
+          "samurott-hisui"
+        ]
+      },
+      "fighting": {
+        "immune": [],
+        "resists": [
+          "venusaur",
+          "primarina"
+        ],
+        "weak_to": [
+          "samurott-hisui"
+        ]
+      },
+      "fire": {
+        "immune": [],
+        "resists": [
+          "samurott-hisui",
+          "primarina"
+        ],
+        "weak_to": [
+          "venusaur",
+          "ninetales-alola",
+          "metagross"
+        ]
+      },
+      "flying": {
+        "immune": [],
+        "resists": [
+          "metagross"
+        ],
+        "weak_to": [
+          "venusaur"
+        ]
+      },
+      "ghost": {
+        "immune": [],
+        "resists": [
+          "samurott-hisui"
+        ],
+        "weak_to": [
+          "metagross"
+        ]
+      },
+      "grass": {
+        "immune": [],
+        "resists": [
+          "venusaur",
+          "metagross"
+        ],
+        "weak_to": [
+          "samurott-hisui",
+          "primarina",
+          "hippowdon"
+        ]
+      },
+      "ground": {
+        "immune": [],
+        "resists": [],
+        "weak_to": [
+          "metagross"
+        ]
+      },
+      "ice": {
+        "immune": [],
+        "resists": [
+          "samurott-hisui",
+          "ninetales-alola",
+          "primarina",
+          "metagross"
+        ],
+        "weak_to": [
+          "venusaur",
+          "hippowdon"
+        ]
+      },
+      "normal": {
+        "immune": [],
+        "resists": [
+          "metagross"
+        ],
+        "weak_to": []
+      },
+      "poison": {
+        "immune": [
+          "metagross"
+        ],
+        "resists": [
+          "hippowdon"
+        ],
+        "weak_to": [
+          "ninetales-alola",
+          "primarina"
+        ]
+      },
+      "psychic": {
+        "immune": [
+          "samurott-hisui"
+        ],
+        "resists": [
+          "metagross"
+        ],
+        "weak_to": [
+          "venusaur"
+        ]
+      },
+      "rock": {
+        "immune": [],
+        "resists": [
+          "metagross",
+          "hippowdon"
+        ],
+        "weak_to": [
+          "ninetales-alola"
+        ]
+      },
+      "steel": {
+        "immune": [],
+        "resists": [
+          "samurott-hisui",
+          "metagross"
+        ],
+        "weak_to": [
+          "ninetales-alola"
+        ]
+      },
+      "water": {
+        "immune": [],
+        "resists": [
+          "venusaur",
+          "samurott-hisui",
+          "primarina"
+        ],
+        "weak_to": [
+          "hippowdon"
+        ]
+      }
+    },
+    "team": [
+      {
+        "ko_name": "이상해꽃",
+        "name": "venusaur"
+      },
+      {
+        "ko_name": "히스이 대검귀",
+        "name": "samurott-hisui"
+      },
+      {
+        "ko_name": "알로라 나인테일",
+        "name": "ninetales-alola"
+      },
+      {
+        "ko_name": "누리레느",
+        "name": "primarina"
+      },
+      {
+        "ko_name": "메타그로스",
+        "name": "metagross"
+      },
+      {
+        "ko_name": "하마돈",
+        "name": "hippowdon"
+      }
+    ]
+  },
+  "type_effectiveness({\"attack_type\": \"ground\", \"defender\": \"한카리아스\"})": {
+    "attack_type": "ground",
+    "defender": "garchomp",
+    "defender_ko_name": "한카리아스",
+    "defender_types": [
+      "dragon",
+      "ground"
+    ],
+    "multiplier": 1.0
+  },
+  "type_matchup({\"pokemon\": \"리자몽\"})": {
+    "damage_taken": {
+      "0": [
+        "ground"
+      ],
+      "0.25": [
+        "bug",
+        "grass"
+      ],
+      "0.5": [
+        "fairy",
+        "fighting",
+        "fire",
+        "steel"
+      ],
+      "1": [
+        "dark",
+        "dragon",
+        "flying",
+        "ghost",
+        "ice",
+        "normal",
+        "poison",
+        "psychic"
+      ],
+      "2": [
+        "electric",
+        "water"
+      ],
+      "4": [
+        "rock"
+      ]
+    },
+    "ko_name": "리자몽",
+    "pokemon": "charizard",
+    "types": [
+      "fire",
+      "flying"
+    ]
+  },
+  "type_matchup({\"pokemon\": \"없는포켓몬\"})": {
+    "error": "'없는포켓몬' 은(는) 포챔스 목록에 없습니다."
+  },
+  "usage_stats({\"pokemon\": \"한카리아스\"})": {
+    "abilities": [
+      {
+        "ko_name": "까칠한피부",
+        "name": "Rough Skin",
+        "percent": 98.9
+      },
+      {
+        "ko_name": "모래숨기",
+        "name": "Sand Veil",
+        "percent": 1.1
+      }
+    ],
+    "counted_as": "Garchomp",
+    "format": "Singles",
+    "items": [
+      {
+        "ko_name": "기합의띠",
+        "name": "Focus Sash",
+        "percent": 40.5
+      },
+      {
+        "ko_name": "자뭉열매",
+        "name": "Sitrus Berry",
+        "percent": 20.5
+      },
+      {
+        "ko_name": "구애스카프",
+        "name": "Choice Scarf",
+        "percent": 18
+      },
+      {
+        "ko_name": "리샘열매",
+        "name": "Lum Berry",
+        "percent": 9.2
+      },
+      {
+        "ko_name": "생명의구슬",
+        "name": "Life Orb",
+        "percent": 3.1
+      },
+      {
+        "ko_name": "한카리아스나이트",
+        "name": "Garchompite",
+        "percent": 1.7
+      },
+      {
+        "ko_name": "먹다남은음식",
+        "name": "Leftovers",
+        "percent": 1.1
+      },
+      {
+        "ko_name": "플카열매",
+        "name": "Yache Berry",
+        "percent": 0.8
+      }
+    ],
+    "ko_name": "한카리아스",
+    "moves": [
+      {
+        "ko_name": "지진",
+        "name": "Earthquake",
+        "percent": 99.3
+      },
+      {
+        "ko_name": "스텔스록",
+        "name": "Stealth Rock",
+        "percent": 47.1
+      },
+      {
+        "ko_name": "스케일샷",
+        "name": "Scale Shot",
+        "percent": 41.5
+      },
+      {
+        "ko_name": "역린",
+        "name": "Outrage",
+        "percent": 35
+      },
+      {
+        "ko_name": "칼춤",
+        "name": "Swords Dance",
+        "percent": 31.9
+      },
+      {
+        "ko_name": "암석봉인",
+        "name": "Rock Tomb",
+        "percent": 29.1
+      },
+      {
+        "ko_name": "드래곤테일",
+        "name": "Dragon Tail",
+        "percent": 26
+      },
+      {
+        "ko_name": "독찌르기",
+        "name": "Poison Jab",
+        "percent": 16.1
+      }
+    ],
+    "natures": [
+      {
+        "down": "spa",
+        "down_ko_name": "특수공격",
+        "ko_name": "명랑",
+        "name": "Jolly",
+        "percent": 54.1,
+        "up": "spe",
+        "up_ko_name": "스피드"
+      },
+      {
+        "down": "spa",
+        "down_ko_name": "특수공격",
+        "ko_name": "고집",
+        "name": "Adamant",
+        "percent": 26.6,
+        "up": "atk",
+        "up_ko_name": "공격"
+      },
+      {
+        "down": "spa",
+        "down_ko_name": "특수공격",
+        "ko_name": "장난꾸러기",
+        "name": "Impish",
+        "percent": 15.1,
+        "up": "def",
+        "up_ko_name": "방어"
+      },
+      {
+        "down": "spa",
+        "down_ko_name": "특수공격",
+        "ko_name": "신중",
+        "name": "Careful",
+        "percent": 2.2,
+        "up": "spd",
+        "up_ko_name": "특수방어"
+      },
+      {
+        "down": "spd",
+        "down_ko_name": "특수방어",
+        "ko_name": "천진난만",
+        "name": "Naive",
+        "percent": 0.5,
+        "up": "spe",
+        "up_ko_name": "스피드"
+      },
+      {
+        "down": "spd",
+        "down_ko_name": "특수방어",
+        "ko_name": "개구쟁이",
+        "name": "Naughty",
+        "percent": 0.3,
+        "up": "atk",
+        "up_ko_name": "공격"
+      },
+      {
+        "down": "def",
+        "down_ko_name": "방어",
+        "ko_name": "성급",
+        "name": "Hasty",
+        "percent": 0.2,
+        "up": "spe",
+        "up_ko_name": "스피드"
+      },
+      {
+        "down": "atk",
+        "down_ko_name": "공격",
+        "ko_name": "대담",
+        "name": "Bold",
+        "percent": 0.2,
+        "up": "def",
+        "up_ko_name": "방어"
+      }
+    ],
+    "pokemon": "garchomp",
+    "season": "Current",
+    "source": "championsbattledata.com (게임 내 배틀 데이터를 옮긴 팬 사이트)",
+    "spreads": [
+      {
+        "percent": 52.8,
+        "spread": {
+          "atk": 32,
+          "def": 0,
+          "hp": 2,
+          "spa": 0,
+          "spd": 0,
+          "spe": 32
+        }
+      },
+      {
+        "percent": 8.8,
+        "spread": {
+          "atk": 32,
+          "def": 2,
+          "hp": 0,
+          "spa": 0,
+          "spd": 0,
+          "spe": 32
+        }
+      },
+      {
+        "percent": 3.3,
+        "spread": {
+          "atk": 0,
+          "def": 32,
+          "hp": 32,
+          "spa": 0,
+          "spd": 0,
+          "spe": 2
+        }
+      },
+      {
+        "percent": 3.2,
+        "spread": {
+          "atk": 32,
+          "def": 1,
+          "hp": 0,
+          "spa": 0,
+          "spd": 1,
+          "spe": 32
+        }
+      },
+      {
+        "percent": 2.9,
+        "spread": {
+          "atk": 32,
+          "def": 0,
+          "hp": 0,
+          "spa": 0,
+          "spd": 2,
+          "spe": 32
+        }
+      },
+      {
+        "percent": 1.4,
+        "spread": {
+          "atk": 32,
+          "def": 0,
+          "hp": 0,
+          "spa": 0,
+          "spd": 0,
+          "spe": 32
+        }
+      },
+      {
+        "percent": 1.2,
+        "spread": {
+          "atk": 0,
+          "def": 25,
+          "hp": 32,
+          "spa": 0,
+          "spd": 0,
+          "spe": 9
+        }
+      },
+      {
+        "percent": 0.9,
+        "spread": {
+          "atk": 0,
+          "def": 19,
+          "hp": 32,
+          "spa": 0,
+          "spd": 15,
+          "spe": 0
+        }
+      }
+    ],
+    "teammates": [
+      {
+        "ko_name": "따라큐",
+        "name": "Mimikyu",
+        "percent": null
+      },
+      {
+        "ko_name": "누리레느",
+        "name": "Primarina",
+        "percent": null
+      },
+      {
+        "ko_name": "마스카나",
+        "name": "Meowscarada",
+        "percent": null
+      },
+      {
+        "ko_name": "메타그로스",
+        "name": "Metagross",
+        "percent": null
+      },
+      {
+        "ko_name": "브리두라스",
+        "name": "Archaludon",
+        "percent": null
+      },
+      {
+        "ko_name": "갸라도스",
+        "name": "Gyarados",
+        "percent": null
+      },
+      {
+        "ko_name": "마폭시",
+        "name": "Delphox",
+        "percent": null
+      },
+      {
+        "ko_name": "리자몽",
+        "name": "Charizard",
+        "percent": null
+      }
+    ]
+  }
+}

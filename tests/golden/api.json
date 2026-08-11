@@ -1,0 +1,4965 @@
+{
+  "calc_bulk": {
+    "body": {
+      "bulk": {
+        "physical": 25254,
+        "special": 16836
+      },
+      "side": {
+        "ability": "모래날림",
+        "condition": null,
+        "item": null,
+        "name": "하마돈",
+        "nature": "성실",
+        "rank": {},
+        "stats": {
+          "a": 132,
+          "b": 138,
+          "c": 88,
+          "d": 92,
+          "h": 183,
+          "s": 67
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/ground",
+            "name": "ground"
+          }
+        ]
+      }
+    },
+    "status": 200
+  },
+  "calc_damage_기본": {
+    "body": {
+      "attacker": {
+        "ability": "둔감",
+        "condition": null,
+        "item": null,
+        "name": "맘모꾸리",
+        "nature": "성실",
+        "rank": {},
+        "stats": {
+          "a": 150,
+          "b": 100,
+          "c": 90,
+          "d": 80,
+          "h": 185,
+          "s": 100
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/ice",
+            "name": "ice"
+          },
+          {
+            "icon": "/sprite/type/ground",
+            "name": "ground"
+          }
+        ]
+      },
+      "context": {
+        "attacker_hp": null,
+        "attacker_rank": {},
+        "defender_hp": null,
+        "defender_rank": {},
+        "is_critical": false,
+        "is_doubles": false,
+        "light_screen": false,
+        "reflect": false,
+        "terrain": null,
+        "weather": null
+      },
+      "damage": {
+        "defender_hp": 183,
+        "max": 300,
+        "min": 252,
+        "percent_max": 163.9344262295082,
+        "percent_min": 137.70491803278688,
+        "rolls": [
+          252,
+          256,
+          256,
+          264,
+          264,
+          268,
+          268,
+          276,
+          276,
+          280,
+          280,
+          288,
+          288,
+          292,
+          292,
+          300
+        ]
+      },
+      "defender": {
+        "ability": "모래숨기",
+        "condition": null,
+        "item": null,
+        "name": "한카리아스",
+        "nature": "성실",
+        "rank": {},
+        "stats": {
+          "a": 150,
+          "b": 115,
+          "c": 100,
+          "d": 105,
+          "h": 183,
+          "s": 122
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/dragon",
+            "name": "dragon"
+          },
+          {
+            "icon": "/sprite/type/ground",
+            "name": "ground"
+          }
+        ]
+      },
+      "ko": {
+        "guaranteed": 1,
+        "possible": 1,
+        "text": "확정 1타",
+        "turns": [
+          {
+            "damage_max": 300,
+            "damage_min": 252,
+            "hp_before": 183
+          }
+        ]
+      },
+      "move": {
+        "accuracy": 90,
+        "category": "physical",
+        "icon": "/sprite/type/ice",
+        "name": "고드름떨구기",
+        "power": 85,
+        "type": "ice"
+      },
+      "type_effect": 4.0
+    },
+    "status": 200
+  },
+  "calc_damage_없는기술": {
+    "body": {
+      "detail": "없는 기술입니다: 없는기술"
+    },
+    "status": 404
+  },
+  "calc_damage_전부": {
+    "body": {
+      "attacker": {
+        "ability": "틀깨기",
+        "condition": null,
+        "item": null,
+        "name": "메가갸라도스",
+        "nature": "고집",
+        "rank": {
+          "a": 2
+        },
+        "stats": {
+          "a": 227,
+          "b": 129,
+          "c": 81,
+          "d": 150,
+          "h": 170,
+          "s": 133
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/water",
+            "name": "water"
+          },
+          {
+            "icon": "/sprite/type/dark",
+            "name": "dark"
+          }
+        ]
+      },
+      "context": {
+        "attacker_hp": null,
+        "attacker_rank": {
+          "a": 2
+        },
+        "defender_hp": 100,
+        "defender_rank": {},
+        "is_critical": false,
+        "is_doubles": false,
+        "light_screen": false,
+        "reflect": true,
+        "terrain": null,
+        "weather": "sandstorm"
+      },
+      "damage": {
+        "defender_hp": 183,
+        "max": 87,
+        "min": 74,
+        "percent_max": 47.540983606557376,
+        "percent_min": 40.43715846994536,
+        "rolls": [
+          74,
+          75,
+          76,
+          77,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          84,
+          85,
+          86,
+          87
+        ]
+      },
+      "defender": {
+        "ability": "모래숨기",
+        "condition": "화상",
+        "item": null,
+        "name": "한카리아스",
+        "nature": "성실",
+        "rank": {},
+        "stats": {
+          "a": 150,
+          "b": 115,
+          "c": 100,
+          "d": 105,
+          "h": 183,
+          "s": 122
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/dragon",
+            "name": "dragon"
+          },
+          {
+            "icon": "/sprite/type/ground",
+            "name": "ground"
+          }
+        ]
+      },
+      "ko": {
+        "guaranteed": 2,
+        "possible": 2,
+        "text": "확정 2타",
+        "turns": [
+          {
+            "damage_max": 87,
+            "damage_min": 74,
+            "hp_before": 100
+          },
+          {
+            "damage_max": 87,
+            "damage_min": 74,
+            "hp_before": 26
+          }
+        ]
+      },
+      "move": {
+        "accuracy": 100,
+        "category": "physical",
+        "icon": "/sprite/type/ground",
+        "name": "지진",
+        "power": 100,
+        "type": "ground"
+      },
+      "type_effect": 1.0
+    },
+    "status": 200
+  },
+  "calc_damage_틀린특성": {
+    "body": {
+      "detail": "맘모꾸리의 특성이 아닙니다: 옹골참 (가능: 둔감, 눈숨기, 두꺼운지방)"
+    },
+    "status": 400
+  },
+  "calc_power": {
+    "body": {
+      "moves": [
+        {
+          "category": "physical",
+          "icon": "/sprite/type/steel",
+          "index": 20400,
+          "name": "아이언헤드",
+          "power": 80,
+          "stab": true,
+          "type": "steel"
+        },
+        {
+          "category": "physical",
+          "icon": "/sprite/type/ground",
+          "index": 17000,
+          "name": "지진",
+          "power": 100,
+          "stab": false,
+          "type": "ground"
+        }
+      ],
+      "side": {
+        "ability": "클리어바디",
+        "condition": null,
+        "item": null,
+        "name": "메타그로스",
+        "nature": "고집",
+        "rank": {},
+        "stats": {
+          "a": 170,
+          "b": 150,
+          "c": 103,
+          "d": 110,
+          "h": 155,
+          "s": 90
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/steel",
+            "name": "steel"
+          },
+          {
+            "icon": "/sprite/type/psychic",
+            "name": "psychic"
+          }
+        ]
+      }
+    },
+    "status": 200
+  },
+  "calc_rules": {
+    "body": {
+      "conditions": [
+        {
+          "ko_name": "화상",
+          "name": "burn"
+        },
+        {
+          "ko_name": "마비",
+          "name": "paralysis"
+        },
+        {
+          "ko_name": "독",
+          "name": "poison"
+        },
+        {
+          "ko_name": "맹독",
+          "name": "toxic"
+        },
+        {
+          "ko_name": "잠듦",
+          "name": "sleep"
+        },
+        {
+          "ko_name": "얼음",
+          "name": "freeze"
+        },
+        {
+          "ko_name": "혼란",
+          "name": "confusion"
+        }
+      ],
+      "stat_labels": {
+        "a": "공격",
+        "b": "방어",
+        "c": "특수공격",
+        "d": "특수방어",
+        "h": "체력",
+        "s": "스피드"
+      },
+      "stat_order": [
+        "h",
+        "a",
+        "b",
+        "c",
+        "d",
+        "s"
+      ],
+      "terrains": [
+        {
+          "ko_name": "일렉트릭필드",
+          "name": "electric"
+        },
+        {
+          "ko_name": "그래스필드",
+          "name": "grassy"
+        },
+        {
+          "ko_name": "미스트필드",
+          "name": "misty"
+        },
+        {
+          "ko_name": "사이코필드",
+          "name": "psychic"
+        }
+      ],
+      "weathers": [
+        {
+          "ko_name": "쾌청",
+          "name": "sun"
+        },
+        {
+          "ko_name": "비",
+          "name": "rain"
+        },
+        {
+          "ko_name": "모래바람",
+          "name": "sandstorm"
+        },
+        {
+          "ko_name": "눈",
+          "name": "snow"
+        }
+      ]
+    },
+    "status": 200
+  },
+  "dex_ability": {
+    "body": {
+      "description": "공격을 받았을 때 자신에게 접촉한 상대를 까칠까칠한 피부로 상처를 입힌다.",
+      "effect": "Damages attacking Pokémon for 1/8 their max HP on contact.",
+      "id": 24,
+      "ko_name": "까칠한피부",
+      "name": "rough-skin",
+      "pokemons": [
+        {
+          "icon": "/sprite/pokemon/319/icon",
+          "id": 319,
+          "is_hidden": false,
+          "ko_name": "샤크니아",
+          "name": "sharpedo",
+          "pos": 1,
+          "sprite": "/sprite/pokemon/319",
+          "type1": "water",
+          "type2": "dark",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/445/icon",
+          "id": 445,
+          "is_hidden": true,
+          "ko_name": "한카리아스",
+          "name": "garchomp",
+          "pos": 3,
+          "sprite": "/sprite/pokemon/445",
+          "type1": "dragon",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        }
+      ]
+    },
+    "status": 200
+  },
+  "dex_item": {
+    "body": {
+      "category": "held-items",
+      "description": "지니게 하면 HP가 꽉 찼을 때 기절할 듯한 기술을 당해도 HP 1로 한 번은 버틴다.",
+      "effect": "Held: Holder survives any single-hit attack at 1 HP if at max HP, then the item is consumed.",
+      "fling_power": 10,
+      "icon": "/sprite/item/focus-sash",
+      "id": 252,
+      "ko_name": "기합의띠",
+      "mega": null,
+      "name": "focus-sash",
+      "reviewed": false,
+      "usable": true
+    },
+    "status": 200
+  },
+  "dex_move": {
+    "body": {
+      "accuracy": 100,
+      "ailment": null,
+      "ailment_chance": 0,
+      "category": "physical",
+      "crit_rate": 0,
+      "description": "지진의 충격으로 자신의 주위에 있는 포켓몬을 공격한다.",
+      "drain": 0,
+      "effect": "Inflicts regular damage and can hit Dig users.",
+      "flinch_chance": 0,
+      "healing": 0,
+      "icon": "/sprite/type/ground",
+      "id": 89,
+      "is_bite": false,
+      "is_bullet": false,
+      "is_contact": false,
+      "is_dance": false,
+      "is_gravity": false,
+      "is_powder": false,
+      "is_press": false,
+      "is_pulse": false,
+      "is_punch": false,
+      "is_slicing": false,
+      "is_sound": false,
+      "is_wind": false,
+      "ko_name": "지진",
+      "learners": [
+        {
+          "icon": "/sprite/pokemon/3/icon",
+          "id": 3,
+          "ko_name": "이상해꽃",
+          "name": "venusaur",
+          "sprite": "/sprite/pokemon/3",
+          "type1": "grass",
+          "type2": "poison",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/6/icon",
+          "id": 6,
+          "ko_name": "리자몽",
+          "name": "charizard",
+          "sprite": "/sprite/pokemon/6",
+          "type1": "fire",
+          "type2": "flying",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/9/icon",
+          "id": 9,
+          "ko_name": "거북왕",
+          "name": "blastoise",
+          "sprite": "/sprite/pokemon/9",
+          "type1": "water",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/24/icon",
+          "id": 24,
+          "ko_name": "아보크",
+          "name": "arbok",
+          "sprite": "/sprite/pokemon/24",
+          "type1": "poison",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/68/icon",
+          "id": 68,
+          "ko_name": "괴력몬",
+          "name": "machamp",
+          "sprite": "/sprite/pokemon/68",
+          "type1": "fighting",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/80/icon",
+          "id": 80,
+          "ko_name": "야도란",
+          "name": "slowbro",
+          "sprite": "/sprite/pokemon/80",
+          "type1": "water",
+          "type2": "psychic",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/115/icon",
+          "id": 115,
+          "ko_name": "캥카",
+          "name": "kangaskhan",
+          "sprite": "/sprite/pokemon/115",
+          "type1": "normal",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/127/icon",
+          "id": 127,
+          "ko_name": "쁘사이저",
+          "name": "pinsir",
+          "sprite": "/sprite/pokemon/127",
+          "type1": "bug",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/128/icon",
+          "id": 128,
+          "ko_name": "켄타로스",
+          "name": "tauros",
+          "sprite": "/sprite/pokemon/128",
+          "type1": "normal",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/130/icon",
+          "id": 130,
+          "ko_name": "갸라도스",
+          "name": "gyarados",
+          "sprite": "/sprite/pokemon/130",
+          "type1": "water",
+          "type2": "flying",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/142/icon",
+          "id": 142,
+          "ko_name": "프테라",
+          "name": "aerodactyl",
+          "sprite": "/sprite/pokemon/142",
+          "type1": "rock",
+          "type2": "flying",
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/143/icon",
+          "id": 143,
+          "ko_name": "잠만보",
+          "name": "snorlax",
+          "sprite": "/sprite/pokemon/143",
+          "type1": "normal",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/149/icon",
+          "id": 149,
+          "ko_name": "망나뇽",
+          "name": "dragonite",
+          "sprite": "/sprite/pokemon/149",
+          "type1": "dragon",
+          "type2": "flying",
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/154/icon",
+          "id": 154,
+          "ko_name": "메가니움",
+          "name": "meganium",
+          "sprite": "/sprite/pokemon/154",
+          "type1": "grass",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/157/icon",
+          "id": 157,
+          "ko_name": "블레이범",
+          "name": "typhlosion",
+          "sprite": "/sprite/pokemon/157",
+          "type1": "fire",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/160/icon",
+          "id": 160,
+          "ko_name": "장크로다일",
+          "name": "feraligatr",
+          "sprite": "/sprite/pokemon/160",
+          "type1": "water",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/186/icon",
+          "id": 186,
+          "ko_name": "왕구리",
+          "name": "politoed",
+          "sprite": "/sprite/pokemon/186",
+          "type1": "water",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/199/icon",
+          "id": 199,
+          "ko_name": "야도킹",
+          "name": "slowking",
+          "sprite": "/sprite/pokemon/199",
+          "type1": "water",
+          "type2": "psychic",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/205/icon",
+          "id": 205,
+          "ko_name": "쏘콘",
+          "name": "forretress",
+          "sprite": "/sprite/pokemon/205",
+          "type1": "bug",
+          "type2": "steel",
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/208/icon",
+          "id": 208,
+          "ko_name": "강철톤",
+          "name": "steelix",
+          "sprite": "/sprite/pokemon/208",
+          "type1": "steel",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/214/icon",
+          "id": 214,
+          "ko_name": "헤라크로스",
+          "name": "heracross",
+          "sprite": "/sprite/pokemon/214",
+          "type1": "bug",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/248/icon",
+          "id": 248,
+          "ko_name": "마기라스",
+          "name": "tyranitar",
+          "sprite": "/sprite/pokemon/248",
+          "type1": "rock",
+          "type2": "dark",
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/254/icon",
+          "id": 254,
+          "ko_name": "나무킹",
+          "name": "sceptile",
+          "sprite": "/sprite/pokemon/254",
+          "type1": "grass",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/257/icon",
+          "id": 257,
+          "ko_name": "번치코",
+          "name": "blaziken",
+          "sprite": "/sprite/pokemon/257",
+          "type1": "fire",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/260/icon",
+          "id": 260,
+          "ko_name": "대짱이",
+          "name": "swampert",
+          "sprite": "/sprite/pokemon/260",
+          "type1": "water",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/306/icon",
+          "id": 306,
+          "ko_name": "보스로라",
+          "name": "aggron",
+          "sprite": "/sprite/pokemon/306",
+          "type1": "steel",
+          "type2": "rock",
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/319/icon",
+          "id": 319,
+          "ko_name": "샤크니아",
+          "name": "sharpedo",
+          "sprite": "/sprite/pokemon/319",
+          "type1": "water",
+          "type2": "dark",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/323/icon",
+          "id": 323,
+          "ko_name": "폭타",
+          "name": "camerupt",
+          "sprite": "/sprite/pokemon/323",
+          "type1": "fire",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/324/icon",
+          "id": 324,
+          "ko_name": "코터스",
+          "name": "torkoal",
+          "sprite": "/sprite/pokemon/324",
+          "type1": "fire",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/334/icon",
+          "id": 334,
+          "ko_name": "파비코리",
+          "name": "altaria",
+          "sprite": "/sprite/pokemon/334",
+          "type1": "dragon",
+          "type2": "flying",
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/362/icon",
+          "id": 362,
+          "ko_name": "얼음귀신",
+          "name": "glalie",
+          "sprite": "/sprite/pokemon/362",
+          "type1": "ice",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/376/icon",
+          "id": 376,
+          "ko_name": "메타그로스",
+          "name": "metagross",
+          "sprite": "/sprite/pokemon/376",
+          "type1": "steel",
+          "type2": "psychic",
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/389/icon",
+          "id": 389,
+          "ko_name": "토대부기",
+          "name": "torterra",
+          "sprite": "/sprite/pokemon/389",
+          "type1": "grass",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/392/icon",
+          "id": 392,
+          "ko_name": "초염몽",
+          "name": "infernape",
+          "sprite": "/sprite/pokemon/392",
+          "type1": "fire",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/395/icon",
+          "id": 395,
+          "ko_name": "엠페르트",
+          "name": "empoleon",
+          "sprite": "/sprite/pokemon/395",
+          "type1": "water",
+          "type2": "steel",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/409/icon",
+          "id": 409,
+          "ko_name": "램펄드",
+          "name": "rampardos",
+          "sprite": "/sprite/pokemon/409",
+          "type1": "rock",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/411/icon",
+          "id": 411,
+          "ko_name": "바리톱스",
+          "name": "bastiodon",
+          "sprite": "/sprite/pokemon/411",
+          "type1": "rock",
+          "type2": "steel",
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/445/icon",
+          "id": 445,
+          "ko_name": "한카리아스",
+          "name": "garchomp",
+          "sprite": "/sprite/pokemon/445",
+          "type1": "dragon",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/448/icon",
+          "id": 448,
+          "ko_name": "루카리오",
+          "name": "lucario",
+          "sprite": "/sprite/pokemon/448",
+          "type1": "fighting",
+          "type2": "steel",
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/450/icon",
+          "id": 450,
+          "ko_name": "하마돈",
+          "name": "hippowdon",
+          "sprite": "/sprite/pokemon/450",
+          "type1": "ground",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/454/icon",
+          "id": 454,
+          "ko_name": "독개굴",
+          "name": "toxicroak",
+          "sprite": "/sprite/pokemon/454",
+          "type1": "poison",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/460/icon",
+          "id": 460,
+          "ko_name": "눈설왕",
+          "name": "abomasnow",
+          "sprite": "/sprite/pokemon/460",
+          "type1": "grass",
+          "type2": "ice",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/464/icon",
+          "id": 464,
+          "ko_name": "거대코뿌리",
+          "name": "rhyperior",
+          "sprite": "/sprite/pokemon/464",
+          "type1": "ground",
+          "type2": "rock",
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/472/icon",
+          "id": 472,
+          "ko_name": "글라이온",
+          "name": "gliscor",
+          "sprite": "/sprite/pokemon/472",
+          "type1": "ground",
+          "type2": "flying",
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/473/icon",
+          "id": 473,
+          "ko_name": "맘모꾸리",
+          "name": "mamoswine",
+          "sprite": "/sprite/pokemon/473",
+          "type1": "ice",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/475/icon",
+          "id": 475,
+          "ko_name": "엘레이드",
+          "name": "gallade",
+          "sprite": "/sprite/pokemon/475",
+          "type1": "psychic",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/500/icon",
+          "id": 500,
+          "ko_name": "염무왕",
+          "name": "emboar",
+          "sprite": "/sprite/pokemon/500",
+          "type1": "fire",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/530/icon",
+          "id": 530,
+          "ko_name": "몰드류",
+          "name": "excadrill",
+          "sprite": "/sprite/pokemon/530",
+          "type1": "ground",
+          "type2": "steel",
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/534/icon",
+          "id": 534,
+          "ko_name": "노보청",
+          "name": "conkeldurr",
+          "sprite": "/sprite/pokemon/534",
+          "type1": "fighting",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/545/icon",
+          "id": 545,
+          "ko_name": "펜드라",
+          "name": "scolipede",
+          "sprite": "/sprite/pokemon/545",
+          "type1": "bug",
+          "type2": "poison",
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/553/icon",
+          "id": 553,
+          "ko_name": "악비아르",
+          "name": "krookodile",
+          "sprite": "/sprite/pokemon/553",
+          "type1": "ground",
+          "type2": "dark",
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/614/icon",
+          "id": 614,
+          "ko_name": "툰베어",
+          "name": "beartic",
+          "sprite": "/sprite/pokemon/614",
+          "type1": "ice",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/618/icon",
+          "id": 618,
+          "ko_name": "메더",
+          "name": "stunfisk",
+          "sprite": "/sprite/pokemon/618",
+          "type1": "ground",
+          "type2": "electric",
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/623/icon",
+          "id": 623,
+          "ko_name": "골루그",
+          "name": "golurk",
+          "sprite": "/sprite/pokemon/623",
+          "type1": "ground",
+          "type2": "ghost",
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/635/icon",
+          "id": 635,
+          "ko_name": "삼삼드래",
+          "name": "hydreigon",
+          "sprite": "/sprite/pokemon/635",
+          "type1": "dark",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/652/icon",
+          "id": 652,
+          "ko_name": "브리가론",
+          "name": "chesnaught",
+          "sprite": "/sprite/pokemon/652",
+          "type1": "grass",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/660/icon",
+          "id": 660,
+          "ko_name": "파르토",
+          "name": "diggersby",
+          "sprite": "/sprite/pokemon/660",
+          "type1": "normal",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/675/icon",
+          "id": 675,
+          "ko_name": "부란다",
+          "name": "pangoro",
+          "sprite": "/sprite/pokemon/675",
+          "type1": "fighting",
+          "type2": "dark",
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/689/icon",
+          "id": 689,
+          "ko_name": "거북손데스",
+          "name": "barbaracle",
+          "sprite": "/sprite/pokemon/689",
+          "type1": "rock",
+          "type2": "water",
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/697/icon",
+          "id": 697,
+          "ko_name": "견고라스",
+          "name": "tyrantrum",
+          "sprite": "/sprite/pokemon/697",
+          "type1": "rock",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/699/icon",
+          "id": 699,
+          "ko_name": "아마루르가",
+          "name": "aurorus",
+          "sprite": "/sprite/pokemon/699",
+          "type1": "rock",
+          "type2": "ice",
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/706/icon",
+          "id": 706,
+          "ko_name": "미끄래곤",
+          "name": "goodra",
+          "sprite": "/sprite/pokemon/706",
+          "type1": "dragon",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/709/icon",
+          "id": 709,
+          "ko_name": "대로트",
+          "name": "trevenant",
+          "sprite": "/sprite/pokemon/709",
+          "type1": "ghost",
+          "type2": "grass",
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            },
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/713/icon",
+          "id": 713,
+          "ko_name": "크레베이스",
+          "name": "avalugg",
+          "sprite": "/sprite/pokemon/713",
+          "type1": "ice",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/727/icon",
+          "id": 727,
+          "ko_name": "어흥염",
+          "name": "incineroar",
+          "sprite": "/sprite/pokemon/727",
+          "type1": "fire",
+          "type2": "dark",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/740/icon",
+          "id": 740,
+          "ko_name": "모단단게",
+          "name": "crabominable",
+          "sprite": "/sprite/pokemon/740",
+          "type1": "fighting",
+          "type2": "ice",
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/750/icon",
+          "id": 750,
+          "ko_name": "만마드",
+          "name": "mudsdale",
+          "sprite": "/sprite/pokemon/750",
+          "type1": "ground",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/765/icon",
+          "id": 765,
+          "ko_name": "하랑우탄",
+          "name": "oranguru",
+          "sprite": "/sprite/pokemon/765",
+          "type1": "normal",
+          "type2": "psychic",
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/766/icon",
+          "id": 766,
+          "ko_name": "내던숭이",
+          "name": "passimian",
+          "sprite": "/sprite/pokemon/766",
+          "type1": "fighting",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/780/icon",
+          "id": 780,
+          "ko_name": "할비롱",
+          "name": "drampa",
+          "sprite": "/sprite/pokemon/780",
+          "type1": "normal",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/784/icon",
+          "id": 784,
+          "ko_name": "짜랑고우거",
+          "name": "kommo-o",
+          "sprite": "/sprite/pokemon/784",
+          "type1": "dragon",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/842/icon",
+          "id": 842,
+          "ko_name": "단지래플",
+          "name": "appletun",
+          "sprite": "/sprite/pokemon/842",
+          "type1": "grass",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/844/icon",
+          "id": 844,
+          "ko_name": "사다이사",
+          "name": "sandaconda",
+          "sprite": "/sprite/pokemon/844",
+          "type1": "ground",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/899/icon",
+          "id": 899,
+          "ko_name": "신비록",
+          "name": "wyrdeer",
+          "sprite": "/sprite/pokemon/899",
+          "type1": "normal",
+          "type2": "psychic",
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/911/icon",
+          "id": 911,
+          "ko_name": "라우드본",
+          "name": "skeledirge",
+          "sprite": "/sprite/pokemon/911",
+          "type1": "fire",
+          "type2": "ghost",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/934/icon",
+          "id": 934,
+          "ko_name": "콜로솔트",
+          "name": "garganacl",
+          "sprite": "/sprite/pokemon/934",
+          "type1": "rock",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/968/icon",
+          "id": 968,
+          "ko_name": "꿈트렁",
+          "name": "orthworm",
+          "sprite": "/sprite/pokemon/968",
+          "type1": "steel",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/979/icon",
+          "id": 979,
+          "ko_name": "저승갓숭",
+          "name": "annihilape",
+          "sprite": "/sprite/pokemon/979",
+          "type1": "fighting",
+          "type2": "ghost",
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/981/icon",
+          "id": 981,
+          "ko_name": "키키링",
+          "name": "farigiraf",
+          "sprite": "/sprite/pokemon/981",
+          "type1": "normal",
+          "type2": "psychic",
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/1018/icon",
+          "id": 1018,
+          "ko_name": "브리두라스",
+          "name": "archaludon",
+          "sprite": "/sprite/pokemon/1018",
+          "type1": "steel",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/1019/icon",
+          "id": 1019,
+          "ko_name": "과미드라",
+          "name": "hydrapple",
+          "sprite": "/sprite/pokemon/1019",
+          "type1": "grass",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10033/icon",
+          "id": 10033,
+          "ko_name": "메가이상해꽃",
+          "name": "venusaur-mega",
+          "sprite": "/sprite/pokemon/10033",
+          "type1": "grass",
+          "type2": "poison",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10034/icon",
+          "id": 10034,
+          "ko_name": "메가리자몽X",
+          "name": "charizard-mega-x",
+          "sprite": "/sprite/pokemon/10034",
+          "type1": "fire",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10035/icon",
+          "id": 10035,
+          "ko_name": "메가리자몽Y",
+          "name": "charizard-mega-y",
+          "sprite": "/sprite/pokemon/10035",
+          "type1": "fire",
+          "type2": "flying",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10036/icon",
+          "id": 10036,
+          "ko_name": "메가거북왕",
+          "name": "blastoise-mega",
+          "sprite": "/sprite/pokemon/10036",
+          "type1": "water",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10039/icon",
+          "id": 10039,
+          "ko_name": "메가캥카",
+          "name": "kangaskhan-mega",
+          "sprite": "/sprite/pokemon/10039",
+          "type1": "normal",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10040/icon",
+          "id": 10040,
+          "ko_name": "메가쁘사이저",
+          "name": "pinsir-mega",
+          "sprite": "/sprite/pokemon/10040",
+          "type1": "bug",
+          "type2": "flying",
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10041/icon",
+          "id": 10041,
+          "ko_name": "메가갸라도스",
+          "name": "gyarados-mega",
+          "sprite": "/sprite/pokemon/10041",
+          "type1": "water",
+          "type2": "dark",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10042/icon",
+          "id": 10042,
+          "ko_name": "메가프테라",
+          "name": "aerodactyl-mega",
+          "sprite": "/sprite/pokemon/10042",
+          "type1": "rock",
+          "type2": "flying",
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10047/icon",
+          "id": 10047,
+          "ko_name": "메가헤라크로스",
+          "name": "heracross-mega",
+          "sprite": "/sprite/pokemon/10047",
+          "type1": "bug",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10049/icon",
+          "id": 10049,
+          "ko_name": "메가마기라스",
+          "name": "tyranitar-mega",
+          "sprite": "/sprite/pokemon/10049",
+          "type1": "rock",
+          "type2": "dark",
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10050/icon",
+          "id": 10050,
+          "ko_name": "메가번치코",
+          "name": "blaziken-mega",
+          "sprite": "/sprite/pokemon/10050",
+          "type1": "fire",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10053/icon",
+          "id": 10053,
+          "ko_name": "메가보스로라",
+          "name": "aggron-mega",
+          "sprite": "/sprite/pokemon/10053",
+          "type1": "steel",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10058/icon",
+          "id": 10058,
+          "ko_name": "메가한카리아스",
+          "name": "garchomp-mega",
+          "sprite": "/sprite/pokemon/10058",
+          "type1": "dragon",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10059/icon",
+          "id": 10059,
+          "ko_name": "메가루카리오",
+          "name": "lucario-mega",
+          "sprite": "/sprite/pokemon/10059",
+          "type1": "fighting",
+          "type2": "steel",
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10060/icon",
+          "id": 10060,
+          "ko_name": "메가눈설왕",
+          "name": "abomasnow-mega",
+          "sprite": "/sprite/pokemon/10060",
+          "type1": "grass",
+          "type2": "ice",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10064/icon",
+          "id": 10064,
+          "ko_name": "메가대짱이",
+          "name": "swampert-mega",
+          "sprite": "/sprite/pokemon/10064",
+          "type1": "water",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10065/icon",
+          "id": 10065,
+          "ko_name": "메가나무킹",
+          "name": "sceptile-mega",
+          "sprite": "/sprite/pokemon/10065",
+          "type1": "grass",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10067/icon",
+          "id": 10067,
+          "ko_name": "메가파비코리",
+          "name": "altaria-mega",
+          "sprite": "/sprite/pokemon/10067",
+          "type1": "dragon",
+          "type2": "fairy",
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10068/icon",
+          "id": 10068,
+          "ko_name": "메가엘레이드",
+          "name": "gallade-mega",
+          "sprite": "/sprite/pokemon/10068",
+          "type1": "psychic",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10070/icon",
+          "id": 10070,
+          "ko_name": "메가샤크니아",
+          "name": "sharpedo-mega",
+          "sprite": "/sprite/pokemon/10070",
+          "type1": "water",
+          "type2": "dark",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10071/icon",
+          "id": 10071,
+          "ko_name": "메가야도란",
+          "name": "slowbro-mega",
+          "sprite": "/sprite/pokemon/10071",
+          "type1": "water",
+          "type2": "psychic",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10072/icon",
+          "id": 10072,
+          "ko_name": "메가강철톤",
+          "name": "steelix-mega",
+          "sprite": "/sprite/pokemon/10072",
+          "type1": "steel",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10074/icon",
+          "id": 10074,
+          "ko_name": "메가얼음귀신",
+          "name": "glalie-mega",
+          "sprite": "/sprite/pokemon/10074",
+          "type1": "ice",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10076/icon",
+          "id": 10076,
+          "ko_name": "메가메타그로스",
+          "name": "metagross-mega",
+          "sprite": "/sprite/pokemon/10076",
+          "type1": "steel",
+          "type2": "psychic",
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10087/icon",
+          "id": 10087,
+          "ko_name": "메가폭타",
+          "name": "camerupt-mega",
+          "sprite": "/sprite/pokemon/10087",
+          "type1": "fire",
+          "type2": "ground",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10165/icon",
+          "id": 10165,
+          "ko_name": "가라르 야도란",
+          "name": "slowbro-galar",
+          "sprite": "/sprite/pokemon/10165",
+          "type1": "poison",
+          "type2": "psychic",
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10172/icon",
+          "id": 10172,
+          "ko_name": "가라르 야도킹",
+          "name": "slowking-galar",
+          "sprite": "/sprite/pokemon/10172",
+          "type1": "poison",
+          "type2": "psychic",
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10180/icon",
+          "id": 10180,
+          "ko_name": "가라르 메더",
+          "name": "stunfisk-galar",
+          "sprite": "/sprite/pokemon/10180",
+          "type1": "ground",
+          "type2": "steel",
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10233/icon",
+          "id": 10233,
+          "ko_name": "히스이 블레이범",
+          "name": "typhlosion-hisui",
+          "sprite": "/sprite/pokemon/10233",
+          "type1": "fire",
+          "type2": "ghost",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10242/icon",
+          "id": 10242,
+          "ko_name": "히스이 미끄래곤",
+          "name": "goodra-hisui",
+          "sprite": "/sprite/pokemon/10242",
+          "type1": "steel",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10243/icon",
+          "id": 10243,
+          "ko_name": "히스이 크레베이스",
+          "name": "avalugg-hisui",
+          "sprite": "/sprite/pokemon/10243",
+          "type1": "ice",
+          "type2": "rock",
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            },
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10250/icon",
+          "id": 10250,
+          "ko_name": "팔데아 켄타로스(격투)",
+          "name": "tauros-paldea-combat-breed",
+          "sprite": "/sprite/pokemon/10250",
+          "type1": "fighting",
+          "type2": null,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10251/icon",
+          "id": 10251,
+          "ko_name": "팔데아 켄타로스(불꽃)",
+          "name": "tauros-paldea-blaze-breed",
+          "sprite": "/sprite/pokemon/10251",
+          "type1": "fighting",
+          "type2": "fire",
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10252/icon",
+          "id": 10252,
+          "ko_name": "팔데아 켄타로스(물)",
+          "name": "tauros-paldea-aqua-breed",
+          "sprite": "/sprite/pokemon/10252",
+          "type1": "fighting",
+          "type2": "water",
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10281/icon",
+          "id": 10281,
+          "ko_name": "메가망나뇽",
+          "name": "dragonite-mega",
+          "sprite": "/sprite/pokemon/10281",
+          "type1": "dragon",
+          "type2": "flying",
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10282/icon",
+          "id": 10282,
+          "ko_name": "메가메가니움",
+          "name": "meganium-mega",
+          "sprite": "/sprite/pokemon/10282",
+          "type1": "grass",
+          "type2": "fairy",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10283/icon",
+          "id": 10283,
+          "ko_name": "메가장크로다일",
+          "name": "feraligatr-mega",
+          "sprite": "/sprite/pokemon/10283",
+          "type1": "water",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10286/icon",
+          "id": 10286,
+          "ko_name": "메가염무왕",
+          "name": "emboar-mega",
+          "sprite": "/sprite/pokemon/10286",
+          "type1": "fire",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10287/icon",
+          "id": 10287,
+          "ko_name": "메가몰드류",
+          "name": "excadrill-mega",
+          "sprite": "/sprite/pokemon/10287",
+          "type1": "ground",
+          "type2": "steel",
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10288/icon",
+          "id": 10288,
+          "ko_name": "메가펜드라",
+          "name": "scolipede-mega",
+          "sprite": "/sprite/pokemon/10288",
+          "type1": "bug",
+          "type2": "poison",
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10292/icon",
+          "id": 10292,
+          "ko_name": "메가브리가론",
+          "name": "chesnaught-mega",
+          "sprite": "/sprite/pokemon/10292",
+          "type1": "grass",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10298/icon",
+          "id": 10298,
+          "ko_name": "메가거북손데스",
+          "name": "barbaracle-mega",
+          "sprite": "/sprite/pokemon/10298",
+          "type1": "rock",
+          "type2": "fighting",
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10302/icon",
+          "id": 10302,
+          "ko_name": "메가할비롱",
+          "name": "drampa-mega",
+          "sprite": "/sprite/pokemon/10302",
+          "type1": "normal",
+          "type2": "dragon",
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10313/icon",
+          "id": 10313,
+          "ko_name": "메가골루그",
+          "name": "golurk-mega",
+          "sprite": "/sprite/pokemon/10313",
+          "type1": "ground",
+          "type2": "ghost",
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "icon": "/sprite/pokemon/10315/icon",
+          "id": 10315,
+          "ko_name": "메가모단단게",
+          "name": "crabominable-mega",
+          "sprite": "/sprite/pokemon/10315",
+          "type1": "fighting",
+          "type2": "ice",
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        }
+      ],
+      "max_hits": null,
+      "meta_category": "damage",
+      "min_hits": null,
+      "name": "earthquake",
+      "power": 100,
+      "pp": 10,
+      "priority": 0,
+      "reviewed": true,
+      "stat_chance": 0,
+      "stat_changes": [],
+      "target": "all-other-pokemon",
+      "type": "ground"
+    },
+    "status": 200
+  },
+  "dex_pokemon": {
+    "body": {
+      "a": 130,
+      "abilities": [
+        {
+          "description": "모래바람일 때 회피율이 올라간다.",
+          "is_hidden": false,
+          "ko_name": "모래숨기",
+          "name": "sand-veil",
+          "pos": 1
+        },
+        {
+          "description": "공격을 받았을 때 자신에게 접촉한 상대를 까칠까칠한 피부로 상처를 입힌다.",
+          "is_hidden": true,
+          "ko_name": "까칠한피부",
+          "name": "rough-skin",
+          "pos": 3
+        }
+      ],
+      "b": 95,
+      "c": 80,
+      "can_mega": true,
+      "d": 85,
+      "h": 108,
+      "height": 1.9,
+      "icon": "/sprite/pokemon/445/icon",
+      "id": 445,
+      "is_mega": false,
+      "ko_name": "한카리아스",
+      "mega_forms": [
+        {
+          "item_icon": "/sprite/item/garchompite",
+          "item_ko_name": "한카리아스나이트",
+          "item_name": "garchompite",
+          "mega_ko_name": "메가한카리아스",
+          "mega_name": "garchomp-mega",
+          "variant": null
+        }
+      ],
+      "mega_of": null,
+      "moves": [
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/normal",
+          "id": 263,
+          "ko_name": "객기",
+          "name": "facade",
+          "power": 70,
+          "pp": 20,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 184,
+          "ko_name": "겁나는얼굴",
+          "name": "scary-face",
+          "power": null,
+          "pp": 10,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/ground",
+          "id": 91,
+          "ko_name": "구멍파기",
+          "name": "dig",
+          "power": 80,
+          "pp": 10,
+          "priority": 0,
+          "type": "ground"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 104,
+          "ko_name": "그림자분신",
+          "name": "double-team",
+          "power": null,
+          "pp": 15,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 90,
+          "category": "physical",
+          "icon": "/sprite/type/normal",
+          "id": 416,
+          "ko_name": "기가임팩트",
+          "name": "giga-impact",
+          "power": 150,
+          "pp": 5,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/dark",
+          "id": 242,
+          "ko_name": "깨물어부수기",
+          "name": "crunch",
+          "power": 80,
+          "pp": 15,
+          "priority": 0,
+          "type": "dark"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/fighting",
+          "id": 280,
+          "ko_name": "깨트리기",
+          "name": "brick-break",
+          "power": 75,
+          "pp": 15,
+          "priority": 0,
+          "type": "fighting"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/normal",
+          "id": 37,
+          "ko_name": "난동부리기",
+          "name": "thrash",
+          "power": 120,
+          "pp": 10,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/dark",
+          "id": 374,
+          "ko_name": "내던지기",
+          "name": "fling",
+          "power": null,
+          "pp": 10,
+          "priority": 0,
+          "type": "dark"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/normal",
+          "id": 34,
+          "ko_name": "누르기",
+          "name": "body-slam",
+          "power": 85,
+          "pp": 15,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "special",
+          "icon": "/sprite/type/ground",
+          "id": 414,
+          "ko_name": "대지의힘",
+          "name": "earth-power",
+          "power": 90,
+          "pp": 10,
+          "priority": 0,
+          "type": "ground"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 164,
+          "ko_name": "대타출동",
+          "name": "substitute",
+          "power": null,
+          "pp": 10,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 270,
+          "ko_name": "도우미",
+          "name": "helping-hand",
+          "power": null,
+          "pp": 20,
+          "priority": 5,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/poison",
+          "id": 398,
+          "ko_name": "독찌르기",
+          "name": "poison-jab",
+          "power": 80,
+          "pp": 20,
+          "priority": 0,
+          "type": "poison"
+        },
+        {
+          "accuracy": 100,
+          "category": "special",
+          "icon": "/sprite/type/normal",
+          "id": 496,
+          "ko_name": "돌림노래",
+          "name": "round",
+          "power": 60,
+          "pp": 15,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 75,
+          "category": "physical",
+          "icon": "/sprite/type/dragon",
+          "id": 407,
+          "ko_name": "드래곤다이브",
+          "name": "dragon-rush",
+          "power": 100,
+          "pp": 10,
+          "priority": 0,
+          "type": "dragon"
+        },
+        {
+          "accuracy": 0,
+          "category": "status",
+          "icon": "/sprite/type/dragon",
+          "id": 913,
+          "ko_name": "드래곤옐",
+          "name": "dragon-cheer",
+          "power": 0,
+          "pp": 15,
+          "priority": 0,
+          "type": "dragon"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/dragon",
+          "id": 337,
+          "ko_name": "드래곤클로",
+          "name": "dragon-claw",
+          "power": 80,
+          "pp": 15,
+          "priority": 0,
+          "type": "dragon"
+        },
+        {
+          "accuracy": 90,
+          "category": "physical",
+          "icon": "/sprite/type/dragon",
+          "id": 525,
+          "ko_name": "드래곤테일",
+          "name": "dragon-tail",
+          "power": 60,
+          "pp": 10,
+          "priority": -6,
+          "type": "dragon"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/ground",
+          "id": 523,
+          "ko_name": "땅고르기",
+          "name": "bulldoze",
+          "power": 60,
+          "pp": 20,
+          "priority": 0,
+          "type": "ground"
+        },
+        {
+          "accuracy": 90,
+          "category": "status",
+          "icon": "/sprite/type/poison",
+          "id": 92,
+          "ko_name": "맹독",
+          "name": "toxic",
+          "power": null,
+          "pp": 10,
+          "priority": 0,
+          "type": "poison"
+        },
+        {
+          "accuracy": 95,
+          "category": "special",
+          "icon": "/sprite/type/ground",
+          "id": 341,
+          "ko_name": "머드샷",
+          "name": "mud-shot",
+          "power": 55,
+          "pp": 15,
+          "priority": 0,
+          "type": "ground"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/rock",
+          "id": 201,
+          "ko_name": "모래바람",
+          "name": "sandstorm",
+          "power": null,
+          "pp": 10,
+          "priority": 0,
+          "type": "rock"
+        },
+        {
+          "accuracy": 85,
+          "category": "physical",
+          "icon": "/sprite/type/ground",
+          "id": 328,
+          "ko_name": "모래지옥",
+          "name": "sand-tomb",
+          "power": 35,
+          "pp": 15,
+          "priority": 0,
+          "type": "ground"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/dark",
+          "id": 44,
+          "ko_name": "물기",
+          "name": "bite",
+          "power": 60,
+          "pp": 25,
+          "priority": 0,
+          "type": "dark"
+        },
+        {
+          "accuracy": 85,
+          "category": "special",
+          "icon": "/sprite/type/water",
+          "id": 250,
+          "ko_name": "바다회오리",
+          "name": "whirlpool",
+          "power": 35,
+          "pp": 15,
+          "priority": 0,
+          "type": "water"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 182,
+          "ko_name": "방어",
+          "name": "protect",
+          "power": null,
+          "pp": 10,
+          "priority": 4,
+          "type": "normal"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 203,
+          "ko_name": "버티기",
+          "name": "endure",
+          "power": null,
+          "pp": 10,
+          "priority": 4,
+          "type": "normal"
+        },
+        {
+          "accuracy": 95,
+          "category": "physical",
+          "icon": "/sprite/type/electric",
+          "id": 422,
+          "ko_name": "번개엄니",
+          "name": "thunder-fang",
+          "power": 65,
+          "pp": 15,
+          "priority": 0,
+          "type": "electric"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/ground",
+          "id": 707,
+          "ko_name": "분함의발구르기",
+          "name": "stomping-tantrum",
+          "power": 75,
+          "pp": 10,
+          "priority": 0,
+          "type": "ground"
+        },
+        {
+          "accuracy": 95,
+          "category": "physical",
+          "icon": "/sprite/type/fire",
+          "id": 424,
+          "ko_name": "불꽃엄니",
+          "name": "fire-fang",
+          "power": 65,
+          "pp": 15,
+          "priority": 0,
+          "type": "fire"
+        },
+        {
+          "accuracy": 85,
+          "category": "special",
+          "icon": "/sprite/type/fire",
+          "id": 126,
+          "ko_name": "불대문자",
+          "name": "fire-blast",
+          "power": 110,
+          "pp": 5,
+          "priority": 0,
+          "type": "fire"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/water",
+          "id": 240,
+          "ko_name": "비바라기",
+          "name": "rain-dance",
+          "power": null,
+          "pp": 5,
+          "priority": 0,
+          "type": "water"
+        },
+        {
+          "accuracy": 85,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 207,
+          "ko_name": "뽐내기",
+          "name": "swagger",
+          "power": null,
+          "pp": 15,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/ghost",
+          "id": 421,
+          "ko_name": "섀도클로",
+          "name": "shadow-claw",
+          "power": 70,
+          "pp": 15,
+          "priority": 0,
+          "type": "ghost"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/dark",
+          "id": 693,
+          "ko_name": "세차게휘두르기",
+          "name": "brutal-swing",
+          "power": 60,
+          "pp": 20,
+          "priority": 0,
+          "type": "dark"
+        },
+        {
+          "accuracy": 90,
+          "category": "physical",
+          "icon": "/sprite/type/dragon",
+          "id": 799,
+          "ko_name": "스케일샷",
+          "name": "scale-shot",
+          "power": 25,
+          "pp": 20,
+          "priority": 0,
+          "type": "dragon"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/rock",
+          "id": 446,
+          "ko_name": "스텔스록",
+          "name": "stealth-rock",
+          "power": null,
+          "pp": 20,
+          "priority": 0,
+          "type": "rock"
+        },
+        {
+          "accuracy": 90,
+          "category": "physical",
+          "icon": "/sprite/type/rock",
+          "id": 157,
+          "ko_name": "스톤샤워",
+          "name": "rock-slide",
+          "power": 75,
+          "pp": 10,
+          "priority": 0,
+          "type": "rock"
+        },
+        {
+          "accuracy": 80,
+          "category": "physical",
+          "icon": "/sprite/type/rock",
+          "id": 444,
+          "ko_name": "스톤에지",
+          "name": "stone-edge",
+          "power": 100,
+          "pp": 5,
+          "priority": 0,
+          "type": "rock"
+        },
+        {
+          "accuracy": 75,
+          "category": "physical",
+          "icon": "/sprite/type/steel",
+          "id": 231,
+          "ko_name": "아이언테일",
+          "name": "iron-tail",
+          "power": 100,
+          "pp": 15,
+          "priority": 0,
+          "type": "steel"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/steel",
+          "id": 442,
+          "ko_name": "아이언헤드",
+          "name": "iron-head",
+          "power": 80,
+          "pp": 15,
+          "priority": 0,
+          "type": "steel"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/water",
+          "id": 710,
+          "ko_name": "아쿠아브레이크",
+          "name": "liquidation",
+          "power": 85,
+          "pp": 10,
+          "priority": 0,
+          "type": "water"
+        },
+        {
+          "accuracy": 90,
+          "category": "physical",
+          "icon": "/sprite/type/water",
+          "id": 401,
+          "ko_name": "아쿠아테일",
+          "name": "aqua-tail",
+          "power": 90,
+          "pp": 10,
+          "priority": 0,
+          "type": "water"
+        },
+        {
+          "accuracy": 95,
+          "category": "physical",
+          "icon": "/sprite/type/rock",
+          "id": 317,
+          "ko_name": "암석봉인",
+          "name": "rock-tomb",
+          "power": 60,
+          "pp": 15,
+          "priority": 0,
+          "type": "rock"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/ground",
+          "id": 191,
+          "ko_name": "압정뿌리기",
+          "name": "spikes",
+          "power": null,
+          "pp": 20,
+          "priority": 0,
+          "type": "ground"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/dragon",
+          "id": 200,
+          "ko_name": "역린",
+          "name": "outrage",
+          "power": 120,
+          "pp": 10,
+          "priority": 0,
+          "type": "dragon"
+        },
+        {
+          "accuracy": 100,
+          "category": "special",
+          "icon": "/sprite/type/ground",
+          "id": 815,
+          "ko_name": "열사의대지",
+          "name": "scorching-sands",
+          "power": 70,
+          "pp": 10,
+          "priority": 0,
+          "type": "ground"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/dragon",
+          "id": 784,
+          "ko_name": "와이드브레이커",
+          "name": "breaking-swipe",
+          "power": 60,
+          "pp": 15,
+          "priority": 0,
+          "type": "dragon"
+        },
+        {
+          "accuracy": 90,
+          "category": "special",
+          "icon": "/sprite/type/dragon",
+          "id": 434,
+          "ko_name": "용성군",
+          "name": "draco-meteor",
+          "power": 130,
+          "pp": 5,
+          "priority": 0,
+          "type": "dragon"
+        },
+        {
+          "accuracy": 100,
+          "category": "special",
+          "icon": "/sprite/type/dragon",
+          "id": 406,
+          "ko_name": "용의파동",
+          "name": "dragon-pulse",
+          "power": 85,
+          "pp": 10,
+          "priority": 0,
+          "type": "dragon"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 46,
+          "ko_name": "울부짖기",
+          "name": "roar",
+          "power": null,
+          "pp": 20,
+          "priority": -6,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/normal",
+          "id": 38,
+          "ko_name": "이판사판태클",
+          "name": "double-edge",
+          "power": 120,
+          "pp": 15,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 214,
+          "ko_name": "잠꼬대",
+          "name": "sleep-talk",
+          "power": null,
+          "pp": 10,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/psychic",
+          "id": 156,
+          "ko_name": "잠자기",
+          "name": "rest",
+          "power": null,
+          "pp": 5,
+          "priority": 0,
+          "type": "psychic"
+        },
+        {
+          "accuracy": null,
+          "category": "physical",
+          "icon": "/sprite/type/flying",
+          "id": 332,
+          "ko_name": "제비반환",
+          "name": "aerial-ace",
+          "power": 60,
+          "pp": 20,
+          "priority": 0,
+          "type": "flying"
+        },
+        {
+          "accuracy": 100,
+          "category": "physical",
+          "icon": "/sprite/type/ground",
+          "id": 89,
+          "ko_name": "지진",
+          "name": "earthquake",
+          "power": 100,
+          "pp": 10,
+          "priority": 0,
+          "type": "ground"
+        },
+        {
+          "accuracy": 100,
+          "category": "special",
+          "icon": "/sprite/type/ground",
+          "id": 189,
+          "ko_name": "진흙뿌리기",
+          "name": "mud-slap",
+          "power": 20,
+          "pp": 10,
+          "priority": 0,
+          "type": "ground"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 14,
+          "ko_name": "칼춤",
+          "name": "swords-dance",
+          "power": null,
+          "pp": 20,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "special",
+          "icon": "/sprite/type/normal",
+          "id": 173,
+          "ko_name": "코골기",
+          "name": "snore",
+          "power": 50,
+          "pp": 15,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": null,
+          "category": "status",
+          "icon": "/sprite/type/fire",
+          "id": 241,
+          "ko_name": "쾌청",
+          "name": "sunny-day",
+          "power": null,
+          "pp": 5,
+          "priority": 0,
+          "type": "fire"
+        },
+        {
+          "accuracy": 90,
+          "category": "special",
+          "icon": "/sprite/type/normal",
+          "id": 63,
+          "ko_name": "파괴광선",
+          "name": "hyper-beam",
+          "power": 150,
+          "pp": 5,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "special",
+          "icon": "/sprite/type/water",
+          "id": 57,
+          "ko_name": "파도타기",
+          "name": "surf",
+          "power": 90,
+          "pp": 15,
+          "priority": 0,
+          "type": "water"
+        },
+        {
+          "accuracy": 100,
+          "category": "special",
+          "icon": "/sprite/type/rock",
+          "id": 408,
+          "ko_name": "파워젬",
+          "name": "power-gem",
+          "power": 80,
+          "pp": 20,
+          "priority": 0,
+          "type": "rock"
+        },
+        {
+          "accuracy": 100,
+          "category": "status",
+          "icon": "/sprite/type/normal",
+          "id": 213,
+          "ko_name": "헤롱헤롱",
+          "name": "attract",
+          "power": null,
+          "pp": 15,
+          "priority": 0,
+          "type": "normal"
+        },
+        {
+          "accuracy": 100,
+          "category": "special",
+          "icon": "/sprite/type/fire",
+          "id": 53,
+          "ko_name": "화염방사",
+          "name": "flamethrower",
+          "power": 90,
+          "pp": 15,
+          "priority": 0,
+          "type": "fire"
+        }
+      ],
+      "name": "garchomp",
+      "pokemon_id": 445,
+      "s": 102,
+      "sprite": "/sprite/pokemon/445",
+      "type1": "dragon",
+      "type2": "ground",
+      "types": [
+        {
+          "icon": "/sprite/type/dragon",
+          "name": "dragon"
+        },
+        {
+          "icon": "/sprite/type/ground",
+          "name": "ground"
+        }
+      ],
+      "weight": 95.0
+    },
+    "status": 200
+  },
+  "dex_없는것": {
+    "body": {
+      "detail": "존재하지 않는 포켓몬: 없는포켓몬"
+    },
+    "status": 404
+  },
+  "natures": {
+    "body": [
+      {
+        "down": "특수방어",
+        "name": "개구쟁이",
+        "up": "공격"
+      },
+      {
+        "down": "스피드",
+        "name": "건방",
+        "up": "특수방어"
+      },
+      {
+        "down": "공격",
+        "name": "겁쟁이",
+        "up": "스피드"
+      },
+      {
+        "down": "특수공격",
+        "name": "고집",
+        "up": "공격"
+      },
+      {
+        "down": "공격",
+        "name": "대담",
+        "up": "방어"
+      },
+      {
+        "down": "특수방어",
+        "name": "덜렁",
+        "up": "특수공격"
+      },
+      {
+        "down": "특수공격",
+        "name": "명랑",
+        "up": "스피드"
+      },
+      {
+        "down": "스피드",
+        "name": "무사태평",
+        "up": "방어"
+      },
+      {
+        "down": "방어",
+        "name": "성급",
+        "up": "스피드"
+      },
+      {
+        "down": null,
+        "name": "성실",
+        "up": null
+      },
+      {
+        "down": "특수공격",
+        "name": "신중",
+        "up": "특수방어"
+      },
+      {
+        "down": "방어",
+        "name": "얌전",
+        "up": "특수방어"
+      },
+      {
+        "down": "공격",
+        "name": "온순",
+        "up": "특수방어"
+      },
+      {
+        "down": "방어",
+        "name": "외로움",
+        "up": "공격"
+      },
+      {
+        "down": "스피드",
+        "name": "용감",
+        "up": "공격"
+      },
+      {
+        "down": "방어",
+        "name": "의젓",
+        "up": "특수공격"
+      },
+      {
+        "down": "특수공격",
+        "name": "장난꾸러기",
+        "up": "방어"
+      },
+      {
+        "down": "공격",
+        "name": "조심",
+        "up": "특수공격"
+      },
+      {
+        "down": "스피드",
+        "name": "차분",
+        "up": "특수공격"
+      },
+      {
+        "down": "특수방어",
+        "name": "천진난만",
+        "up": "스피드"
+      },
+      {
+        "down": "특수방어",
+        "name": "촐랑",
+        "up": "방어"
+      }
+    ],
+    "status": 200
+  },
+  "options": {
+    "body": {
+      "forced_item": null,
+      "is_mega": false,
+      "learnable_moves": [
+        "객기",
+        "겁나는얼굴",
+        "구멍파기",
+        "그림자분신",
+        "기가임팩트",
+        "깨물어부수기",
+        "깨트리기",
+        "난동부리기",
+        "내던지기",
+        "누르기",
+        "대지의힘",
+        "대타출동",
+        "도우미",
+        "독찌르기",
+        "돌림노래",
+        "드래곤다이브",
+        "드래곤옐",
+        "드래곤클로",
+        "드래곤테일",
+        "땅고르기",
+        "맹독",
+        "머드샷",
+        "모래바람",
+        "모래지옥",
+        "물기",
+        "바다회오리",
+        "방어",
+        "버티기",
+        "번개엄니",
+        "분함의발구르기",
+        "불꽃엄니",
+        "불대문자",
+        "비바라기",
+        "뽐내기",
+        "섀도클로",
+        "세차게휘두르기",
+        "스케일샷",
+        "스텔스록",
+        "스톤샤워",
+        "스톤에지",
+        "아이언테일",
+        "아이언헤드",
+        "아쿠아브레이크",
+        "아쿠아테일",
+        "암석봉인",
+        "압정뿌리기",
+        "역린",
+        "열사의대지",
+        "와이드브레이커",
+        "용성군",
+        "용의파동",
+        "울부짖기",
+        "이판사판태클",
+        "잠꼬대",
+        "잠자기",
+        "제비반환",
+        "지진",
+        "진흙뿌리기",
+        "칼춤",
+        "코골기",
+        "쾌청",
+        "파괴광선",
+        "파도타기",
+        "파워젬",
+        "헤롱헤롱",
+        "화염방사"
+      ],
+      "selectable_abilities": [
+        "모래숨기",
+        "까칠한피부"
+      ]
+    },
+    "status": 200
+  },
+  "team": {
+    "body": [
+      {
+        "ability": {
+          "effect": "HP가 줄었을 때 풀타입 기술의 위력이 올라간다.",
+          "name": "심록"
+        },
+        "base": {
+          "a": 82,
+          "b": 83,
+          "c": 100,
+          "d": 100,
+          "h": 80,
+          "s": 80,
+          "total": 525
+        },
+        "condition": "정상",
+        "index": 0,
+        "item": "이상해꽃나이트",
+        "learnable_moves": [
+          "개척하기",
+          "객기",
+          "겁나는얼굴",
+          "고민씨",
+          "광합성",
+          "그래스슬라이더",
+          "그래스필드",
+          "그림자분신",
+          "기가드레인",
+          "기가임팩트",
+          "꽃보라",
+          "꽃잎댄스",
+          "누르기",
+          "달콤한향기",
+          "대지의파동",
+          "대지의힘",
+          "대타출동",
+          "도우미",
+          "독가루",
+          "독찌르기",
+          "돌림노래",
+          "땅고르기",
+          "리프스톰",
+          "리플렉터",
+          "망각술",
+          "맹독",
+          "방어",
+          "버티기",
+          "베놈쇼크",
+          "분함의발구르기",
+          "블록",
+          "빛의장막",
+          "뽐내기",
+          "뿌리박기",
+          "성장",
+          "솔라빔",
+          "수면가루",
+          "신비의부적",
+          "실뿜기",
+          "씨기관총",
+          "씨뿌리기",
+          "씨폭탄",
+          "애교부리기",
+          "애시드봄",
+          "에너지볼",
+          "역린",
+          "오물웨이브",
+          "오물폭탄",
+          "울부짖기",
+          "웨더볼",
+          "이판사판태클",
+          "잠꼬대",
+          "잠자기",
+          "저주",
+          "조이기",
+          "지진",
+          "진흙뿌리기",
+          "칼춤",
+          "코골기",
+          "쾌청",
+          "탁쳐서떨구기",
+          "파괴광선",
+          "파워휩",
+          "풀묶기",
+          "하드플랜트",
+          "헤롱헤롱"
+        ],
+        "mega": {
+          "ability": {
+            "effect": "두꺼운 지방으로 보호되고 있어 불꽃타입과 얼음타입의 기술의 데미지를 반감시킨다.",
+            "name": "두꺼운지방"
+          },
+          "base": {
+            "a": 100,
+            "b": 123,
+            "c": 122,
+            "d": 120,
+            "h": 80,
+            "s": 80,
+            "total": 625
+          },
+          "name": "메가이상해꽃",
+          "sprite": "/sprite/pokemon/10033",
+          "stats": {
+            "a": 108,
+            "b": 145,
+            "c": 191,
+            "d": 140,
+            "h": 187,
+            "s": 100
+          },
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        "mega_stones": [
+          {
+            "item_ko_name": "이상해꽃나이트",
+            "mega_ko_name": "메가이상해꽃",
+            "variant": null
+          }
+        ],
+        "moves": [
+          {
+            "icon": "/sprite/type/grass",
+            "name": "기가드레인",
+            "type": "grass"
+          },
+          {
+            "icon": "/sprite/type/poison",
+            "name": "오물폭탄",
+            "type": "poison"
+          },
+          {
+            "icon": "/sprite/type/grass",
+            "name": "씨뿌리기",
+            "type": "grass"
+          },
+          {
+            "icon": "/sprite/type/ground",
+            "name": "대지의힘",
+            "type": "ground"
+          }
+        ],
+        "name": "이상해꽃",
+        "nature": {
+          "down": "공격",
+          "name": "조심",
+          "up": "특수공격"
+        },
+        "selectable_abilities": [
+          "심록",
+          "엽록소"
+        ],
+        "sp": {
+          "a": 0,
+          "b": 2,
+          "c": 32,
+          "d": 0,
+          "h": 32,
+          "s": 0,
+          "total": 66
+        },
+        "spec": {
+          "ability": "심록",
+          "item": "이상해꽃나이트",
+          "ko_name": "이상해꽃",
+          "ko_nature": "조심",
+          "moves": [
+            "기가드레인",
+            "오물폭탄",
+            "씨뿌리기",
+            "대지의힘"
+          ],
+          "sp_values": [
+            32,
+            0,
+            2,
+            32,
+            0,
+            0
+          ]
+        },
+        "sprite": "/sprite/pokemon/3",
+        "stats": {
+          "a": 91,
+          "b": 105,
+          "c": 167,
+          "d": 120,
+          "h": 187,
+          "s": 100
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/grass",
+            "name": "grass"
+          },
+          {
+            "icon": "/sprite/type/poison",
+            "name": "poison"
+          }
+        ]
+      },
+      {
+        "ability": {
+          "effect": "상대를 베는 기술의 위력이 올라간다.",
+          "name": "예리함"
+        },
+        "base": {
+          "a": 108,
+          "b": 80,
+          "c": 100,
+          "d": 65,
+          "h": 90,
+          "s": 85,
+          "total": 528
+        },
+        "condition": "정상",
+        "index": 1,
+        "item": "생명의구슬",
+        "learnable_moves": [
+          "객기",
+          "겁나는얼굴",
+          "구멍파기",
+          "기가임팩트",
+          "기선제압",
+          "기습",
+          "기충전",
+          "깜짝베기",
+          "깨트리기",
+          "내던지기",
+          "냉동빔",
+          "누르기",
+          "눈보라",
+          "눈사태",
+          "다이빙",
+          "대타출동",
+          "도둑질",
+          "도발",
+          "도우미",
+          "돌림노래",
+          "드릴라이너",
+          "땅고르기",
+          "메가혼",
+          "물붓기",
+          "물의파동",
+          "바다회오리",
+          "바크아웃",
+          "방어",
+          "버티기",
+          "분풀이",
+          "비검천중파",
+          "비바라기",
+          "설경",
+          "성스러운칼",
+          "셸블레이드",
+          "스마트혼",
+          "승부굳히기",
+          "시저크로스",
+          "싫은소리",
+          "아이언테일",
+          "아쿠아브레이크",
+          "아쿠아제트",
+          "아쿠아커터",
+          "아쿠아테일",
+          "악의파동",
+          "앙코르",
+          "얼어붙은바람",
+          "엄청난힘",
+          "에어슬래시",
+          "잠꼬대",
+          "잠자기",
+          "제비반환",
+          "지옥찌르기",
+          "진공파",
+          "찬물끼얹기",
+          "칼춤",
+          "코골기",
+          "퀵턴",
+          "탁쳐서떨구기",
+          "파괴광선",
+          "파도타기",
+          "판별",
+          "폭포오르기",
+          "풀묶기",
+          "하이드로캐논",
+          "하이드로펌프",
+          "흉내쟁이"
+        ],
+        "mega": null,
+        "mega_stones": [],
+        "moves": [
+          {
+            "icon": "/sprite/type/dark",
+            "name": "비검천중파",
+            "type": "dark"
+          },
+          {
+            "icon": "/sprite/type/water",
+            "name": "아쿠아커터",
+            "type": "water"
+          },
+          {
+            "icon": "/sprite/type/dark",
+            "name": "기습",
+            "type": "dark"
+          },
+          {
+            "icon": "/sprite/type/fighting",
+            "name": "성스러운칼",
+            "type": "fighting"
+          }
+        ],
+        "name": "히스이 대검귀",
+        "nature": {
+          "down": "특수공격",
+          "name": "고집",
+          "up": "공격"
+        },
+        "selectable_abilities": [
+          "급류",
+          "예리함"
+        ],
+        "sp": {
+          "a": 32,
+          "b": 0,
+          "c": 0,
+          "d": 0,
+          "h": 2,
+          "s": 32,
+          "total": 66
+        },
+        "spec": {
+          "ability": "예리함",
+          "item": "생명의구슬",
+          "ko_name": "히스이 대검귀",
+          "ko_nature": "고집",
+          "moves": [
+            "비검천중파",
+            "아쿠아커터",
+            "기습",
+            "성스러운칼"
+          ],
+          "sp_values": [
+            2,
+            32,
+            0,
+            0,
+            0,
+            32
+          ]
+        },
+        "sprite": "/sprite/pokemon/10236",
+        "stats": {
+          "a": 176,
+          "b": 100,
+          "c": 108,
+          "d": 85,
+          "h": 167,
+          "s": 137
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/water",
+            "name": "water"
+          },
+          {
+            "icon": "/sprite/type/dark",
+            "name": "dark"
+          }
+        ]
+      },
+      {
+        "ability": {
+          "effect": "등장했을 때 날씨를 싸라기눈으로 만든다.",
+          "name": "눈퍼뜨리기"
+        },
+        "base": {
+          "a": 67,
+          "b": 75,
+          "c": 81,
+          "d": 100,
+          "h": 73,
+          "s": 109,
+          "total": 505
+        },
+        "condition": "정상",
+        "index": 2,
+        "item": "빛의점토",
+        "learnable_moves": [
+          "객기",
+          "거짓울음",
+          "고드름침",
+          "고속이동",
+          "구멍파기",
+          "그림자분신",
+          "기가임팩트",
+          "나쁜음모",
+          "냉동빔",
+          "누르기",
+          "눈보라",
+          "눈사태",
+          "대타출동",
+          "도우미",
+          "돌림노래",
+          "드레인키스",
+          "리플렉터",
+          "매지컬샤인",
+          "맹독",
+          "멀리짖기",
+          "명상",
+          "문포스",
+          "미스트필드",
+          "바둥바둥",
+          "방어",
+          "배턴터치",
+          "버티기",
+          "병상첨병",
+          "보복",
+          "봉인",
+          "비바라기",
+          "뽐내기",
+          "사념의박치기",
+          "사슬묶기",
+          "사이코쇼크",
+          "설경",
+          "속임수",
+          "솔라빔",
+          "스위프뺨치기",
+          "신비의부적",
+          "신통력",
+          "아이언테일",
+          "아쿠아테일",
+          "아픔나누기",
+          "악의파동",
+          "앙코르",
+          "애교부리기",
+          "어시스트파워",
+          "얼어붙은바람",
+          "얼음뭉치",
+          "얼음숨결",
+          "얼음엄니",
+          "에너지볼",
+          "역할",
+          "오로라베일",
+          "울부짖기",
+          "원더룸",
+          "원한",
+          "웨더볼",
+          "이상한빛",
+          "이판사판태클",
+          "자기암시",
+          "잠꼬대",
+          "잠자기",
+          "절대영도",
+          "찬물끼얹기",
+          "초롱초롱눈동자",
+          "최면술",
+          "치근거리기",
+          "치료방울",
+          "코골기",
+          "탐내다",
+          "트리플악셀",
+          "파괴광선",
+          "파워스왑",
+          "프리즈드라이",
+          "헤롱헤롱"
+        ],
+        "mega": null,
+        "mega_stones": [],
+        "moves": [
+          {
+            "icon": "/sprite/type/ice",
+            "name": "오로라베일",
+            "type": "ice"
+          },
+          {
+            "icon": "/sprite/type/ice",
+            "name": "프리즈드라이",
+            "type": "ice"
+          },
+          {
+            "icon": "/sprite/type/fairy",
+            "name": "문포스",
+            "type": "fairy"
+          },
+          {
+            "icon": "/sprite/type/normal",
+            "name": "앙코르",
+            "type": "normal"
+          }
+        ],
+        "name": "알로라 나인테일",
+        "nature": {
+          "down": "공격",
+          "name": "조심",
+          "up": "특수공격"
+        },
+        "selectable_abilities": [
+          "눈숨기",
+          "눈퍼뜨리기"
+        ],
+        "sp": {
+          "a": 0,
+          "b": 0,
+          "c": 32,
+          "d": 0,
+          "h": 2,
+          "s": 32,
+          "total": 66
+        },
+        "spec": {
+          "ability": "눈퍼뜨리기",
+          "item": "빛의점토",
+          "ko_name": "알로라 나인테일",
+          "ko_nature": "조심",
+          "moves": [
+            "오로라베일",
+            "프리즈드라이",
+            "문포스",
+            "앙코르"
+          ],
+          "sp_values": [
+            2,
+            0,
+            0,
+            32,
+            0,
+            32
+          ]
+        },
+        "sprite": "/sprite/pokemon/10104",
+        "stats": {
+          "a": 78,
+          "b": 95,
+          "c": 146,
+          "d": 120,
+          "h": 150,
+          "s": 161
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/ice",
+            "name": "ice"
+          },
+          {
+            "icon": "/sprite/type/fairy",
+            "name": "fairy"
+          }
+        ]
+      },
+      {
+        "ability": {
+          "effect": "HP가 줄었을 때 물타입 기술의 위력이 올라간다.",
+          "name": "급류"
+        },
+        "base": {
+          "a": 74,
+          "b": 74,
+          "c": 126,
+          "d": 116,
+          "h": 80,
+          "s": 60,
+          "total": 530
+        },
+        "condition": "정상",
+        "index": 3,
+        "item": "먹다남은음식",
+        "learnable_moves": [
+          "객기",
+          "그림자분신",
+          "기가임팩트",
+          "냉동빔",
+          "노래하기",
+          "누르기",
+          "눈보라",
+          "다이빙",
+          "대타출동",
+          "도우미",
+          "돌림노래",
+          "드레인키스",
+          "리플렉터",
+          "망각술",
+          "매지컬샤인",
+          "매혹의보이스",
+          "맹독",
+          "멸망의노래",
+          "명상",
+          "문포스",
+          "물거품아리아",
+          "물의파동",
+          "미스트버스트",
+          "미스트필드",
+          "바다회오리",
+          "방어",
+          "버티기",
+          "비바라기",
+          "빛의장막",
+          "뽐내기",
+          "사이코노이즈",
+          "사이코키네시스",
+          "생명의물방울",
+          "섀도볼",
+          "설경",
+          "소란피기",
+          "아이스스피너",
+          "아이언테일",
+          "아쿠아링",
+          "아쿠아브레이크",
+          "아쿠아제트",
+          "아쿠아테일",
+          "앙코르",
+          "애교부리기",
+          "애크러뱃",
+          "어시스트파워",
+          "얼어붙은바람",
+          "에너지볼",
+          "열탕",
+          "원더룸",
+          "웨더볼",
+          "자기암시",
+          "잠꼬대",
+          "잠자기",
+          "찬물끼얹기",
+          "초롱초롱눈동자",
+          "치근거리기",
+          "코골기",
+          "퀵턴",
+          "탐내다",
+          "트리플악셀",
+          "파괴광선",
+          "파도타기",
+          "폭포오르기",
+          "하이드로캐논",
+          "하이드로펌프",
+          "하이퍼보이스",
+          "헤롱헤롱",
+          "흑안개"
+        ],
+        "mega": null,
+        "mega_stones": [],
+        "moves": [
+          {
+            "icon": "/sprite/type/water",
+            "name": "물거품아리아",
+            "type": "water"
+          },
+          {
+            "icon": "/sprite/type/fairy",
+            "name": "문포스",
+            "type": "fairy"
+          },
+          {
+            "icon": "/sprite/type/water",
+            "name": "아쿠아제트",
+            "type": "water"
+          },
+          {
+            "icon": "/sprite/type/psychic",
+            "name": "명상",
+            "type": "psychic"
+          }
+        ],
+        "name": "누리레느",
+        "nature": {
+          "down": "공격",
+          "name": "조심",
+          "up": "특수공격"
+        },
+        "selectable_abilities": [
+          "급류",
+          "촉촉보이스"
+        ],
+        "sp": {
+          "a": 0,
+          "b": 0,
+          "c": 32,
+          "d": 0,
+          "h": 2,
+          "s": 32,
+          "total": 66
+        },
+        "spec": {
+          "ability": "급류",
+          "item": "먹다남은음식",
+          "ko_name": "누리레느",
+          "ko_nature": "조심",
+          "moves": [
+            "물거품아리아",
+            "문포스",
+            "아쿠아제트",
+            "명상"
+          ],
+          "sp_values": [
+            2,
+            0,
+            0,
+            32,
+            0,
+            32
+          ]
+        },
+        "sprite": "/sprite/pokemon/730",
+        "stats": {
+          "a": 84,
+          "b": 94,
+          "c": 195,
+          "d": 136,
+          "h": 157,
+          "s": 112
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/water",
+            "name": "water"
+          },
+          {
+            "icon": "/sprite/type/fairy",
+            "name": "fairy"
+          }
+        ]
+      },
+      {
+        "ability": {
+          "effect": "상대 기술이나 특성으로 능력을 떨어뜨릴 수 없다.",
+          "name": "클리어바디"
+        },
+        "base": {
+          "a": 135,
+          "b": 130,
+          "c": 95,
+          "d": 90,
+          "h": 80,
+          "s": 70,
+          "total": 600
+        },
+        "condition": "정상",
+        "index": 4,
+        "item": "메타그로스나이트",
+        "learnable_moves": [
+          "개척하기",
+          "객기",
+          "겁나는얼굴",
+          "고속이동",
+          "그림자분신",
+          "기가임팩트",
+          "깨트리기",
+          "냉동펀치",
+          "누르기",
+          "대타출동",
+          "대폭발",
+          "돌림노래",
+          "땅고르기",
+          "러스터캐논",
+          "록커트",
+          "리플렉터",
+          "맹독",
+          "메테오빔",
+          "모래바람",
+          "미래예지",
+          "바디프레스",
+          "방어",
+          "버티기",
+          "번개펀치",
+          "분함의발구르기",
+          "불릿펀치",
+          "블록",
+          "비바라기",
+          "빛의장막",
+          "뽐내기",
+          "사념의박치기",
+          "사이드체인지",
+          "사이코노이즈",
+          "사이코쇼크",
+          "사이코커터",
+          "사이코키네시스",
+          "사이코팽",
+          "섀도볼",
+          "섀도클로",
+          "섀도펀치",
+          "세차게휘두르기",
+          "스텔스록",
+          "스톤샤워",
+          "스톤에지",
+          "아이언롤러",
+          "아이언헤드",
+          "암석봉인",
+          "암해머",
+          "얼어붙은바람",
+          "오물폭탄",
+          "와이드포스",
+          "이판사판태클",
+          "자기암시",
+          "자이로볼",
+          "자폭",
+          "잠꼬대",
+          "잠자기",
+          "전자부유",
+          "제비반환",
+          "중력",
+          "지진",
+          "진흙뿌리기",
+          "철벽",
+          "철제광선",
+          "코골기",
+          "코멧펀치",
+          "코스믹파워",
+          "쾌청",
+          "탁쳐서떨구기",
+          "트릭",
+          "파괴광선",
+          "폭발펀치",
+          "풀묶기",
+          "하드프레스",
+          "헤비봄버",
+          "힘껏펀치"
+        ],
+        "mega": {
+          "ability": {
+            "effect": "상대에게 접촉하는 기술의 위력이 올라간다.",
+            "name": "단단한발톱"
+          },
+          "base": {
+            "a": 145,
+            "b": 150,
+            "c": 105,
+            "d": 110,
+            "h": 80,
+            "s": 110,
+            "total": 700
+          },
+          "name": "메가메타그로스",
+          "sprite": "/sprite/pokemon/10076",
+          "stats": {
+            "a": 216,
+            "b": 170,
+            "c": 112,
+            "d": 130,
+            "h": 157,
+            "s": 162
+          },
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        "mega_stones": [
+          {
+            "item_ko_name": "메타그로스나이트",
+            "mega_ko_name": "메가메타그로스",
+            "variant": null
+          }
+        ],
+        "moves": [
+          {
+            "icon": "/sprite/type/ground",
+            "name": "지진",
+            "type": "ground"
+          },
+          {
+            "icon": "/sprite/type/steel",
+            "name": "아이언헤드",
+            "type": "steel"
+          },
+          {
+            "icon": "/sprite/type/electric",
+            "name": "번개펀치",
+            "type": "electric"
+          },
+          {
+            "icon": "/sprite/type/psychic",
+            "name": "사이코팽",
+            "type": "psychic"
+          }
+        ],
+        "name": "메타그로스",
+        "nature": {
+          "down": "특수공격",
+          "name": "고집",
+          "up": "공격"
+        },
+        "selectable_abilities": [
+          "클리어바디",
+          "라이트메탈"
+        ],
+        "sp": {
+          "a": 32,
+          "b": 0,
+          "c": 0,
+          "d": 0,
+          "h": 2,
+          "s": 32,
+          "total": 66
+        },
+        "spec": {
+          "ability": "클리어바디",
+          "item": "메타그로스나이트",
+          "ko_name": "메타그로스",
+          "ko_nature": "고집",
+          "moves": [
+            "지진",
+            "아이언헤드",
+            "번개펀치",
+            "사이코팽"
+          ],
+          "sp_values": [
+            2,
+            32,
+            0,
+            0,
+            0,
+            32
+          ]
+        },
+        "sprite": "/sprite/pokemon/376",
+        "stats": {
+          "a": 205,
+          "b": 150,
+          "c": 103,
+          "d": 110,
+          "h": 157,
+          "s": 122
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/steel",
+            "name": "steel"
+          },
+          {
+            "icon": "/sprite/type/psychic",
+            "name": "psychic"
+          }
+        ]
+      },
+      {
+        "ability": {
+          "effect": "등장했을 때 날씨를 모래바람으로 만든다.",
+          "name": "모래날림"
+        },
+        "base": {
+          "a": 112,
+          "b": 118,
+          "c": 68,
+          "d": 72,
+          "h": 108,
+          "s": 47,
+          "total": 525
+        },
+        "condition": "정상",
+        "index": 5,
+        "item": "자뭉열매",
+        "learnable_moves": [
+          "객기",
+          "게으름피우기",
+          "구멍파기",
+          "그림자분신",
+          "기가임팩트",
+          "깨물어부수기",
+          "꿀꺽",
+          "날려버리기",
+          "누르기",
+          "대지의힘",
+          "대타출동",
+          "도우미",
+          "돌림노래",
+          "땅가르기",
+          "땅고르기",
+          "망각술",
+          "맹독",
+          "머드샷",
+          "모래바람",
+          "모래지옥",
+          "물기",
+          "물의파동",
+          "바디프레스",
+          "방어",
+          "버티기",
+          "번개엄니",
+          "분함의발구르기",
+          "불꽃엄니",
+          "비축하기",
+          "뽐내기",
+          "스텔스록",
+          "스톤샤워",
+          "스톤에지",
+          "아이언테일",
+          "아이언헤드",
+          "암석봉인",
+          "얼음엄니",
+          "엄청난힘",
+          "열사의대지",
+          "울부짖기",
+          "웨더볼",
+          "이판사판태클",
+          "잠꼬대",
+          "잠자기",
+          "저주",
+          "지진",
+          "진흙뿌리기",
+          "코골기",
+          "쾌청",
+          "탁류",
+          "토해내기",
+          "파괴광선",
+          "하드프레스",
+          "하이퍼보이스",
+          "하품",
+          "헤롱헤롱",
+          "헤비봄버",
+          "10만마력"
+        ],
+        "mega": null,
+        "mega_stones": [],
+        "moves": [
+          {
+            "icon": "/sprite/type/ground",
+            "name": "지진",
+            "type": "ground"
+          },
+          {
+            "icon": "/sprite/type/rock",
+            "name": "스텔스록",
+            "type": "rock"
+          },
+          {
+            "icon": "/sprite/type/normal",
+            "name": "하품",
+            "type": "normal"
+          },
+          {
+            "icon": "/sprite/type/normal",
+            "name": "날려버리기",
+            "type": "normal"
+          }
+        ],
+        "name": "하마돈",
+        "nature": {
+          "down": "특수공격",
+          "name": "장난꾸러기",
+          "up": "방어"
+        },
+        "selectable_abilities": [
+          "모래날림",
+          "모래의힘"
+        ],
+        "sp": {
+          "a": 2,
+          "b": 32,
+          "c": 0,
+          "d": 0,
+          "h": 32,
+          "s": 0,
+          "total": 66
+        },
+        "spec": {
+          "ability": "모래날림",
+          "item": "자뭉열매",
+          "ko_name": "하마돈",
+          "ko_nature": "장난꾸러기",
+          "moves": [
+            "지진",
+            "스텔스록",
+            "하품",
+            "날려버리기"
+          ],
+          "sp_values": [
+            32,
+            2,
+            32,
+            0,
+            0,
+            0
+          ]
+        },
+        "sprite": "/sprite/pokemon/450",
+        "stats": {
+          "a": 134,
+          "b": 187,
+          "c": 79,
+          "d": 92,
+          "h": 215,
+          "s": 67
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/ground",
+            "name": "ground"
+          }
+        ]
+      }
+    ],
+    "status": 200
+  }
+}
