@@ -1,0 +1,369 @@
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f5f7;
+    --card-bg: #ffffff;
+    --border: #d8d8dc;
+    --text: #1c1c1e;
+    --muted: #6b6b70;
+    --accent: #3b6fe0;
+    --error: #d0342c;
+    --up: #d0342c;      /* 오르는 쪽은 빨강 */
+    --down: #3b6fe0;    /* 내리는 쪽은 파랑 */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --card-bg: #2a2a2d;
+      --border: #3d3d40;
+      --text: #f2f2f2;
+      --muted: #a0a0a5;
+      --up: #ff6b61;
+      --down: #7aa2f7;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px 24px 40px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  }
+  h1 { font-size: 1.3rem; margin: 0 0 14px; }
+
+  /* ── 탭 ───────────────────────────────────────────────── */
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tabs button {
+    padding: 7px 16px; font-size: 0.88rem; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: var(--card-bg); color: var(--text); font-family: inherit;
+  }
+  .tabs button.on {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+    font-weight: 600;
+  }
+  .panel[hidden] { display: none; }
+
+  /* ── 내 팀 (기존 화면) ───────────────────────────────── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .name { margin: 0; font-size: 1.1rem; }
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .type-badges { display: flex; gap: 4px; align-items: center; }
+  .type-badges img { height: 18px; }
+  .mega-bar {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px; font-size: 0.78rem; color: var(--muted);
+  }
+  .mega-toggle {
+    padding: 4px 12px; font-size: 0.78rem; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: transparent; color: var(--text); font-family: inherit;
+  }
+  .mega-toggle.on {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+    font-weight: 600;
+  }
+  .mega-hint { font-size: 0.72rem; color: var(--muted); margin-bottom: 10px; }
+  .card.mega-on { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .changed { font-weight: 600; }
+  .delta { font-size: 0.68rem; margin-left: 3px; }
+  .up { color: var(--up); }
+  .down { color: var(--down); }
+  .sprite-wrap { text-align: center; margin-bottom: 10px; }
+  .sprite-wrap img { max-width: 140px; max-height: 140px; }
+  .move-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+  .move-row img { height: 16px; }
+
+  .stat-block { margin-bottom: 10px; }
+  .stat-title { font-size: 0.75rem; color: var(--muted); margin-bottom: 3px; }
+  .stat-title .total { color: var(--text); font-weight: 600; }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2px;
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 6px 2px;
+  }
+  .stat-grid div { text-align: center; }
+  .stat-grid .label { font-size: 0.68rem; color: var(--muted); }
+  .stat-grid .value { font-size: 0.85rem; }
+
+  .line { font-size: 0.85rem; margin-bottom: 6px; }
+  .line .label { color: var(--muted); margin-right: 4px; }
+  .ability-line .effect {
+    display: block; font-size: 0.75rem; color: var(--muted); margin-top: 2px;
+  }
+
+  .edit { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .field { margin-bottom: 8px; }
+  .field label {
+    display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 2px;
+  }
+  .field input {
+    width: 100%; padding: 5px 7px;
+    border: 1px solid var(--border); border-radius: 5px;
+    background: transparent; color: var(--text); font-size: 0.85rem;
+  }
+  .sp-input-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .sp-input-row input { text-align: center; padding: 5px 2px; }
+  .moves-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+
+  .combo { position: relative; }
+  .combo-list {
+    display: none;
+    position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 2px);
+    max-height: 190px; overflow-y: auto;
+    background: var(--card-bg);
+    border: 1px solid var(--border); border-radius: 6px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  }
+  .combo.open .combo-list { display: block; }
+  .combo-list div { padding: 5px 8px; font-size: 0.82rem; cursor: pointer; }
+  .combo-list div.on, .combo-list div:hover { background: var(--bg); }
+  .combo-list .hint { color: var(--muted); font-size: 0.72rem; margin-left: 5px; }
+  .combo-list .none { color: var(--muted); cursor: default; }
+  .combo-list .none:hover { background: transparent; }
+  /* 고를 여지가 없는 칸. 메가폼의 도구가 그렇다. */
+  input.locked {
+    background: var(--bg); color: var(--muted); cursor: not-allowed;
+  }
+  .error { color: var(--error); font-size: 0.78rem; min-height: 1.1em; margin-top: 4px; }
+
+  /* ── 도감 (목록 + 상세) ─────────────────────────────── */
+  /* 목록은 왼쪽에서 스크롤하고 상세는 오른쪽에 붙어 따라온다. 좁은 화면
+     에서는 세로로 쌓인다 — 표를 옆으로 밀어 보게 만들지 않으려는 것. */
+  .dex { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; }
+  @media (max-width: 1000px) { .dex { grid-template-columns: minmax(0, 1fr); } }
+
+  .dex-controls {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .dex-controls input[type="search"], .dex-controls select {
+    padding: 6px 9px; font-size: 0.85rem; font-family: inherit;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--card-bg); color: var(--text);
+  }
+  .dex-controls input[type="search"] { min-width: 200px; flex: 1 1 200px; }
+  .dex-controls button {
+    padding: 6px 12px; font-size: 0.82rem; font-family: inherit; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--card-bg); color: var(--muted);
+  }
+  .dex-controls button:hover { color: var(--text); }
+  .dex-controls .count { font-size: 0.78rem; color: var(--muted); }
+
+  .table-wrap {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 10px; overflow: auto; max-height: calc(100vh - 210px);
+  }
+  table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+  thead th {
+    position: sticky; top: 0; z-index: 1;
+    background: var(--card-bg); border-bottom: 1px solid var(--border);
+    padding: 8px 8px; text-align: left; white-space: nowrap;
+    color: var(--muted); font-weight: 600; cursor: pointer; user-select: none;
+  }
+  thead th .arrow { font-size: 0.65rem; margin-left: 2px; color: var(--accent); }
+  tbody td { padding: 5px 8px; border-bottom: 1px solid var(--border); }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--bg); }
+  tbody tr.on { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.mid, th.mid { text-align: center; }
+  td img.icon { height: 30px; width: 30px; object-fit: contain; display: block; }
+  td img.tiny { height: 16px; vertical-align: -3px; }
+  .sub { color: var(--muted); font-size: 0.72rem; }
+  .empty { padding: 24px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+  .empty.err { color: var(--down); line-height: 1.6; }
+
+  /* 상세 패널 */
+  .dex-detail {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+    align-self: start; position: sticky; top: 20px;
+    max-height: calc(100vh - 60px); overflow-y: auto;
+  }
+  @media (max-width: 1000px) { .dex-detail { position: static; max-height: none; } }
+  .dex-detail h2 { margin: 0 0 2px; font-size: 1.15rem; }
+  .dex-detail .en { color: var(--muted); font-size: 0.78rem; font-weight: 400; }
+  .dex-detail section { margin-top: 14px; }
+  .dex-detail section > h3 {
+    margin: 0 0 6px; font-size: 0.75rem; color: var(--muted);
+    font-weight: 600; letter-spacing: 0.02em;
+  }
+  .dex-detail p { margin: 0 0 6px; font-size: 0.83rem; line-height: 1.5; }
+  .dex-detail p.eff { color: var(--muted); font-size: 0.76rem; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-size: 0.83rem; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+
+  /* 종족값 막대 */
+  .bars { display: grid; grid-template-columns: 3.6em 2.6em 1fr; gap: 3px 6px; align-items: center; }
+  .bars .bl { font-size: 0.75rem; color: var(--muted); }
+  .bars .bv { font-size: 0.8rem; text-align: right; font-variant-numeric: tabular-nums; }
+  .bars .bar { height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .bars .bar i { display: block; height: 100%; background: var(--accent); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip {
+    font-size: 0.72rem; padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted);
+  }
+  .chip.warn { color: var(--up); border-color: var(--up); }
+  .chip.ok { color: var(--accent); border-color: var(--accent); }
+
+  /* 상세 안의 관계 목록 (배우는 포켓몬, 특성 보유 포켓몬 …) */
+  .rel { max-height: 260px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; }
+  .rel a {
+    display: flex; align-items: center; gap: 6px; padding: 3px 8px;
+    font-size: 0.8rem; color: var(--text); text-decoration: none; cursor: pointer;
+  }
+  .rel a:hover { background: var(--bg); }
+  .rel img { height: 26px; width: 26px; object-fit: contain; }
+  .rel .t { margin-left: auto; display: flex; gap: 2px; }
+  .rel .t img { height: 14px; width: auto; }
+
+  /* ── 계산기 ──────────────────────────────────────────── */
+  /* 공격자 · 방어자를 나란히 두고, 그 아래 판 상황과 결과가 가로 전체를
+     쓴다. 좁으면 세로로 쌓인다. */
+  .calc { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .calc { grid-template-columns: 1fr; } }
+  .calc .wide { grid-column: 1 / -1; }
+  .calc fieldset {
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--card-bg); padding: 12px 14px 14px; margin: 0;
+  }
+  .calc legend { font-size: 0.85rem; font-weight: 600; padding: 0 6px; }
+  .calc label { display: block; font-size: 0.72rem; color: var(--muted); margin-bottom: 3px; }
+  .calc select, .calc input {
+    width: 100%; padding: 5px 7px; font-family: inherit; font-size: 0.85rem;
+    border: 1px solid var(--border); border-radius: 5px;
+    background: transparent; color: var(--text);
+  }
+  .calc .row { display: grid; gap: 8px; margin-bottom: 8px; }
+  .calc .row.two { grid-template-columns: 1fr 1fr; }
+
+  /* 여섯 능력치 입력줄. 칸 위에 이름을 얹는다 — 순서를 외워야 쓸 수 있는
+     화면은 매번 손가락으로 세어보게 된다. */
+  .statgrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .statgrid .cap {
+    display: block; text-align: center; font-size: 0.65rem;
+    color: var(--muted); margin-bottom: 2px;
+  }
+  .statgrid input, .statgrid select { text-align: center; padding: 5px 2px; }
+
+  .calc .hprow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  /* 상대 HP 는 게임에서도 % 로만 보인다. 숫자 칸 대신 막대를 준다. */
+  .calc .hpwrap { display: flex; align-items: center; gap: 8px; flex: 1 1 220px; }
+  .calc .hpwrap input[type="range"] { flex: 1 1 90px; min-width: 90px; padding: 0; }
+  .calc label.inline {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.8rem; color: var(--text); margin: 0;
+  }
+  .calc label.inline input[type="checkbox"] { width: auto; }
+  .calc label.inline input[type="number"] { width: 5.5em; }
+  .calc .hpinfo {
+    font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums;
+  }
+  .calc .note { font-size: 0.8rem; line-height: 1.6; color: var(--muted); margin: 0 0 12px; }
+
+  .calc .checks { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .calc .checks label {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.8rem; color: var(--text); margin: 0;
+  }
+  .calc .checks input { width: auto; }
+  .calc button.run {
+    padding: 9px 20px; font-size: 0.9rem; font-family: inherit; cursor: pointer;
+    border: 1px solid var(--accent); border-radius: 8px;
+    background: var(--accent); color: #fff; font-weight: 600;
+  }
+  .calc button.swap {
+    padding: 8px 14px; font-size: 0.82rem; font-family: inherit; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card-bg); color: var(--text);
+  }
+
+  /* 계산기 안의 모드 전환. 위쪽 주 탭과 구별되게 작고 네모나다. */
+  .tabs.sub { margin-bottom: 14px; }
+  .tabs.sub button { padding: 5px 13px; font-size: 0.82rem; border-radius: 7px; }
+
+  .result { font-size: 0.88rem; }
+  .result .err { color: var(--down); }
+  .result .sub2 { color: var(--muted); font-size: 0.8rem; margin-bottom: 10px; }
+
+  /* 판정이 결론이다. 숫자보다 먼저, 크게 나온다. */
+  .result .verdict { margin-bottom: 12px; }
+  .result .verdict .ko {
+    font-size: 1.5rem; font-weight: 700; color: var(--accent); line-height: 1.2;
+  }
+  .result .verdict .line { font-size: 0.85rem; color: var(--muted); margin-top: 3px; }
+  .result .verdict .line b { color: var(--text); }
+  .result .verdict img.tiny { height: 15px; vertical-align: -3px; }
+
+  .result .hpbar {
+    height: 14px; background: var(--bg); border-radius: 7px;
+    overflow: hidden; position: relative; margin-top: 6px;
+  }
+  /* 최소 난수와 최대 난수를 겹쳐 그린다. 진한 쪽이 "확실히 들어가는 만큼",
+     연한 쪽이 "운이 좋으면 여기까지". 막대 둘로 나누면 관계가 안 보인다. */
+  .result .hpbar i { position: absolute; left: 0; top: 0; height: 100%; }
+  .result .hpbar .hi { background: color-mix(in srgb, var(--accent) 32%, transparent); }
+  .result .hpbar .lo { background: var(--accent); }
+  .result .applied {
+    font-size: 0.75rem; color: var(--muted); margin: 10px 0 2px;
+    padding: 5px 9px; background: var(--bg); border-radius: 6px;
+  }
+  .result .hpscale {
+    display: flex; justify-content: space-between;
+    font-size: 0.7rem; color: var(--muted); margin: 3px 0 4px;
+  }
+
+  .result table.rolltable { font-size: 0.82rem; margin-top: 12px; width: 100%; }
+  .result table.rolltable thead th {
+    position: static; padding: 6px 8px; cursor: default;
+  }
+  .result table.rolltable td { padding: 6px 8px; }
+
+  .minibar {
+    display: block; height: 8px; background: var(--bg);
+    border-radius: 4px; overflow: hidden;
+  }
+  .minibar i { display: block; height: 100%; background: var(--accent); }
+
+  /* 난수 16개는 결론이 아니라 근거다. 접어두고 필요할 때만 편다. */
+  .result details.rolls { margin-top: 14px; font-size: 0.78rem; color: var(--muted); }
+  .result details.rolls summary { cursor: pointer; color: var(--accent); }
+  .result details.rolls > div { margin-top: 6px; }
+  .rollgrid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+    gap: 4px; margin-top: 8px;
+  }
+  .rollgrid span {
+    background: var(--bg); border-radius: 5px; padding: 4px 6px;
+    text-align: center; font-variant-numeric: tabular-nums; color: var(--text);
+  }
+  .rollgrid em { display: block; font-style: normal; font-size: 0.68rem; color: var(--muted); }

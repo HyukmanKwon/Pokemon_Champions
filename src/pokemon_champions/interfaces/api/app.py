@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from ... import assets
@@ -22,7 +23,7 @@ from ...services import damage, team
 from ...services.damage import Rules
 from ...services.stats import calc_stats, make_sp
 from ...text import normalize
-from ...usecases import battle, roster
+from ...usecases import battle, naming, roster
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -159,6 +160,12 @@ def _slot_view(index, spec):
 @app.get("/", response_class=HTMLResponse)
 def index():
     return (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+
+
+# 화면을 이루는 css/js. 스프라이트와 달리 이쪽은 StaticFiles 로 건다 —
+# 없는 파일이 404 인 게 맞고(오타를 바로 알아야 한다), 받아올 곳도 없다.
+# ETag 를 붙여주므로 고칠 때마다 브라우저가 다시 받는다.
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -422,6 +429,19 @@ def get_items():
     그건 슬롯의 mega_stones 에 따로 들어 있다.
     """
     return item_repo.fetch_usable(state["conn"])
+
+
+@app.get("/api/types")
+def get_types():
+    """18타입의 한국어 표기와 아이콘 주소.
+
+    화면이 이 표를 코드에 적어두고 있었다. DB 의 pokemon_type_names 와
+    같은 내용이 두 벌이 되는데, 표기를 다듬으면 한쪽만 고치게 된다.
+    LLM 쪽도 같은 표를 읽는다(usecases/naming.type_names).
+    """
+    ko = naming.type_names(state["conn"])
+    return [{"name": t, "ko_name": ko[t], "icon": assets.url_type_icon(t)}
+            for t in sorted(ko)]
 
 
 @app.get("/api/natures")

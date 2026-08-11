@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "pokemon_champions.interfaces.api.app:app",
+        "--port",
+        "8765",
+        "--reload",
+        "--reload-dir",
+        "src"
+      ],
+      "port": 8765
+    }
+  ]
+}

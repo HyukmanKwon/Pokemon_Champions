@@ -113,18 +113,27 @@ Pokemon_Champions/
 │   │   ├── damage.py           [순수] calc_damage, analyze_ko,
 │   │   │                              power_index, bulk_index
 │   │   ├── modifiers.py        [순수] 특성·도구 보정을 4096 정수로
-│   │   ├── team.py             [조립] 내 엔트리 로드·검증·빌드
+│   │   ├── team.py             [조립] 스펙 검증·빌드 (저장은 roster)
 │   │   ├── usage.py            [조립] 채용률을 DB 의 한국어와 잇기
 │   │   └── opponent.py         상대 엔트리 (아직 비어 있다 — §5)
+│   │
+│   ├── usecases/               조립 층 — DB 조회 + 기본값 + 계산 호출
+│   │   ├── naming.py           한↔영 이름 해석
+│   │   ├── battle.py           스펙 -> Pokemon -> 데미지
+│   │   └── roster.py           덱 여러 벌
 │   │
 │   └── interfaces/             print/input/HTTP는 여기서만
 │       ├── cli.py
 │       └── api/
 │           ├── app.py          FastAPI
-│           └── static/index.html
+│           └── static/
+│               ├── index.html  뼈대만. 순서대로 js 를 부른다
+│               ├── css/app.css
+│               └── js/         common · tabs · dex · team · calc
 │
-└── tests/                      DB 없이 도는 계산 테스트 64개
-    ├── conftest.py             overrides 폴더 격리 (autouse)
+└── tests/                      계산 테스트는 DB 없이, 도구·라우트는 DB 로
+    ├── conftest.py             overrides 격리 · db 픽스처 · 덱 격리
+    ├── golden/                 도구·라우트 응답을 통째로 박아둔 것
     ├── test_damage.py          40개
     ├── test_stats.py           10개
     └── test_team.py            14개
