@@ -19,9 +19,10 @@ from ...db.repositories import (ability_repo, item_repo, move_repo,
                                 nature_repo, pokemon_repo, rules_repo)
 from ...domain import STAT_LABELS, STAT_ORDER
 from ...services import damage, team
-from ...services.damage import BattleContext, Rules
+from ...services.damage import Rules
 from ...services.stats import calc_stats, make_sp
 from ...text import normalize
+from ...usecases import battle
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -414,7 +415,9 @@ def patch_team(index: int, edit: SlotEdit):
 # 쓰고, 값이 갈라지지 않는다.
 # ─────────────────────────────────────────────────────────────
 
-NEUTRAL_NATURE = "성실"   # 21종 중 유일한 무보정. 기본값으로 쓴다
+# 무보정 성격·SP 기본값·메가 허용은 usecases/battle.py 가 한 벌로 들고 있다.
+# 여기서 다시 적으면 도구 쪽과 갈린다 — 실제로 갈렸던 자리다.
+NEUTRAL_NATURE = battle.NEUTRAL_NATURE
 
 
 class CalcSide(BaseModel):
@@ -424,7 +427,8 @@ class CalcSide(BaseModel):
     ability: str
     item: Optional[str] = None
     ko_nature: str = NEUTRAL_NATURE
-    sp_values: List[int] = Field(default_factory=lambda: [0] * 6)
+    # 안 보내면 조립 층이 무보정(0 여섯 칸)으로 채운다
+    sp_values: Optional[List[int]] = None
     # {"a": 2, "s": -1} — 안 적힌 능력치는 0
     rank: Dict[str, int] = Field(default_factory=dict)
     condition: Optional[str] = None
@@ -446,22 +450,22 @@ class CalcRequest(BaseModel):
     max_turns: int = 4
 
 
+def _spec(side: CalcSide):
+    """CalcSide 를 조립 층이 받는 느슨한 스펙으로.
+
+    칸 이름이 다른 것은 화면이 한국어를 그대로 보내기 때문이다(ko_name,
+    ko_nature, sp_values). 요청 모양은 그대로 두고 여기서만 옮긴다 —
+    화면 코드를 건드리지 않으려는 것이다.
+    """
+    return {"name": side.ko_name, "ability": side.ability, "item": side.item,
+            "nature": side.ko_nature, "sp": side.sp_values, "rank": side.rank,
+            "condition": side.condition, "hp": side.hp,
+            "grounded": side.grounded}
+
+
 def _side_pokemon(side: CalcSide, move=None):
     """CalcSide 를 Pokemon 으로. 기술을 주면 그것까지 검증한다."""
-    return team.build_pokemon(
-        state["conn"],
-        ko_name=side.ko_name,
-        sp_values=side.sp_values,
-        ko_nature=side.ko_nature,
-        ability=side.ability,
-        item=side.item,
-        moves=[move] if move else None,
-        condition=side.condition,
-        rank=side.rank,
-        # 계산기는 메가리자몽이 상대로 나오는 판을 그대로 물어보는 곳이다.
-        # 엔트리 금지 규칙을 여기까지 끌고 오면 절반이 계산 불가가 된다.
-        allow_mega=True,
-    )
+    return battle.build_side(state["conn"], _spec(side), move)[0]
 
 
 def _side_view(p, side: CalcSide):
@@ -553,42 +557,27 @@ def calc_bulk(req: IndexRequest):
 
 @app.post("/api/calc/damage")
 def calc_damage(req: CalcRequest):
-    conn = state["conn"]
-    rules = state["rules"]
-
-    move_en = move_repo.fetch_en_name(conn, normalize(req.move))
-    if move_en is None:
+    # 없는 기술은 404, 세울 수 없는 포켓몬은 400. 조립 층은 둘 다
+    # ValueError 로 올리므로 기술만 먼저 확인해 갈래를 나눈다.
+    if battle.move_row(state["conn"], req.move) is None:
         raise HTTPException(404, f"없는 기술입니다: {req.move}")
-    move = _found(move_repo.fetch_detail, conn, move_en)
 
     try:
-        attacker = _side_pokemon(req.attacker, req.move)
-        defender = _side_pokemon(req.defender)
+        shot = battle.one_hit(
+            state["conn"], state["rules"],
+            _spec(req.attacker), _spec(req.defender), req.move,
+            max_turns=req.max_turns,
+            weather=req.weather, terrain=req.terrain,
+            is_critical=req.is_critical, reflect=req.reflect,
+            light_screen=req.light_screen, is_doubles=req.is_doubles,
+        )
     except ValueError as e:
         raise HTTPException(400, str(e))
 
-    ctx = BattleContext(
-        weather=req.weather or None,
-        terrain=req.terrain or None,
-        attacker_rank=req.attacker.rank,
-        defender_rank=req.defender.rank,
-        attacker_condition=req.attacker.condition or None,
-        defender_condition=req.defender.condition or None,
-        is_critical=req.is_critical,
-        reflect=req.reflect,
-        light_screen=req.light_screen,
-        attacker_grounded=req.attacker.grounded,
-        defender_grounded=req.defender.grounded,
-        is_doubles=req.is_doubles,
-        attacker_hp=req.attacker.hp,
-        defender_hp=req.defender.hp,
-    )
-
-    dmg = damage.calc_damage(attacker, defender, move, ctx, rules)
-    ko = damage.analyze_ko(attacker, defender, move, ctx, rules,
-                           max_turns=req.max_turns)
+    attacker, defender = shot.attacker, shot.defender
+    move, ctx, dmg, ko = shot.move, shot.ctx, shot.damage, shot.ko
     max_hp = defender.stats.h
-    lo, hi = dmg.percent(max_hp)
+    lo, hi = shot.percent()
 
     return {
         "attacker": _side_view(attacker, req.attacker),
@@ -601,8 +590,7 @@ def calc_damage(req: CalcRequest):
             "power": move["power"],
             "accuracy": move["accuracy"],
         },
-        "type_effect": damage.type_multiplier(
-            move["type"], defender.types, rules.chart),
+        "type_effect": shot.effect,
         # 실제로 계산에 들어간 판 상황을 그대로 돌려준다. 화면이 보낸 것을
         # 화면이 다시 그리면 "보냈다고 믿는 것" 을 보게 되어, 서버가 못 받은
         # 경우와 구별이 안 된다.

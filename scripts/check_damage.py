@@ -26,9 +26,10 @@ import argparse
 import sys
 
 from pokemon_champions.db import connection
-from pokemon_champions.db.repositories import move_repo, pokemon_repo, rules_repo
-from pokemon_champions.services import damage, team
-from pokemon_champions.services.damage import BattleContext, Rules
+from pokemon_champions.db.repositories import rules_repo
+from pokemon_champions.services import team
+from pokemon_champions.services.damage import Rules
+from pokemon_champions.usecases import battle
 
 # 대조용 기준 케이스. 자속·상성·도구·특성이 골고루 걸리도록 골랐다 —
 # 전부 등배 무보정이면 대조해도 얻는 게 없다.
@@ -59,16 +60,8 @@ CASES = [
 ]
 
 
-def fetch_move(conn, ko_name):
-    """기술 한 행을 계산에 필요한 모양으로."""
-    en = move_repo.fetch_en_name(conn, ko_name)
-    if en is None:
-        raise SystemExit(f"없는 기술입니다: {ko_name}")
-    return move_repo.fetch_detail(conn, en)
-
-
 def build(conn, specs, want, use_team=True):
-    """이름 또는 부분 스펙을 받아 Pokemon 을 만든다.
+    """이름 또는 부분 스펙을 받아 조립 층에 넘길 스펙을 만든다.
 
     ── 왜 팀에 없어도 세우나 ──
       예전에는 my_team.json 에 있는 6마리만 됐다. 대조는 "이 조합의 값이
@@ -81,8 +74,8 @@ def build(conn, specs, want, use_team=True):
       직접 물을 때는 True 다 — 내 잠만보가 실제로 몇 대 버티는지가 궁금한
       것이지, 무보정 잠만보가 궁금한 게 아니다.
 
-      어느 쪽이든 안 적은 칸은 무보정(SP 0 · 성실 · 1번 특성)으로 채운다.
-      웹 계산기와 같은 기본값이라 두 쪽 답이 갈리지 않는다.
+      어느 쪽이든 안 적은 칸은 조립 층이 무보정(SP 0 · 성실 · 1번 특성)
+      으로 채운다. 웹 계산기·LLM 도구와 같은 코드라 세 쪽 답이 갈리지 않는다.
     """
     want = {"ko_name": want} if isinstance(want, str) else dict(want)
     ko = want["ko_name"]
@@ -90,26 +83,32 @@ def build(conn, specs, want, use_team=True):
     base = next((dict(s) for s in specs if s["ko_name"] == ko), None) \
         if use_team else None
     if base is None:
-        cands = pokemon_repo.fetch_abilities(conn, ko)
-        base = {"ko_name": ko, "sp_values": [0] * 6, "ko_nature": "성실",
-                "ability": cands[0] if cands else None, "item": None}
+        # 안 적은 칸은 조립 층이 무보정(SP 0 · 성실 · 1번 특성)으로 채운다.
+        # 예전에는 그 기본값을 여기 또 적어뒀는데, 웹 계산기·LLM 도구와
+        # 세 벌이 되어 하나를 고치면 나머지가 조용히 갈렸다.
+        base = {"ko_name": ko}
     base.update({k: v for k, v in want.items() if k != "ko_name"})
     # 기술 검증은 여기서 할 일이 아니다. 재려는 기술 하나만 따로 넘긴다.
     base.pop("moves", None)
-    return team.build_pokemon(conn, allow_mega=True, **base)
+
+    # 엔트리 파일은 ko_name·ko_nature·sp_values 를 쓴다. 파일 모양은 그대로
+    # 두고 여기서 조립 층의 칸 이름으로 옮긴다 — 웹의 CalcSide 도 같은
+    # 자리에서 같은 일을 한다.
+    return {"name": base["ko_name"], "ability": base.get("ability"),
+            "item": base.get("item"), "nature": base.get("ko_nature"),
+            "sp": base.get("sp_values"), "condition": base.get("condition")}
 
 
 def show(conn, specs, rules, attacker_spec, move_name, defender_spec, note="",
          use_team=True):
-    attacker = build(conn, specs, attacker_spec, use_team)
-    defender = build(conn, specs, defender_spec, use_team)
-    move = fetch_move(conn, move_name)
-
-    # 싱글·랭크 0·맑음. 포케챔스 기본값과 맞춘다.
-    ctx = BattleContext()
-    dmg = damage.calc_damage(attacker, defender, move, ctx, rules)
-    ko = damage.analyze_ko(attacker, defender, move, ctx, rules)
-    lo, hi = dmg.percent(defender.stats.h)
+    # 판 설정을 안 넘기면 싱글·랭크 0·맑음이다. 포케챔스 기본값과 맞춘다.
+    shot = battle.one_hit(conn, rules,
+                          build(conn, specs, attacker_spec, use_team),
+                          build(conn, specs, defender_spec, use_team),
+                          move_name)
+    attacker, defender, move = shot.attacker, shot.defender, shot.move
+    dmg, ko = shot.damage, shot.ko
+    lo, hi = shot.percent()
 
     print(f"── {attacker.name} → {move_name} → {defender.name}"
           + (f"  ({note})" if note else ""))
@@ -150,7 +149,12 @@ def main():
         if args.names:
             # 인자로 물을 때는 엔트리 스펙을 쓴다. 내 포켓몬이 실제로 몇 대
             # 버티는지가 궁금한 것이지 무보정 값이 궁금한 게 아니다.
-            show(conn, specs, rules, *args.names, use_team=True)
+            try:
+                show(conn, specs, rules, *args.names, use_team=True)
+            except ValueError as e:
+                # 오타는 사용자 실수지 버그가 아니다. 트레이스백을 쏟으면
+                # 무엇을 잘못 적었는지가 그 아래 묻힌다.
+                raise SystemExit(str(e))
         else:
             print("기준 케이스는 엔트리와 무관하게 무보정"
                   "(SP 0 · 성실 · 1번 특성)으로 세웁니다.\n")
