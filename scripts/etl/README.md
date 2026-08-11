@@ -56,6 +56,7 @@ scripts/etl/
 ├── move_flags.py         기술 플래그 (PokeAPI CSV + 이름 규칙)
 ├── overrides.py          사람이 확정한 값 읽기/쓰기
 ├── check_moves.py        외부 목록과 기술 대조 (누락 찾기)
+├── dump_sql.py           지금 DB 를 data/sql/ 에 받아 적기 (build 의 반대 방향)
 │
 ├── annotator/            브라우저에서 손으로 고치는 도구들
 │   ├── _common.py        서버·화면 뼈대 (도구마다 재사용)
@@ -467,6 +468,49 @@ python -m scripts.etl.pin_ko_names all
 
 **DB 에 있는 값을 override 로 옮겨 적을 뿐, 값을 지어내지 않는다.** 이미 담긴
 항목은 건드리지 않아서 손으로 고친 값이 되돌아갈 일은 없고, 빠진 필드만 채운다.
+
+### 지금 DB 를 SQL 로 — `dump_sql`
+
+`build.py` 와 방향이 반대다. build 는 "PokeAPI 가 지금 뭐라고 하는가" 를 묻고
+1,900회를 호출한 뒤 DB 에 밀어 넣는다. `dump_sql` 은 "내 DB 에 지금 무엇이
+들어 있는가" 를 `data/sql/` 에 받아 적는다. API 를 부르지 않고 DB 도 읽기만
+한다.
+
+```bash
+python -m scripts.etl.dump_sql --dry-run    # 무엇이 달라지는지만
+python -m scripts.etl.dump_sql              # 전체
+python -m scripts.etl.dump_sql 04_moves     # 한 파일만
+```
+
+**왜 필요한가.** DB 는 빌드 이후로 계속 움직인다. 애노테이터로 플래그와
+한국어를 고치고, `sync_moves` 로 기술을 채우고, `migrate_roster` 로 로스터를
+갈아끼운다. 그래서 `data/sql/` 은 가만두면 빌드 당시의 화석이 된다. 실제로
+07/30 파일과 DB 는 이만큼 벌어져 있었다.
+
+| | 파일(07/30) | DB |
+|---|---|---|
+| `moves` | 502 | 498 |
+| `items` | 285 | 166 |
+| `pokemons` | 314 | 317 |
+| `pokemon_moves` | 21,296 | 21,609 |
+
+게다가 그때 `06_items.sql` 은 INSERT 칼럼에 `usable`·`reviewed` 가 없었다.
+스키마가 바뀌기 전에 만든 파일이라 지금 DB 에는 실행조차 안 된다.
+
+**DDL 은 여전히 `schema.py` 에서 온다.** DB 에서 `CREATE TABLE` 을 역으로
+만들어 내면 주석이 전부 날아가고 단일 출처 규칙도 깨진다. 여기서 DB 에서
+가져오는 것은 행뿐이다. 그래서 `COLUMNS` 에 있는 칼럼이 DB 에 없으면 그
+자리에서 멈춘다 — 어긋난 것을 조용히 넘기지 않는다.
+
+행은 기본키순으로 찍는다. 두 번 돌렸을 때 같은 파일이 나와야 diff 로 변화를
+볼 수 있어서다. 생성기들은 입력 목록 순서로 찍으므로 고정값 테이블 몇 개는
+순서만 달라지는데, 내용은 같다.
+
+**칼럼 순서 하나가 어긋나 있다.** `pokemons.pokemon_id` 는 지금 DB 에서 맨
+뒤에 있는데(나중에 `ALTER TABLE ADD COLUMN` 으로 붙였다) `schema.py` 는
+두 번째로 선언한다. 그래서 이 SQL 로 새로 만든 DB 는 데이터·타입·제약조건이
+전부 같아도 칼럼 순서만 다르다. `SELECT *` 의 출력 순서 말고는 영향이 없다.
+맞추려면 `pokemons` 를 다시 만들어야 하는데 그럴 값어치는 없어 보인다.
 
 ---
 
