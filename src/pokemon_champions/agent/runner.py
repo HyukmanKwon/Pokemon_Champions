@@ -35,10 +35,29 @@
 
 ── 한 바퀴 제한 ──
   MAX_TURNS 가 없으면 모델이 같은 도구를 무한히 부르는 일이 실제로 생긴다.
-  막히면 멈추고, 지금까지 받은 것으로 답하게 한다.
+  막히면 멈추고, 지금까지 받은 것으로 답하게 한다 — 여덟 번을 다 쓰면
+  도구를 떼고 한 번 더 물어본다. 2분 걸려 모은 것을 버리지 않는다.
+
+── 500 은 seed 를 바꿔 다시 물어본다 ──
+  Ollama(0.32.6) 가 모델이 뱉은 도구 호출을 파싱하다 실패하는 일이 있다:
+
+    {"error": "expected element type <function> but have <parameter>"}
+
+  생각(thinking)은 멀쩡히 끝내놓고 마지막 XML 만 어긋난 것이라, 프롬프트로
+  고칠 수 있는 게 아니다. 같은 질문으로 열 번에 네 번쯤 통한다.
+
+  ── 그냥 다시 부르면 안 된다 ──
+    seed 를 고정해 다섯 번 부르면 다섯 번 다 똑같이 나온다. 생성이 seed 에
+    대해 결정적이고, seed 를 안 주면 Ollama 가 가까운 요청에 같은 값을 다시
+    쓴다. 그래서 실패가 하나씩이 아니라 대여섯 개씩 뭉쳐서 온다 —
+    재시도 세 번이 그 덩어리 안에 통째로 들어가 셋 다 같은 실패를 재현한다.
+
+    부를 때마다 seed 를 새로 뽑으면 시도끼리 독립이 된다. 한 번에 6할이니
+    네 번이면 97% 다.
 """
 
 import json
+import random
 
 import requests
 
@@ -47,6 +66,10 @@ from . import tools
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 DEFAULT_MODEL = "qwen3.5:9b"
 MAX_TURNS = 8
+
+# 도구 호출 파싱 실패(500)를 몇 번까지 다시 물어볼지. 시도마다 seed 를 새로
+# 뽑아 한 번에 6할이므로 네 번이면 97%. 그래도 안 되면 모델을 바꿀 문제다.
+RETRIES = 4
 
 # ── 컨텍스트를 왜 우리가 정하나 ──
 #   Ollama 는 VRAM 을 보고 기본값을 정한다. M4 에서 4096 이 잡혔는데 그건
@@ -58,46 +81,96 @@ MAX_TURNS = 8
 #   서버 설정에 맡기지 않고 요청마다 필요한 만큼 적어 보낸다.
 NUM_CTX = 16384
 
-SYSTEM = """너는 포켓몬 챔피언스(레귤레이션 M-B) 대전 도우미다.
+SYSTEM = """You are a battle assistant for Pokémon Champions (Regulation M-B).
 
-지켜야 할 것:
+Rules you must follow:
 
-1. 숫자는 절대 직접 계산하지 마라. 데미지·상성 배수·실능치·결정력·내구력은
-   전부 도구가 낸다. 곱셈을 머릿속으로 하면 반드시 틀린다. 본가 공식은
-   4096 고정소수점에 특유의 반올림을 쓰기 때문에, 손으로 계산하면 "확정 2타"
-   가 "난수 2타" 로 뒤집힌다.
+1. Never compute numbers yourself. Damage, type-effectiveness multipliers,
+   actual stats, offensive output, and bulk all come from the tools. If you do
+   the multiplication in your head, you will get it wrong. The mainline formula
+   uses 4096-based fixed-point arithmetic with its own peculiar rounding, so
+   hand calculation flips a "guaranteed 2HKO" into a "roll-dependent 2HKO."
 
-2. 기억에 의존하지 마라. 종족값·배우는 기술·특성·타입은 도구로 확인한다.
-   포챔스는 본가와 다른 데이터를 쓰는 곳이 있다.
+2. Do not rely on memory. Verify base stats, learnable moves, Abilities, and
+   types with the tools. Champions uses different data from the mainline games
+   in some places.
 
-3. 도구가 error 를 돌려주면 그대로 사용자에게 알려라. 지어내서 메우지 마라.
-   특히 채용률·메타 질문은 아직 데이터가 없다.
+3. If a tool returns an error, report it to the user as-is. Do not fabricate to
+   fill the gap. In particular, there is no data yet for usage-rate or metagame
+   questions.
 
-4. 레귤레이션 M-B 규칙: 레벨 50 고정, 개체값 31 고정, 노력치 대신 SP
-   (총 66, 능력치당 최대 32), 성격 21종. 사용자가 SP·성격을 말하지 않으면
-   무보정(SP 0 · 성실)으로 계산했다고 밝혀라.
+4. Regulation M-B rules: Level fixed at 50, IVs fixed at 31, SP instead of EVs
+   (66 total, max 32 per stat), 21 Natures. If the user does not specify SP or
+   Nature, calculate using the statistically most common sample.
 
-5. 한국어로, 짧고 단정하게 답하라. 도구가 준 수치를 그대로 인용하고
-   어떤 조건으로 계산했는지(특성·도구·성격·랭크) 한 줄로 밝혀라.
+5. Answer in Korean, briefly and decisively. Quote the tool's numbers verbatim
+   and state in one line the conditions used for the calculation (Ability, held
+   item, Nature, stat stages).
 
-6. 도구 결과의 이름은 ko_name 필드를 글자 그대로 옮겨 적어라. 영문 name 을
-   네가 번역하지 마라. ko_name 이 null 이면 영문을 그대로 쓰고 한국어 이름이
-   아직 없다고 밝혀라."""
+6. Copy names from tool results exactly as they appear in the ko_name field. Do
+   not translate the English name field yourself. If ko_name is null, use the
+   English name as-is and note that there is no Korean name yet.
+
+7. Type names are the one exception: tool results carry no ko_name for them,
+   only the English slug (fire, ground, psychic). Keep passing those slugs to
+   the tools, but when writing to the user, spell every type name using the
+   table below, which is read from the pokemon_type_names table in the
+   database. Never translate a type any other way — psychic is "에스퍼", not
+   "초능력", and dark is "악", not "어둠"."""
 
 
-def chat(messages, model=DEFAULT_MODEL, url=OLLAMA_URL):
-    """Ollama 에 한 번 물어본다. 돌려주는 값은 message 하나."""
-    res = requests.post(url, timeout=300, json={
+def system_prompt():
+    """SYSTEM 에 타입 이름 열여덟 줄을 붙여 돌려준다.
+
+    표를 프롬프트에 박아두지 않고 매번 DB 에서 읽는 이유는, 박아두면 그
+    순간 pokemon_type_names 와 두 벌이 되기 때문이다. 표기가 바뀌면 한쪽만
+    고치게 되고, 모델은 낡은 쪽을 읽는다.
+    """
+    listing = ", ".join(f"{en}={ko}"
+                        for en, ko in sorted(tools.type_names().items()))
+    return f"{SYSTEM}\n\nType names (pokemon_type_names, ko):\n{listing}"
+
+
+# 한 바퀴를 다 썼을 때 마지막으로 넣는 말. 도구를 떼고 보내므로 모델은
+# 지금까지 받은 것으로 답할 수밖에 없다. 무엇을 확인 못 했는지 밝히라고
+# 시키는 이유는, 안 그러면 빈칸을 기억으로 메우기 때문이다.
+LAST_CALL = ("The tool budget is used up and no more tool calls are available. "
+             "Answer now in Korean using only the tool results already in this "
+             "conversation. If something is still unverified, say which part "
+             "you could not check rather than filling it in from memory.")
+
+
+def chat(messages, model=DEFAULT_MODEL, url=OLLAMA_URL, use_tools=True):
+    """Ollama 에 한 번 물어본다. 돌려주는 값은 message 하나.
+
+    use_tools=False 면 도구 스키마를 빼고 보낸다. 도구를 못 부르니 모델은
+    지금까지 받은 것으로 답을 쓸 수밖에 없다.
+
+    500 이 오면 seed 를 바꿔 다시 물어본다. 서버가 죽은 게 아니라 모델이
+    뱉은 도구 호출 XML 을 파싱하다 실패한 것이고, 다르게 뽑으면 대개 통한다.
+    없는 모델을 부르면 404 라 여기 걸리지 않는다 — 그건 그대로 올라간다.
+    """
+    payload = {
         "model": model,
         "messages": messages,
-        "tools": tools.schemas(),
         "stream": False,
         # 도구 인자를 지어내지 않게 낮게 둔다. 답변 문장의 다양성보다
         # "포켓몬 이름을 정확히 적는가" 가 훨씬 중요하다.
         "options": {"temperature": 0.2, "num_ctx": NUM_CTX},
-    })
-    res.raise_for_status()
-    return res.json()["message"]
+    }
+    if use_tools:
+        payload["tools"] = tools.schemas()
+
+    for attempt in range(RETRIES):
+        # seed 를 우리가 준다. 맡겨두면 재시도가 같은 값을 물려받아 같은
+        # 실패를 그대로 재현한다. temperature 0.2 는 그대로 두고 뽑는
+        # 자리만 옮기는 것이라, 인자 정확도에는 영향이 없다.
+        payload["options"]["seed"] = random.randrange(2 ** 31)
+        res = requests.post(url, timeout=300, json=payload)
+        if res.status_code == 500 and attempt < RETRIES - 1:
+            continue
+        res.raise_for_status()
+        return res.json()["message"]
 
 
 def ask(question, model=DEFAULT_MODEL, history=None, on_tool=None):
@@ -107,7 +180,7 @@ def ask(question, model=DEFAULT_MODEL, history=None, on_tool=None):
     화면에 무엇을 물었는지 보여주려는 것 — 답만 나오면 그 숫자가 어디서
     왔는지 알 수 없다.
     """
-    messages = list(history or [{"role": "system", "content": SYSTEM}])
+    messages = list(history or [{"role": "system", "content": system_prompt()}])
     messages.append({"role": "user", "content": question})
 
     for _ in range(MAX_TURNS):
@@ -139,5 +212,13 @@ def ask(question, model=DEFAULT_MODEL, history=None, on_tool=None):
                 "content": json.dumps(result, ensure_ascii=False, default=str),
             })
 
-    return ("도구를 너무 여러 번 불러서 멈췄습니다. "
-            "질문을 좀 더 좁혀서 다시 물어봐 주세요."), messages
+    # 여기까지 왔으면 여덟 바퀴를 다 쓴 것이다. 도구를 떼고 한 번 더
+    # 물어본다 — 그동안 모은 결과가 messages 에 그대로 있으므로, 그것만으로
+    # 답이 나온다. 안내 문장을 돌려주고 끝내면 2분이 통째로 버려진다.
+    messages.append({"role": "user", "content": LAST_CALL})
+    msg = chat(messages, model, use_tools=False)
+    messages.append(msg)
+
+    answer = (msg.get("content") or "").strip()
+    return answer or ("도구를 너무 여러 번 불러서 멈췄습니다. "
+                      "질문을 좀 더 좁혀서 다시 물어봐 주세요."), messages
