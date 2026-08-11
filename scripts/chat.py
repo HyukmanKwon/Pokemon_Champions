@@ -14,11 +14,45 @@
 """
 
 import argparse
+import contextlib
+import itertools
 import sys
+import threading
+import time
 
 import requests
 
 from pokemon_champions.agent import runner, tools
+
+
+@contextlib.contextmanager
+def waiting():
+    """기다리는 동안 초를 세어 보여준다.
+
+    ── 왜 필요한가 ──
+      Ollama 응답을 통째로 받은 뒤에 찍으므로 그 사이 화면이 비어 있다.
+      1분이 걸리면 멈춘 건지 도는 건지 알 수가 없다. 스트리밍을 붙이기
+      전까지의 임시방편이다 — 실제 시간은 그대로지만 몇 초짜리인지는
+      알 수 있다.
+    """
+    stop = threading.Event()
+
+    def tick():
+        start = time.monotonic()
+        for ch in itertools.cycle("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"):
+            if stop.wait(0.1):
+                break
+            print(f"\r  \033[90m{ch} {time.monotonic() - start:.0f}초\033[0m",
+                  end="", flush=True)
+        print("\r" + " " * 20 + "\r", end="", flush=True)
+
+    t = threading.Thread(target=tick, daemon=True)
+    t.start()
+    try:
+        yield
+    finally:
+        stop.set()
+        t.join(timeout=1)
 
 
 def show_tool(name, args, result):
@@ -42,8 +76,10 @@ def main():
 
     def once(q):
         nonlocal history
+        started = time.monotonic()
         try:
-            answer, history = runner.ask(q, args.model, history, on_tool)
+            with waiting():
+                answer, history = runner.ask(q, args.model, history, on_tool)
         except requests.ConnectionError:
             print("Ollama 에 연결하지 못했습니다. `ollama serve` 가 떠 있나요?")
             return 1
@@ -52,6 +88,8 @@ def main():
             print(f"모델이 없다면 `ollama pull {args.model}` 을 먼저 하세요.")
             return 1
         print(answer)
+        # 몇 초 걸렸는지 남긴다. 도구를 고칠 때마다 나아졌는지 눈으로 본다.
+        print(f"\033[90m({time.monotonic() - started:.1f}초)\033[0m")
         return 0
 
     try:
