@@ -1,7 +1,7 @@
 """로컬 LLM 도구 호출 루프 — Ollama 의 /api/chat 을 쓴다.
 
     ollama serve
-    ollama pull qwen3:8b
+    ollama pull qwen3.5:9b
     python -m scripts.chat
 
 ── 왜 Ollama 인가 ──
@@ -10,9 +10,23 @@
   llama.cpp 나 vLLM 으로 옮겨도 chat() 하나만 갈아끼우면 된다.
 
 ── 모델 고르기 ──
-  도구 호출을 지원하는 모델이어야 한다. qwen3:8b · qwen2.5:7b-instruct ·
-  llama3.1:8b 정도가 12GB VRAM 에서 돈다. 한국어 답변 품질은 qwen 쪽이
-  낫고, exaone3.5:7.8b 는 한국어가 제일 자연스럽지만 도구 호출이 불안하다.
+  도구 호출을 지원하는 모델이어야 한다.
+
+  ── 메모리부터 본다 ──
+    MoE 의 "활성 3B" 는 속도 얘기지 메모리 얘기가 아니다. 가중치는 35B
+    전부를 올려둬야 해서 4비트로도 20GB 가 넘고, 24GB 통합 메모리에서는
+    스왑이 돌기 시작한다. 여기에 KV 캐시와 브라우저·DB 가 더 얹힌다.
+
+    4비트 기준 대략:
+      qwen3.5:9b       ~6GB   24GB 맥에서 편안
+      qwen3.6:27b     ~16GB   다른 걸 다 끄면
+      qwen3.6:35b-a3b ~20GB   24GB 에서는 무리
+
+  ── 그래서 9b 가 기본 ──
+    도구를 여러 번 이어 부르면 이 체급이 인자를 흘릴 때가 있다. 그때
+    27b 로 올리되, 메모리가 남는지 먼저 본다. 한국어 답변만 보면 exaone
+    계열이 자연스럽지만 도구 호출이 불안하다. 어차피 숫자와 이름은 도구가
+    한국어로 만들어 주므로, 모델은 도구 선택 정확도로 고른다.
 
 ── 왜 루프인가 ──
   한 번 물어보고 끝이 아니다. "내 팀이 메가갸라도스를 버티나" 는 my_team
@@ -31,8 +45,18 @@ import requests
 from . import tools
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
-DEFAULT_MODEL = "qwen3:8b"
+DEFAULT_MODEL = "qwen3.5:9b"
 MAX_TURNS = 8
+
+# ── 컨텍스트를 왜 우리가 정하나 ──
+#   Ollama 는 VRAM 을 보고 기본값을 정한다. M4 에서 4096 이 잡혔는데 그건
+#   이 용도에 좁다. 시스템 프롬프트와 도구 스키마 13개만으로 2천 토큰쯤
+#   먹고, 거기에 my_team 6마리나 채용률 응답이 들어오면 넘친다.
+#
+#   넘치면 앞부분부터 잘리는데 그게 하필 시스템 프롬프트다. "계산하지
+#   마라" 가 사라진 채로 답이 나오고, 그 답은 그럴듯하게 틀린다.
+#   서버 설정에 맡기지 않고 요청마다 필요한 만큼 적어 보낸다.
+NUM_CTX = 16384
 
 SYSTEM = """너는 포켓몬 챔피언스(레귤레이션 M-B) 대전 도우미다.
 
@@ -70,7 +94,7 @@ def chat(messages, model=DEFAULT_MODEL, url=OLLAMA_URL):
         "stream": False,
         # 도구 인자를 지어내지 않게 낮게 둔다. 답변 문장의 다양성보다
         # "포켓몬 이름을 정확히 적는가" 가 훨씬 중요하다.
-        "options": {"temperature": 0.2},
+        "options": {"temperature": 0.2, "num_ctx": NUM_CTX},
     })
     res.raise_for_status()
     return res.json()["message"]

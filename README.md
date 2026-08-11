@@ -26,7 +26,7 @@ pytest                           # DB 없이 도는 계산 테스트
 
 ```bash
 ollama serve                     # 한 번만, 별도 터미널
-ollama pull qwen3:8b
+ollama pull qwen3.5:9b
 
 python -m scripts.chat --tools   # 어떤 도구를 불렀는지 보면서 대화
 python -m scripts.chat "메가갸라도스 지진이 한카리아스를 몇 방에 보내?"

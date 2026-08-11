@@ -1,11 +1,11 @@
 """로컬 LLM 도우미와 대화한다.
 
     ollama serve                       (한 번만, 따로 띄워둔다)
-    ollama pull qwen3:8b
+    ollama pull qwen3.5:9b
 
     python -m scripts.chat                          대화 모드
     python -m scripts.chat "메가갸라도스 지진이 한카리아스를 몇 방에 보내?"
-    python -m scripts.chat --model qwen2.5:7b --tools   도구 호출을 같이 보기
+    python -m scripts.chat --model qwen3.6:27b --tools  도구 호출을 같이 보기
 
 ── 왜 웹이 아니라 CLI 부터인가 ──
   도구를 제대로 고르는지, 숫자를 지어내지 않는지를 먼저 봐야 한다. 화면을
