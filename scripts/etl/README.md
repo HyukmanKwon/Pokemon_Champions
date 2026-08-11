@@ -39,7 +39,7 @@ python -m scripts.etl.build
 PGDATABASE=pokemon_test python -m scripts.etl.build   # 다른 DB에 구축
 ```
 
-전체 구축은 PokeAPI를 약 **1,900회** 호출한다. (기술 502 · 포켓몬 626 · 특성 200 ·
+전체 구축은 PokeAPI를 약 **1,900회** 호출한다. (기술 498 · 포켓몬 626 · 특성 200 ·
 도구 296 · 연결 313)
 
 ---
@@ -109,7 +109,7 @@ data/
 | 01 | `01_types.sql` | `pokemon_types` | 324 | 0 (고정값) |
 | 02 | `02_natures.sql` | `pokemon_natures` | 21 | 0 (고정값) |
 | 03 | `03_pokemons.sql` | `pokemons` | 313 | 626 |
-| 04 | `04_moves.sql` | `moves` + `move_stat_changes` | 502 + α | 502 |
+| 04 | `04_moves.sql` | `moves` + `move_stat_changes` | 498 + α | 498 |
 | 05 | `05_abilities.sql` | `abilities` | 200 | 200 |
 | 06 | `06_items.sql` | `items` | 284 | 296 |
 | 07 | `07_pokemon_moves.sql` | `pokemon_moves` | 21,295 | 313 |
@@ -163,7 +163,7 @@ python -m scripts.etl.get_items   # data/sql/06_items.sql 만 생성
 각 생성기가 끝날 때 출력하는 줄로 확인한다.
 
 ```
-수집 502개 / 실패: 0개 - []
+수집 498개 / 실패: 0개 - []
 ```
 
 실패가 0이 아니면 그 SQL 파일을 그대로 쓰지 않는 편이 안전하다.
@@ -187,7 +187,7 @@ README §7 로 전부 지운 뒤 다시 실행하세요.
 ## 5. 손으로 고친 값 — annotator
 
 PokeAPI가 주지 않는 정보는 이름 규칙으로 추측할 수밖에 없고, 추측은 반드시
-틀린다. 그 수정을 psql 로 하면 두 가지가 문제다. 502개 × 12칸을 UPDATE 문으로
+틀린다. 그 수정을 psql 로 하면 두 가지가 문제다. 498개 × 12칸을 UPDATE 문으로
 치면 오타가 나고, **다음 재구축에서 전부 사라진다.**
 
 ```bash
@@ -311,8 +311,8 @@ overrides/move_flags.json  재구축해도 살아남는다. git 에 커밋된다
 12개 플래그 중 9개는 PokeAPI CSV 에서 온 확정값이라 볼 필요가 거의 없다(§8).
 손이 필요한 건 두 갈래다.
 
-1. **바람 · 베기 · 압박** — CSV 에 대응 flag 가 없어 502개 전부 추측이다
-2. **`move_id` 826 이후 신기술 등 59개** — CSV 에 없어 12개 전부 추측이다
+1. **바람 · 베기 · 압박** — CSV 에 대응 flag 가 없어 498개 전부 추측이다
+2. **`move_id` 826 이후 신기술 등 58개** — CSV 에 없어 12개 전부 추측이다
 
 ### 계열 칩으로 찾는다
 
@@ -384,14 +384,22 @@ python -m scripts.etl.check_moves 목록.txt      # 한국어 이름 한 줄에 
 
 ### 실제로 찾은 것 (op.gg 502개 대조)
 
-**진짜 누락 4개** — `moves_M_B` 에 추가했다. 이제 502개다.
+**진짜 누락으로 보인 4개** — 추가했다가 도로 뺐다. 지금은 498개다.
 
-| 한국어 | 영문 | 비고 |
+| 한국어 | 영문 | 결말 |
 |---|---|---|
-| 버섯포자 | `spore` | 수면가루만 있고 이게 빠져 있었다 |
-| 알낳기 | `soft-boiled` | |
-| 우유마시기 | `milk-drink` | |
-| 파워시프트 | `power-shift` | 레전드 아르세우스 신기술 |
+| 버섯포자 | `spore` | 포챔스에서 못 쓴다 — 제외 |
+| 알낳기 | `soft-boiled` | 포챔스에서 못 쓴다 — 제외 |
+| 우유마시기 | `milk-drink` | 포챔스에서 못 쓴다 — 제외 |
+| 파워시프트 | `power-shift` | 포챔스에서 못 쓴다 — 제외 |
+
+대조에서 "DB 에 없음" 으로 걸렸다고 곧바로 누락인 것은 아니다. 대조용
+목록 자체가 포챔스 기준이 아닐 수 있다. 넷 다 그 경우였다.
+
+다시 넣지 않도록 `get_moves.py` 의 `EXCLUDED_MOVES` 에 적어 뒀고, 목록에
+도로 들어가면 import 시점에 `ValueError` 로 걸린다. 되살릴 때는 거기서도
+빼야 하고, `moves` 에만 넣으면 아무도 못 배우는 기술이 되므로
+`sync_moves` 로 `pokemon_moves` 까지 채워야 한다.
 
 **번역 차이 2개** — `overrides/move_ko_names.json` 에 넣었다.
 
@@ -423,8 +431,9 @@ python -m scripts.etl.check_moves 목록.txt      # 한국어 이름 한 줄에 
 ### 목록에 추가한 뒤 — `sync_moves`
 
 **`moves_M_B` 를 고쳐도 DB 는 그대로다.** 재구축을 해야 반영되는데 그건 1,900회
-호출이라 기술 몇 개 때문에 돌리기엔 과하다. 실제로 위 4개를 목록에 추가한 뒤
-재구축을 안 해서, DB 에 498개만 들어 있는 상태가 한동안 이어졌다.
+호출이라 기술 몇 개 때문에 돌리기엔 과하다. 실제로 위 4개를 목록에 넣고도
+재구축을 안 해서, 목록은 502개인데 DB 에는 498개만 있는 상태가 한동안
+이어졌다. (그 4개는 지금은 제외됐다. 목록과 DB 둘 다 498개다.)
 
 ```bash
 python -m scripts.etl.sync_moves --dry-run   # 무엇이 들어갈지 먼저
@@ -578,9 +587,9 @@ https://raw.githubusercontent.com/PokeAPI/pokeapi/master/
 이후에는 `cache/move_flag_map.csv` 를 재사용한다.
 
 ```
-CSV 로 채움 : 443개 (88%)  9개 플래그 확정값
-추측        :  59개 (12%)  move_id 826 이후 신기술. 12개 전부 추측
-바람·베기·압박 : 502개 전부 추측. CSV 에 대응 flag 가 없다
+CSV 로 채움 : 440개 (88%)  9개 플래그 확정값
+추측        :  58개 (12%)  move_id 826 이후 신기술. 12개 전부 추측
+바람·베기·압박 : 498개 전부 추측. CSV 에 대응 flag 가 없다
 ```
 
 `move_id` 826 에서 데이터가 끊기는 탓에 레전드 아르세우스 이후 신기술 55개

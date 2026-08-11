@@ -133,15 +133,31 @@ moves_M_B = [
     "rage-fist", "armor-cannon", "bitter-blade", "double-shock", "gigaton-hammer", "comeuppance",
     "aqua-cutter", "matcha-gotcha", "syrup-bomb", "electro-shot", "fickle-beam", "hard-press",
     "dragon-cheer", "alluring-voice", "temper-flare", "supercell-slam", "psychic-noise", "upper-hand",
-
-    # op.gg 전체 목록과 대조해 뒤늦게 찾은 누락 4개. (check_moves.py, README §6)
-    # 위쪽은 대체로 id 순인데 이 넷은 나중에 붙인 것이라 순서가 어긋난다.
-    #   spore        버섯포자 (147)  수면가루만 있고 이게 빠져 있었다
-    #   soft-boiled  알낳기   (135)
-    #   milk-drink   우유마시기 (208)
-    #   power-shift  파워시프트 (LA 신기술)
-    "spore", "soft-boiled", "milk-drink", "power-shift",
 ]
+
+# 목록에 넣었다가 도로 뺀 것들. 다시 넣지 않기 위해 남긴다.
+#
+# check_moves.py 로 외부 목록과 대조하다 "DB 에 없다" 로 걸려서 넷 다 한 번
+# 들어왔었다. 그런데 포챔스에서 못 쓰는 기술이다. 대조용 목록에 이것들이
+# 섞여 있으면 다음 대조에서 또 '진짜 누락' 으로 뜨는데, 그때 이 주석이
+# 없으면 같은 판단을 처음부터 다시 하게 된다.
+#
+#   spore        버섯포자   (147)
+#   soft-boiled  알낳기     (135)
+#   milk-drink   우유마시기 (208)
+#   power-shift  파워시프트 (LA 신기술)
+#
+# 되살릴 때는 이름만 위 목록에 옮기지 말고 sync_moves 로 pokemon_moves 까지
+# 같이 채워야 한다. moves 에만 있으면 아무도 못 배우는 기술이 된다.
+EXCLUDED_MOVES = ["spore", "soft-boiled", "milk-drink", "power-shift"]
+
+# 주석은 읽히지 않을 수 있으므로 import 시점에 걸리게 해 둔다.
+_readded = sorted(set(EXCLUDED_MOVES) & set(moves_M_B))
+if _readded:
+    raise ValueError(
+        f"포챔스에서 못 쓰는 기술이 moves_M_B 에 다시 들어왔다: {_readded}. "
+        "되살리는 것이 맞다면 EXCLUDED_MOVES 에서도 빼라."
+    )
 
 
 def fetch_move(name):

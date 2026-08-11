@@ -272,7 +272,6 @@
     "metal-sound",
     "meteor-beam",
     "meteor-mash",
-    "milk-drink",
     "minimize",
     "mirror-coat",
     "misty-explosion",
@@ -314,7 +313,6 @@
     "population-bomb",
     "pounce",
     "power-gem",
-    "power-shift",
     "power-split",
     "power-swap",
     "power-trick",
@@ -396,7 +394,6 @@
     "snore",
     "snowscape",
     "soak",
-    "soft-boiled",
     "solar-beam",
     "solar-blade",
     "sparkling-aria",
@@ -408,7 +405,6 @@
     "spirit-shackle",
     "spit-up",
     "spite",
-    "spore",
     "stealth-rock",
     "steel-beam",
     "steel-roller",
@@ -1592,10 +1588,6 @@
       "description": "혜성과 같은 펀치를 날려서 상대를 공격한다. 자신의 공격이 올라갈 때가 있다.",
       "ko_name": "코멧펀치"
     },
-    "milk-drink": {
-      "description": "자신의 HP를 최대 HP의 절반만큼 회복한다. 동료의 HP를 회복시킬 수도 있다.",
-      "ko_name": "우유마시기"
-    },
     "minimize": {
       "description": "몸을 축소하여 작게 보임으로써 자신의 회피율을 크게 올린다.",
       "ko_name": "작아지기"
@@ -1759,10 +1751,6 @@
     "power-gem": {
       "description": "보석처럼 반짝이는 빛을 발사하여 상대를 공격한다.",
       "ko_name": "파워젬"
-    },
-    "power-shift": {
-      "description": "자신의 공격력과 방어력을 바꾼다.",
-      "ko_name": "파워시프트"
     },
     "power-split": {
       "description": "초능력으로 자신과 상대의 공격과 특수공격을 더해서 반으로 나눈다.",
@@ -2088,10 +2076,6 @@
       "description": "많은 물을 끼얹어서 상대를 물타입으로 바꾼다.",
       "ko_name": "물붓기"
     },
-    "soft-boiled": {
-      "description": "자신의 최대 HP 절반을 회복한다. 동료의 HP를 회복시킬 수도 있다.",
-      "ko_name": "알낳기"
-    },
     "solar-beam": {
       "description": "1턴째에 빛을 가득 모아 2턴째에 빛의 다발을 발사하여 공격한다.",
       "ko_name": "솔라빔"
@@ -2135,10 +2119,6 @@
     "spite": {
       "description": "상대가 마지막으로 사용한 기술에 원한을 품어 그 기술의 PP를 4만큼 줄인다.",
       "ko_name": "원한"
-    },
-    "spore": {
-      "description": "최면 효과가 있는 포자를 훌훌 흩뿌려서 상대를 잠듦 상태로 만든다.",
-      "ko_name": "버섯포자"
     },
     "stealth-rock": {
       "description": "상대의 주위에 무수한 바위를 띄워 교체해서 나온 상대 포켓몬에게 데미지를 준다.",

@@ -7,9 +7,13 @@
   get_moves.py 의 moves_M_B 를 고쳐도 DB 는 그대로다. 재구축을 해야 반영되는데
   그건 PokeAPI 1,900회 호출이라 기술 몇 개 때문에 돌리기엔 과하다.
 
-  실제로 check_moves.py 로 op.gg 와 대조해 4개(spore, soft-boiled, milk-drink,
-  power-shift)를 목록에 추가했지만 DB 에는 들어가지 않은 상태였다. 애노테이터에
-  498개만 뜬 이유가 그것이다.
+  실제로 check_moves.py 로 외부 목록과 대조해 찾은 4개를 moves_M_B 에 넣고도
+  DB 에는 안 들어간 상태가 한동안 이어졌다. 애노테이터에 502개 중 498개만
+  확인 표시가 뜬 이유가 그것이다.
+
+  (그 4개는 그 뒤 포챔스에서 못 쓰는 기술로 판명나서 도로 뺐다.
+   get_moves.py 의 EXCLUDED_MOVES 를 보라. 여기서는 "목록과 DB 가 어긋날
+   수 있다" 는 사례로만 남긴다.)
 
 ── pokemon_moves 도 같이 채운다 ──
   moves 에만 넣으면 "아무 포켓몬도 못 배우는 기술"이 된다. 곧 붙일 검증이
