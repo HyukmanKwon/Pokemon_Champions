@@ -48,7 +48,8 @@ NEUTRAL_NATURE = "성실"
 STAT_KEYS = {"h": "hp", "a": "atk", "b": "def",
              "c": "spa", "d": "spd", "s": "spe"}
 
-_state = {"conn": None, "rules": None, "rows": {}, "names": {}}
+_state = {"conn": None, "rules": None, "rows": {}, "names": {},
+          "types": None}
 
 
 def _conn():
@@ -69,10 +70,29 @@ def _rules():
     return _state["rules"]
 
 
+def type_names():
+    """{영문 타입: 한국어 표기} 18줄 — pokemon_type_names 의 ko.
+
+    ── 왜 도구가 아니라 그냥 함수인가 ──
+      다른 이름은 도구 결과에 ko_name 을 실어 보내지만, 타입만은 그럴
+      자리가 없다. type_matchup 의 damage_taken 은 키가 곧 배수라 열여덟
+      타입이 값 쪽에 슬러그로 늘어서고, 거기에 한국어를 짝지어 넣으면
+      표가 배로 불어난다.
+
+      그래서 이 열여덟 줄은 시스템 프롬프트에 한 번 싣는다. 열여덟 개뿐이고
+      배틀 내내 안 바뀌므로, 매 응답에 끼워 보내는 것보다 앞에 한 번
+      박아두는 편이 싸다. 모델이 fire 를 "화염" 이라고 옮기는 것을 막는
+      것이 목적이라, 결국 ko_name 을 실어 보내는 것과 같은 이유다.
+    """
+    if _state["types"] is None:
+        _state["types"] = rules_repo.fetch_type_names(_conn(), "ko")
+    return _state["types"]
+
+
 def close():
     if _state["conn"] is not None:
         _state["conn"].close()
-    _state["conn"] = _state["rules"] = None
+    _state["conn"] = _state["rules"] = _state["types"] = None
     _state["rows"], _state["names"] = {}, {}
 
 
@@ -216,8 +236,18 @@ _ORDER_KEYS = {"hp": "h", "atk": "a", "def": "b",
                "spa": "c", "spd": "d", "spe": "s"}
 
 
-def search_pokemon(type=None, min_total=None, order_by=None, limit=15):
-    """조건에 맞는 포켓몬 목록. 비교·후보 추리기용."""
+def search_pokemon(type=None, min_total=None, order_by=None, limit=8):
+    """조건에 맞는 포켓몬 목록. 비교·후보 추리기용.
+
+    ── 종족값 여섯 칸을 안 싣는다 ──
+      후보를 추릴 때 필요한 건 "누가 있나" 지 여섯 칸 전부가 아니다.
+      열다섯 마리에 여섯 칸씩 실으면 이 호출 하나가 천 토큰을 넘고, 그
+      뒤로 턴이 이어질수록 그걸 매번 다시 읽는다. 한 마리를 자세히 볼
+      때는 find_pokemon 이 있다.
+
+      정렬 기준으로 삼은 칸은 실어 준다. "스피드 빠른 순" 을 물어놓고
+      스피드가 안 보이면 다시 물어야 한다.
+    """
     rows = list(_rows_of("pokemons").values())
     if type:
         t = normalize(type)
@@ -231,18 +261,63 @@ def search_pokemon(type=None, min_total=None, order_by=None, limit=15):
     elif order_by == "bst":
         rows.sort(key=lambda r: -sum(r[k] for k in STAT_ORDER))
 
+    def one(r):
+        out = {"name": r["name"], "ko_name": r["ko_name"],
+               "types": [t for t in (r["type1"], r["type2"]) if t],
+               "bst": sum(r[k] for k in STAT_ORDER)}
+        if key:
+            out[order_by] = r[key]
+        return out
+
+    return {"total": len(rows), "shown": min(limit, len(rows)),
+            "results": [one(r) for r in rows[:limit]]}
+
+
+def type_matchup(pokemon):
+    """그 포켓몬을 칠 때 18타입이 각각 몇 배로 들어가는가 — 한 번에 전부.
+
+    ── 왜 한 타입씩이 아니라 통째로인가 ──
+      type_effectiveness 만 있으면 모델이 "뭐에 약해?" 를 타입 하나씩
+      찍어보며 푼다. 열여덟 번을 부를 리 없으니 서너 번 찍어보고 멈추고,
+      확인 못 한 나머지는 기억으로 채운다. 실제로 리자몽에게 전기가
+      2배인데 "중립" 이라고 답하는 일이 있었다.
+
+      빈칸이 있으면 모델은 채운다. 프롬프트로 막을 게 아니라 빈칸이
+      생기지 않게 만들어야 한다. 열여덟 개를 한 번에 주면 채울 자리가
+      없다.
+
+    배수별로 묶어서 돌려준다. 열여덟 줄을 나열하면 그 자체가 길고,
+    모델이 다시 정렬해야 한다.
+    """
+    en = _resolve("pokemons", pokemon)
+    if en is None:
+        return {"error": f"'{pokemon}' 은(는) 포챔스 목록에 없습니다."}
+
+    chart = _rules().chart
+    types = _types_of(en)
+    grouped = {}
+    for atk in sorted({t for (t, _) in chart}):
+        mult = damage.type_multiplier(atk, types, chart)
+        # 4.0 을 "4" 로. 소수점 없는 정수는 그대로 적어야 읽기 쉽다.
+        key = f"{mult:g}"
+        grouped.setdefault(key, []).append(atk)
+
     return {
-        "total": len(rows),
-        "results": [{"name": r["name"], "ko_name": r["ko_name"],
-                     "types": [t for t in (r["type1"], r["type2"]) if t],
-                     "base_stats": _stats(r),
-                     "bst": sum(r[k] for k in STAT_ORDER)}
-                    for r in rows[:limit]],
+        "pokemon": en, "ko_name": _ko("pokemons", en),
+        "types": list(types),
+        # 키가 곧 배수다. "이 타입으로 치면 몇 배" 를 뜻한다.
+        "damage_taken": {k: grouped[k]
+                         for k in ("4", "2", "1", "0.5", "0.25", "0")
+                         if k in grouped},
     }
 
 
 def type_effectiveness(attack_type, defender):
-    """기술 타입이 그 포켓몬에게 몇 배로 들어가는가."""
+    """기술 타입 하나가 그 포켓몬에게 몇 배로 들어가는가.
+
+    타입을 이미 정해놓고 확인만 할 때 쓴다. "뭐에 약해?" 처럼 열어놓고
+    묻는 질문에는 type_matchup 이 맞다.
+    """
     en = _resolve("pokemons", defender)
     if en is None:
         return {"error": f"'{defender}' 은(는) 포챔스 목록에 없습니다."}
@@ -265,21 +340,42 @@ def find_move(name):
             "priority": m["priority"], "description": m["description"]}
 
 
-def moves_of(pokemon):
-    """그 포켓몬이 배울 수 있는 기술 전부.
+def moves_of(pokemon, type=None, category=None, min_power=None, limit=40):
+    """그 포켓몬이 배울 수 있는 기술. 거르지 않으면 전부.
 
     move_repo.fetch_learnable 이 아니라 도감 상세를 쓴다. 그쪽은 ko_name
     을 열쇠로 잡고 한국어 이름이 없는 기술을 아예 빼는데, 여기서는 영문
     이름으로 찾고 한국어가 없으면 없다고 밝히면 된다.
+
+    ── 왜 거르는 인자를 두나 ──
+      한 마리가 예순 개 넘게 배운다. "불꽃 기술 뭐 배워?" 에 예순 개를
+      통째로 돌려주면 그 호출 하나가 천 토큰이고, 모델은 거기서 다시
+      골라야 한다. 거르는 일은 여기가 훨씬 잘한다.
+
+    위력을 같이 싣는다. 그게 없으면 "제일 센 거" 를 묻는 순간 기술마다
+    find_move 를 다시 부르게 된다.
     """
     en = _resolve("pokemons", pokemon)
     if en is None:
         return {"error": f"'{pokemon}' 은(는) 포챔스 목록에 없습니다."}
-    row = pokemon_repo.fetch_detail(_conn(), en)
-    return {"pokemon": en, "ko_name": row["ko_name"],
-            "count": len(row["moves"]),
-            "moves": [{"name": m["name"], "ko_name": m["ko_name"]}
-                      for m in row["moves"]]}
+
+    rows = pokemon_repo.fetch_detail(_conn(), en)["moves"]
+    if type:
+        t = normalize(type)
+        rows = [m for m in rows if m["type"] == t]
+    if category:
+        c = normalize(category)
+        rows = [m for m in rows if m["category"] == c]
+    if min_power:
+        rows = [m for m in rows if (m["power"] or 0) >= min_power]
+    rows.sort(key=lambda m: -(m["power"] or 0))
+
+    return {"pokemon": en, "ko_name": _ko("pokemons", en),
+            "total": len(rows), "shown": min(limit, len(rows)),
+            "moves": [{"name": m["name"], "ko_name": m["ko_name"],
+                       "type": m["type"], "category": m["category"],
+                       "power": m["power"]}
+                      for m in rows[:limit]]}
 
 
 def find_ability(name):
@@ -528,26 +624,31 @@ def usage_stats(pokemon, format="Singles"):
 # 이름 인자는 전부 양방향이다. 모델이 한국어 질문을 그대로 옮겨 적기도
 # 하고 영문으로 바꿔 주기도 하는데, 둘 중 하나만 받으면 나머지 절반이
 # "그런 포켓몬은 없습니다" 가 된다.
-_NAME_DESC = "한국어 이름 또는 영문 슬러그. 한카리아스 / garchomp 둘 다 된다"
-_MOVE_DESC = "한국어 이름 또는 영문 슬러그. 지진 / earthquake 둘 다 된다"
+_NAME_DESC = ("Korean name or English slug. "
+              "Both 한카리아스 and garchomp work")
+_MOVE_DESC = ("Korean name or English slug. "
+              "Both 지진 and earthquake work")
 
 _SIDE = {
     "type": "object",
-    "description": "포켓몬 한 마리. name 만 필수이고 나머지는 기본값"
-                   "(SP 0 · 성실 · 1번 특성 · 도구 없음)으로 채워진다.",
+    "description": "A single Pokemon. Only name is required; the rest fall "
+                   "back to defaults (SP 0 · Serious nature · first ability "
+                   "· no item).",
     "properties": {
         "name": {"type": "string",
-                 "description": f"{_NAME_DESC}. 메가폼도 된다"},
+                 "description": f"{_NAME_DESC}. Mega forms work too"},
         "ability": {"type": "string", "description":
-                    "특성 이름. 까칠한피부 / rough-skin 둘 다 된다"},
+                    "Ability name. Both 까칠한피부 and rough-skin work"},
         "item": {"type": "string", "description":
-                 "도구 이름. 기합의띠 / focus-sash 둘 다 된다"},
+                 "Item name. Both 기합의띠 and focus-sash work"},
         "nature": {"type": "string", "description":
-                   "성격 이름. 고집 / adamant 둘 다 된다. 기본 성실"},
+                   "Nature name. Both 고집 and adamant work. "
+                   "Defaults to Serious"},
         "sp": {"type": "array", "items": {"type": "integer"},
-               "description": "hp, atk, def, spa, spd, spe 순 6개. 총 66"},
+               "description": "6 values in hp, atk, def, spa, spd, spe order. "
+                              "66 total"},
         "rank": {"type": "object",
-                 "description": '랭크 변화. 예: {"a": 2} 는 공격 2랭크업'},
+                 "description": 'Stat stage changes. e.g. {"a": 2} is +2 Atk'},
     },
     "required": ["name"],
 }
@@ -556,104 +657,148 @@ _STR = {"type": "string"}
 
 TOOLS = {
     "find_pokemon": (find_pokemon, {
-        "description": "포켓몬 한 마리의 종족값·타입·특성·메가 관계를 본다. "
-                       "특정 포켓몬을 물었을 때 가장 먼저 부른다.",
+        "description": "Base stats, types, abilities and mega relations of a "
+                       "single Pokemon. Call this first whenever the user "
+                       "asks about a specific Pokemon.",
         "properties": {"name": {**_STR, "description": _NAME_DESC}},
         "required": ["name"]}),
 
     "search_pokemon": (search_pokemon, {
-        "description": "조건으로 포켓몬을 추린다. '불꽃 타입 중 스피드가 빠른' "
-                       "처럼 한 마리가 아니라 후보를 찾을 때 쓴다.",
+        "description": "Narrow down Pokemon by criteria. Use this when "
+                       "looking for candidates rather than one Pokemon, "
+                       "e.g. 'fast Fire types'.",
         "properties": {
-            "type": {**_STR, "description": "영문 타입. fire, water, dragon …"},
-            "min_total": {"type": "integer", "description": "종족값 합 하한"},
+            "type": {**_STR, "description":
+                     "English type. fire, water, dragon …"},
+            "min_total": {"type": "integer",
+                          "description": "Minimum base stat total"},
             "order_by": {**_STR, "description":
-                         "정렬 기준. hp/atk/def/spa/spd/spe/bst"},
-            "limit": {"type": "integer", "description": "최대 개수. 기본 15"}},
+                         "Sort key. hp/atk/def/spa/spd/spe/bst"},
+            "limit": {"type": "integer",
+                      "description": "Max results. Defaults to 8"}},
         "required": []}),
 
+    "type_matchup": (type_matchup, {
+        "description": "How much damage that Pokemon takes from each of the "
+                       "18 types, all at once. 'What is it weak to?', 'What "
+                       "should I hit it with?', 'What does it wall?' are all "
+                       "answered by this one tool. Do not call "
+                       "type_effectiveness once per type — types you never "
+                       "checked stay blank, and filling those blanks from "
+                       "memory produces wrong answers.",
+        "properties": {"pokemon": {**_STR, "description": _NAME_DESC}},
+        "required": ["pokemon"]}),
+
     "type_effectiveness": (type_effectiveness, {
-        "description": "어떤 타입 기술이 그 포켓몬에게 몇 배로 들어가는지. "
-                       "상성을 외워서 답하지 말고 반드시 이걸 부른다.",
+        "description": "How much damage one attacking type deals to that "
+                       "Pokemon. Use only when the attacking type is already "
+                       "decided. If you are still looking for what works, "
+                       "call type_matchup.",
         "properties": {
-            "attack_type": {**_STR, "description": "영문 타입. fire, ground …"},
+            "attack_type": {**_STR, "description":
+                            "English type. fire, ground …"},
             "defender": {**_STR, "description":
-                         f"방어하는 포켓몬. {_NAME_DESC}"}},
+                         f"The defending Pokemon. {_NAME_DESC}"}},
         "required": ["attack_type", "defender"]}),
 
     "find_move": (find_move, {
-        "description": "기술 하나의 위력·타입·분류·효과.",
+        "description": "Power, type, category and effect of a single move.",
         "properties": {"name": {**_STR, "description": _MOVE_DESC}},
         "required": ["name"]}),
 
     "moves_of": (moves_of, {
-        "description": "그 포켓몬이 배울 수 있는 기술 전부. "
-                       "'이 기술 배울 수 있어?' 를 추측하지 말고 이걸로 확인한다.",
-        "properties": {"pokemon": {**_STR, "description": _NAME_DESC}},
+        "description": "Moves that Pokemon can learn, ordered by power. "
+                       "Never guess whether it learns a move — check here. "
+                       "One Pokemon can learn over sixty moves, so prefer "
+                       "narrowing with type, category or min_power.",
+        "properties": {
+            "pokemon": {**_STR, "description": _NAME_DESC},
+            "type": {**_STR, "description":
+                     "Filter by English type. fire, ground …"},
+            "category": {**_STR, "description":
+                         "Filter by one of physical / special / status"},
+            "min_power": {"type": "integer",
+                          "description": "Only moves at or above this power"},
+            "limit": {"type": "integer",
+                      "description": "Max results. Defaults to 40"}},
         "required": ["pokemon"]}),
 
     "find_ability": (find_ability, {
-        "description": "특성 하나의 효과와 그 특성을 가진 포켓몬들.",
+        "description": "The effect of a single ability and the Pokemon "
+                       "that have it.",
         "properties": {"name": {**_STR, "description":
-                                "특성 이름. 까칠한피부 / rough-skin 둘 다 된다"}},
+                                "Ability name. Both 까칠한피부 and "
+                                "rough-skin work"}},
         "required": ["name"]}),
 
     "find_item": (find_item, {
-        "description": "도구 하나의 효과와 분류.",
+        "description": "The effect and category of a single item.",
         "properties": {"name": {**_STR, "description":
-                                "도구 이름. 기합의띠 / focus-sash 둘 다 된다"}},
+                                "Item name. Both 기합의띠 and "
+                                "focus-sash work"}},
         "required": ["name"]}),
 
     "calc_damage": (calc_damage, {
-        "description": "데미지와 확정 N타 판정. '몇 방에 죽나', '버티나', "
-                       "'원킬 나나' 류의 질문은 전부 이걸 부른다. "
-                       "직접 곱셈하지 말 것 — 본가 공식은 반올림이 특이해서 "
-                       "손으로 계산하면 확정/난수 판정이 뒤집힌다.",
+        "description": "Damage rolls and guaranteed-KO analysis. Every "
+                       "'how many hits to KO', 'does it survive', 'is it a "
+                       "OHKO' question goes through this. Do not multiply it "
+                       "out yourself — the official formula rounds in "
+                       "unusual places, and hand calculation flips "
+                       "guaranteed vs. rolled KO verdicts.",
         "properties": {
             "attacker": _SIDE, "defender": _SIDE,
             "move": {**_STR, "description": _MOVE_DESC},
-            "weather": {**_STR, "description": "sun rain sandstorm snow 중 하나"},
+            "weather": {**_STR, "description":
+                        "One of sun, rain, sandstorm, snow"},
             "terrain": {**_STR, "description":
-                        "electric grassy misty psychic 중 하나"},
-            "is_critical": {"type": "boolean", "description": "급소 여부"},
-            "is_doubles": {"type": "boolean", "description": "더블 배틀 여부"}},
+                        "One of electric, grassy, misty, psychic"},
+            "is_critical": {"type": "boolean",
+                            "description": "Whether the hit is a critical"},
+            "is_doubles": {"type": "boolean",
+                           "description": "Whether this is a double battle"}},
         "required": ["attacker", "defender", "move"]}),
 
     "power_index": (power_index, {
-        "description": "결정력. 한 포켓몬의 기술들을 화력 순으로 견준다. "
-                       "상대가 정해지지 않은 '뭘 넣는 게 세?' 에 쓴다.",
+        "description": "Offensive power index. Ranks one Pokemon's moves by "
+                       "output. Use it for 'which move hits hardest?' when "
+                       "no specific target is given.",
         "properties": {
             "pokemon": _SIDE,
             "moves": {"type": "array", "items": _STR,
-                      "description": f"기술 이름들. {_MOVE_DESC}"}},
+                      "description": f"Move names. {_MOVE_DESC}"}},
         "required": ["pokemon", "moves"]}),
 
     "bulk_index": (bulk_index, {
-        "description": "내구력. 체력 × 방어, 체력 × 특수방어. "
-                       "포켓몬끼리 얼마나 단단한지 견줄 때 쓴다.",
+        "description": "Bulk index. HP × Def and HP × SpD. Use it to "
+                       "compare how sturdy Pokemon are against each other.",
         "properties": {"pokemon": _SIDE},
         "required": ["pokemon"]}),
 
     "my_team": (my_team, {
-        "description": "사용자가 등록해둔 엔트리 6마리의 스펙과 실능치. "
-                       "'내 팀', '내 엔트리' 가 나오면 먼저 부른다.",
+        "description": "The specs and computed stats of the six Pokemon the "
+                       "user has registered. Call this first whenever "
+                       "'my team' or 'my entry' comes up.",
         "properties": {}, "required": []}),
 
     "team_weaknesses": (team_weaknesses, {
-        "description": "엔트리 6마리의 타입 상성 표. 어느 타입에 몇 마리가 "
-                       "약한지 전부 계산해 돌려준다. 팀의 약점을 물으면 "
-                       "상성표를 외워서 답하지 말고 이걸 부른다.",
+        "description": "Type matchup table for all six registered Pokemon. "
+                       "Computes how many members are weak to each type. "
+                       "When asked about the team's weaknesses, call this "
+                       "instead of recalling the type chart from memory.",
         "properties": {}, "required": []}),
 
     "usage_stats": (usage_stats, {
-        "description": "랭크배틀 채용률. 그 포켓몬이 실제로 어떤 기술·도구·"
-                       "특성·성격·SP 를 들고 나오는지, 누구와 같이 쓰이는지. "
-                       "'요즘 뭐 들어?', '유행하는 배분', '어떤 도구 껴?' "
-                       "류의 질문에 쓴다. 기억으로 답하지 말 것 — 메타는 "
-                       "매일 바뀌고 이 수치는 게임 안 배틀 데이터에서 온다.",
+        "description": "Ranked battle usage stats. What moves, items, "
+                       "abilities, natures and SP spreads that Pokemon "
+                       "actually shows up with, and who it is paired with. "
+                       "Use it for 'what is it running lately?', 'the "
+                       "popular spread', 'what item does it hold?'. Do not "
+                       "answer from memory — the metagame shifts daily and "
+                       "these numbers come from in-game battle data.",
         "properties": {
             "pokemon": {**_STR, "description": _NAME_DESC},
-            "format": {**_STR, "description": "Singles 또는 Doubles. 기본 Singles"}},
+            "format": {**_STR, "description":
+                       "Singles or Doubles. Defaults to Singles"}},
         "required": ["pokemon"]}),
 }
 

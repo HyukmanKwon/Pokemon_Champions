@@ -24,6 +24,23 @@ def fetch_type_chart(conn):
     return {(r[0], r[1]): float(r[2]) for r in cur.fetchall()}
 
 
+def fetch_type_names(conn, language="ko"):
+    """{영문 타입: 그 언어 표기} 18줄.
+
+    상성표는 타입을 영문 슬러그로만 들고 있다. 화면과 도우미는 "불꽃",
+    "에스퍼" 라고 말해야 하는데, 그 표기가 pokemon_type_names 에 언어별로
+    들어 있다. ko 말고 en·ja 도 있어서 언어를 인자로 받는다.
+
+    이름 있는 다른 표들과 달리 ko_name 컬럼이 아니라 (type_name, language,
+    name) 세로 모양이라 lookup_repo 에 얹지 못한다.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT type_name, name FROM pokemon_type_names WHERE language = %s",
+        (language,))
+    return dict(cur.fetchall())
+
+
 def fetch_weathers(conn):
     """{날씨이름: 행} — 위력 보정·방어 보정·지속 데미지까지."""
     cur = conn.cursor()
