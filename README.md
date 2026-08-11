@@ -42,30 +42,50 @@ DB 구축 과정은 [`scripts/etl/README.md`](scripts/etl/README.md)에 따로 �
 
 ```
 Pokemon_Champions/
-├── main.py                     CLI 진입점 (3줄)
-├── web.py                      웹 진입점 (3줄)
+├── main.py                     CLI 진입점 (cli.main() 호출뿐)
+├── web.py                      웹 진입점 (uvicorn 설정뿐)
 ├── pyproject.toml              패키지 정의 · 의존성
 ├── .env.example
 │
 ├── data/                       코드가 아닌 것. 전부 여기
-│   ├── sql/                    ETL이 생성한 SQL 12개      (git 제외)
-│   ├── overrides/              사람이 확정한 값            (git 커밋)
-│   ├── cache/                  내려받은 PokeAPI CSV        (git 제외)
+│   ├── sql/                    DB 를 만드는 SQL 12개       (git 제외)
+│   ├── overrides/              사람이 확정한 값 4개         (git 커밋)
+│   ├── cache/                                            (git 제외)
+│   │   ├── move_flag_map.csv   PokeAPI 기술 플래그 원본
+│   │   └── usage/              배틀 데이터(채용률) 응답
 │   ├── images/                 스프라이트·타입 아이콘 캐시  (git 제외)
 │   └── my_team.json            내 엔트리 6마리             (git 제외)
 │
-├── scripts/etl/                PokeAPI -> SQL -> DB. 런타임 아님
-│   ├── build.py                진입점
-│   ├── paths.py                data/ 경로 (config.py 재사용)
-│   ├── schema.py               모든 DDL의 단일 출처
-│   ├── get_*.py                단계별 생성기 12개
-│   ├── annotator/              브라우저로 손수 확정하는 도구
-│   └── README.md
+├── scripts/                    손으로 돌리는 것. 런타임 아님
+│   ├── chat.py                 LLM 도우미와 대화
+│   ├── check_damage.py         계산 결과를 알려진 값과 대조
+│   ├── check_modifiers.py      보정 표를 대조
+│   ├── check_usage.py          채용률을 대조
+│   ├── fetch_assets.py         스프라이트 내려받기
+│   │
+│   └── etl/                    PokeAPI -> SQL -> DB
+│       ├── build.py            빈 DB 에 전체 구축 (약 1,900회 호출)
+│       ├── dump_sql.py         반대 방향 — 지금 DB 를 data/sql/ 로
+│       ├── schema.py           모든 DDL의 단일 출처
+│       ├── get_*.py            단계별 생성기 12개
+│       ├── sync_moves.py       기술만 추가 (전체 재구축 없이)
+│       ├── migrate_roster.py   로스터 증감만 반영
+│       ├── pin_ko_names.py     DB 의 한국어 표기를 override 로 고정
+│       ├── check_moves.py      외부 목록과 기술 대조
+│       ├── overrides.py        사람이 확정한 값 읽기/쓰기
+│       ├── move_flags.py       기술 플래그 (CSV + 이름 규칙)
+│       ├── translation.py      이름 한↔영, 폼 이름 조립
+│       ├── parse_utils.py      PokeAPI 파싱 + SQL 조립
+│       ├── paths.py            data/ 경로 (config.py 재사용)
+│       ├── annotator/          브라우저로 손수 확정하는 도구
+│       └── README.md
 │
 ├── src/pokemon_champions/      실제로 배포되는 패키지
 │   ├── config.py               레귤레이션 상수 · 경로 · 접속 정보
 │   ├── text.py                 NFC 정규화
 │   ├── assets.py               스프라이트 다운로드 캐시
+│   ├── battledata.py           배틀 데이터 받아오기 + 캐시
+│   │
 │   ├── agent/                  LLM 도우미. 모델은 도구만 고르고 계산은 안 한다
 │   │   ├── tools.py            도구 13개 + 스키마 (repositories/services 호출)
 │   │   └── runner.py           Ollama 도구 호출 루프
@@ -77,16 +97,24 @@ Pokemon_Champions/
 │   ├── db/
 │   │   ├── connection.py       connect() — 커넥션을 여는 유일한 지점
 │   │   └── repositories/       SQL이 존재해도 되는 유일한 곳
-│   │       ├── pokemon_repo.py     fetch_base, fetch_meta
-│   │       ├── nature_repo.py      fetch_modifiers
-│   │       ├── ability_repo.py     fetch_effect
-│   │       └── move_repo.py        fetch_type
+│   │       ├── pokemon_repo.py     fetch_base, fetch_meta, fetch_abilities …
+│   │       ├── move_repo.py        fetch_type, fetch_learnable …
+│   │       ├── ability_repo.py     fetch_effect …
+│   │       ├── item_repo.py        fetch_usable …
+│   │       ├── mega_repo.py        fetch_form, fetch_stones
+│   │       ├── nature_repo.py      fetch_modifiers, fetch_all
+│   │       ├── rules_repo.py       타입상성·날씨·필드·상태이상 참조표
+│   │       ├── lookup_repo.py      영문 -> 한국어 대응표
+│   │       └── _rows.py            커서 -> dict
 │   │
 │   ├── services/               비즈니스 로직
 │   │   ├── stats.py            [순수] make_sp, calc_stats
-│   │   ├── damage.py           [순수] calc_damage, analyze_ko — 뼈대만
+│   │   ├── damage.py           [순수] calc_damage, analyze_ko,
+│   │   │                              power_index, bulk_index
+│   │   ├── modifiers.py        [순수] 특성·도구 보정을 4096 정수로
 │   │   ├── team.py             [조립] 내 엔트리 로드·검증·빌드
-│   │   └── opponent.py         상대 엔트리 (예정)
+│   │   ├── usage.py            [조립] 채용률을 DB 의 한국어와 잇기
+│   │   └── opponent.py         상대 엔트리 (아직 비어 있다 — §5)
 │   │
 │   └── interfaces/             print/input/HTTP는 여기서만
 │       ├── cli.py
@@ -94,9 +122,16 @@ Pokemon_Champions/
 │           ├── app.py          FastAPI
 │           └── static/index.html
 │
-└── tests/
-    └── test_stats.py           DB 없이 도는 계산 테스트 10개
+└── tests/                      DB 없이 도는 계산 테스트 64개
+    ├── conftest.py             overrides 폴더 격리 (autouse)
+    ├── test_damage.py          40개
+    ├── test_stats.py           10개
+    └── test_team.py            14개
 ```
+
+`data/sql/` 은 `build.py` 가 만들지만, DB 는 빌드 이후로도 애노테이터 ·
+`sync_moves` · `migrate_roster` 로 계속 움직인다. 그래서 파일이 DB 보다 뒤처지는데,
+`dump_sql.py` 가 그 반대 방향을 맡는다 — 지금 DB 를 그대로 받아 적는다.
 
 ---
 
@@ -237,46 +272,62 @@ Python은 "현재 실행 위치"를 기준으로 모듈을 찾는다. 파일이 
 
 ### 빈 폴더를 만들지 않은 이유
 
-`agent/`(LLM 툴 계층)와 `interfaces/api/routers/`는 만들지 않았다. 빈 폴더는 거짓말을
-한다 — 열었는데 아무것도 없으면 뭘 놓쳤나 싶고, 어떻게 생길지 모르는 상태에서 미리
-만든 구조는 십중팔구 틀린다.
+`agent/`(LLM 툴 계층)와 `interfaces/api/routers/`는 처음에 만들지 않았다. 빈 폴더는
+거짓말을 한다 — 열었는데 아무것도 없으면 뭘 놓쳤나 싶고, 어떻게 생길지 모르는
+상태에서 미리 만든 구조는 십중팔구 틀린다.
 
 더 중요한 건, **계산기를 순수 함수로 제대로 만들면 agent 계층이 거의 저절로 결정된다는
-점**이다. 툴 목록은 services의 공개 함수 목록이 되고, 툴 스키마는 시그니처가 된다.
+점**이었다. 툴 목록은 services의 공개 함수 목록이 되고, 툴 스키마는 시그니처가 된다.
 순서를 이렇게 잡으면 나중 설계를 지금 추측할 필요가 없다.
+
+**그 예상대로 됐다.** `agent/`는 계산기가 순수 함수로 자리잡은 뒤에 만들었고, 도구
+13개 중 계산을 하는 것은 하나도 없다. `calc_damage` · `power_index` · `bulk_index`는
+`services/damage.py`의 같은 이름 함수를 인자만 바꿔 부르고, 조회 도구는
+`db/repositories/`를 그대로 부른다. `tools.py`가 하는 일은 이름을 찾아 주고(한국어
+이름 → DB 행) 결과를 한국어로 돌려주는 것뿐이다.
+
+`interfaces/api/routers/`는 아직도 없다. `app.py` 하나로 충분해서다.
 
 ---
 
 ## 5. 앞으로
 
+### 지나온 순서
+
+원래 여기 적어 둔 1 · 2 · 3 은 전부 끝났다. 순서를 지킨 것이 실제로 값을 했으므로
+무엇이 어떻게 자리잡았는지만 남긴다.
+
+**1. 입력 검증** — `services/team.py`의 `validate_spec()` 하나로 모았다. 특성은
+`pokemon_repo.fetch_abilities`, 기술은 `move_repo.fetch_learnable`, 도구는
+`item_repo.fetch_usable`을 본다. CLI와 웹이 서로 다른 경로로 들어오는데(웹은
+`build_pokemon`을 거치지 않는다) 검증을 services에 둔 덕에 둘 다 같은 함수를
+부른다.
+
+**2. 도감** — `services/dex.py`는 만들지 않았다. 도감은 조회와 필터뿐이라 끼워 넣을
+로직이 없어서, `db/repositories/`의 `fetch_list` · `fetch_detail`을 `app.py`가 바로
+부른다. services 를 한 겹 두면 인자를 옮겨 적기만 하는 파일이 된다.
+
+**3. 계산기** — `services/damage.py`에 `calc_damage` · `analyze_ko`와, 상대가 없어도
+나오는 단일 지표인 `power_index` · `bulk_index`가 있다. 보정은 `modifiers.py`가
+4096 정수로 다룬다. 날씨 · 필드 · 랭크 · 상태이상은 예상대로 `BattleContext` 한
+덩어리로 묶였고, 참조표는 `Rules`로 받는다. 검증 케이스는 `tests/test_damage.py`에
+40개 있다.
+
+**4. agent** — 위가 순수 함수로 완성된 뒤에 만들었다. 도구 13개 중 계산을 하는 것은
+없다(§4 참고).
+
 ### 다음 순서
 
-**1. 입력 검증을 DB로 옮기기**
-지금은 "이상해꽃"에 아무 특성이나 아무 기술이나 넣어도 통과한다. `pokemon_moves`
-테이블은 이미 있으니 기술은 바로 막을 수 있고, 특성은 `pokemons.ability1~3`을 쓰면
-된다. 붙는 자리는 `db/repositories/`(조회)와 `services/team.py`(검증)이고, CLI와 웹은
-고칠 것이 없다 — 검증을 services에 둔 덕이다.
+**`services/opponent.py`** — 아직 비어 있다. 내 엔트리와 다른 점이 둘이다. 상대
+스펙은 대부분 모르므로 **확정값과 추정값을 구분해서** 들고 있어야 하고(최속·최둔
+가정 등), 대전마다 새로 만들어지고 버려지므로 파일에 저장할 이유가 없다. 그래서
+`team.py`를 복사하지 말고, 공통이 정말 생겼을 때 `services/roster.py` 같은 곳으로
+뽑아내는 편이 낫다.
 
-```
-pokemon_repo.fetch_abilities(conn, ko_name)   -> ['심록', '엽록소']
-move_repo.fetch_learnable(conn, ko_name)      -> [...]
-```
-
-**2. 도감(`services/dex.py`)과 엔트리 완성**
-도감은 조회 + 필터(타입·종족값·기술 보유)라 repositories에 조회를 늘리는 일이
-대부분이다. 엔트리는 1번의 검증이 들어가면 사실상 완성이다.
-
-**3. 실전 계산기(`services/damage.py`)**
-결정력(공격 실능 × 위력 × 보정)과 내구력(HP × 방어)을 먼저 만든다. 이 둘은 상대가
-없어도 계산되는 **단일 포켓몬의 지표**라, 데미지 계산보다 입력이 단순하고 테스트도
-쓰기 쉽다. 데미지는 그 다음에 곱셈 인자를 하나씩 붙이면서 그때마다
-`tests/test_damage.py`에 실제 게임에서 확인한 케이스를 추가한다.
-실능치 → 위력 → 자속 → 상성 → 급소 → 랭크 → 날씨/필드 → 특성/도구 → 난수 순.
-
-**그 다음** — `services/opponent.py`(상대 엔트리. 확정값과 추정값을 구분해야 한다는
-점이 내 엔트리와 다르다), 그리고 `agent/`. agent는 위가 순수 함수로 완성된 뒤에
-만든다. `tools.py`는 services의 공개 함수를 감싸고, LLM은 어느 함수를 어떤 인자로
-부를지만 정한다. 계산은 절대 하지 않는다.
+**도구 `reviewed` 채우기** — `items.reviewed`가 0/166이다. 수집 범위를 좁히는
+쪽(`get_items.py`의 `ITEM_CATEGORIES` + `EXTRA_ITEMS`)이 먼저 걸러 주고 있어서 지금
+아프지는 않지만, 화면에는 166개가 전부 "미확인"으로 뜬다. `annotator.items`를
+돌리거나, 이 방식을 접기로 하고 지우거나 — 둘 중 하나로 정해야 한다.
 
 ### 작업 규칙
 
@@ -291,7 +342,10 @@ move_repo.fetch_learnable(conn, ko_name)      -> [...]
 
 ---
 
-## 6. 이번 재배치에서 무엇이 어디로 갔나
+## 6. 재배치 이력 — 무엇이 어디로 갔나
+
+아래는 `core/` 평면 구조에서 지금 배치로 옮길 때의 대응표다. 옛 경로를 기억하는
+사람을 위해 남겨 둔다. 지금 폴더에 `core/` 는 없다.
 
 | 이전 | 현재 | 비고 |
 |---|---|---|
