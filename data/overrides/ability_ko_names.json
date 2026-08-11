@@ -61,6 +61,7 @@
     "heavy-metal",
     "hospitality",
     "huge-power",
+    "hunger-switch",
     "hustle",
     "hydration",
     "hyper-cutter",
@@ -445,6 +446,10 @@
     "huge-power": {
       "description": "물리공격의 위력이 2배가 된다.",
       "ko_name": "천하장사"
+    },
+    "hunger-switch": {
+      "description": "턴이 끝날 때마다 배부른 모양, 배고픈 모양, 배부른 모양...으로 번갈아서 모습을 바꾼다.",
+      "ko_name": "꼬르륵스위치"
     },
     "hustle": {
       "description": "자신의 공격이 높아지지만 명중률이 떨어진다.",

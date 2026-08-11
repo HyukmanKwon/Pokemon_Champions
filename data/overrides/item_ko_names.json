@@ -15,6 +15,7 @@
     "altarianite",
     "ampharosite",
     "apicot-berry",
+    "aspear-berry",
     "assault-vest",
     "audinite",
     "babiri-berry",
@@ -41,7 +42,9 @@
     "charizardite-x",
     "charizardite-y",
     "charti-berry",
+    "cheri-berry",
     "chesnaughtite",
+    "chesto-berry",
     "chilan-berry",
     "chill-drive",
     "chimechite",
@@ -145,6 +148,7 @@
     "lucarionite",
     "lucarionite-z",
     "lucky-punch",
+    "lum-berry",
     "luminous-moss",
     "lustrous-orb",
     "macho-brace",
@@ -179,6 +183,8 @@
     "pass-orb",
     "passho-berry",
     "payapa-berry",
+    "pecha-berry",
+    "persim-berry",
     "petaya-berry",
     "pidgeotite",
     "pink-nectar",
@@ -201,6 +207,7 @@
     "quick-powder",
     "raichunite-x",
     "raichunite-y",
+    "rawst-berry",
     "razor-claw",
     "razor-fang",
     "red-card",
@@ -233,6 +240,7 @@
     "shuca-berry",
     "silk-scarf",
     "silver-powder",
+    "sitrus-berry",
     "skarmorite",
     "sky-plate",
     "slowbronite",
@@ -346,6 +354,10 @@
       "description": "포켓몬에게 지니게 하면 위급할 때 자신의 특수방어가 올라간다.",
       "ko_name": "규살열매"
     },
+    "aspear-berry": {
+      "description": "포켓몬에게 지니게 하면 얼음을 회복한다.",
+      "ko_name": "배리열매"
+    },
     "assault-vest": {
       "description": "공격적으로 변하는 조끼. 지니게 하면 특수방어가 올라가지만 변화 기술을 쓸 수 없게 된다.",
       "ko_name": "돌격조끼"
@@ -450,9 +462,17 @@
       "description": "포켓몬에게 지니게 하면 효과가 뛰어난 바위 기술을 당했을 때 위력이 약해진다.",
       "ko_name": "루미열매"
     },
+    "cheri-berry": {
+      "description": "포켓몬에게 지니게 하면 마비를 회복한다.",
+      "ko_name": "버치열매"
+    },
     "chesnaughtite": {
       "description": "브리가론에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.",
       "ko_name": "브리가론나이트"
+    },
+    "chesto-berry": {
+      "description": "포켓몬에게 지니게 하면 잠듦을 회복한다.",
+      "ko_name": "유루열매"
     },
     "chilan-berry": {
       "description": "포켓몬에게 지니게 하면 노말 기술을 당했을 때 위력이 약해진다.",
@@ -866,6 +886,10 @@
       "description": "행운을 부르는 글러브다. 럭키에게 지니게 하면 기술이 급소에 맞기 쉬워진다.",
       "ko_name": "럭키펀치"
     },
+    "lum-berry": {
+      "description": "포켓몬에게 지니게 하면 모든 상태 이상을 회복한다.",
+      "ko_name": "리샘열매"
+    },
     "luminous-moss": {
       "description": "단 한 번 쓰면 없어지는 빛이끼. 지니게 하고 물 기술을 받으면 특수방어가 올라간다.",
       "ko_name": "빛이끼"
@@ -1002,6 +1026,14 @@
       "description": "포켓몬에게 지니게 하면 효과가 뛰어난 에스퍼 기술을 당했을 때 위력이 약해진다.",
       "ko_name": "야파열매"
     },
+    "pecha-berry": {
+      "description": "포켓몬에게 지니게 하면 독을 회복한다.",
+      "ko_name": "복슝열매"
+    },
+    "persim-berry": {
+      "description": "포켓몬에게 지니게 하면 혼란을 회복한다.",
+      "ko_name": "시몬열매"
+    },
     "petaya-berry": {
       "description": "포켓몬에게 지니게 하면 위급할 때 자신의 특수공격이 올라간다.",
       "ko_name": "야타비열매"
@@ -1089,6 +1121,10 @@
     "raichunite-y": {
       "description": "라이츄에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.",
       "ko_name": "라이츄나이트Y"
+    },
+    "rawst-berry": {
+      "description": "포켓몬에게 지니게 하면 화상을 회복한다.",
+      "ko_name": "복분열매"
     },
     "razor-claw": {
       "description": "날카롭고 뾰족한 손톱. 지니게 하면 기술이 급소에 맞기 쉬워진다.",
@@ -1217,6 +1253,10 @@
     "silver-powder": {
       "description": "은색으로 반짝이는 가루. 지니게 하면 벌레타입 기술의 위력이 올라간다.",
       "ko_name": "은빛가루"
+    },
+    "sitrus-berry": {
+      "description": "포켓몬에게 지니게 하면 HP를 조금 회복한다.",
+      "ko_name": "자뭉열매"
     },
     "skarmorite": {
       "description": "무장조에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.",
