@@ -8,7 +8,6 @@ FILENAME = "01_types.sql"
 TABLE = "pokemon_types"
 COLUMNS = ["attack_type", "defense_type", "multiplier"]
 DDL = schema.TYPES
-USES_API = False   # 생성 시 PokeAPI를 호출하는가
 
 TYPES = schema.TYPE_NAMES
 

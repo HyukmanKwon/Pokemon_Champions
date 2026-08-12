@@ -30,7 +30,6 @@ OVERRIDE_KEY = "move_flags"
 # 목록 대조는 check_moves.py 가 한다. (README §6)
 KO_OVERRIDE_KEY = "move_ko_names"
 DDL = schema.MOVES
-USES_API = True   # 생성 시 PokeAPI를 호출하는가
 
 # 한 파일 안에 두 번째 테이블도 같이 만든다. 같은 응답에서 나오므로
 # API를 다시 부르지 않으려고 04 단계에 합쳤다.

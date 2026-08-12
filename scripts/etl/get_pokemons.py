@@ -114,7 +114,6 @@ COLUMNS = ["id", "pokemon_id", "name", "ko_name", "type1", "type2",
            "ability1", "ability2", "ability3", "height", "weight",
            "h", "a", "b", "c", "d", "s", "can_mega", "is_mega"]
 DDL = schema.POKEMONS
-USES_API = True   # 생성 시 PokeAPI를 호출하는가
 
 # charizard-mega-x -> ("charizard", "x") / gengar-mega -> ("gengar", None)
 MEGA_RE = re.compile(r"^(.*)-mega(?:-([xy]))?$")

@@ -13,8 +13,8 @@
   1. DB의 moves 테이블            즉시 반영. 계산기가 바로 쓴다
   2. overrides/move_flags.json    재구축해도 살아남는다
 
-  DB에만 쓰면 python main.py 한 번에 전부 사라진다. JSON에만 쓰면 다시
-  구축하기 전까지 반영이 안 된다. 그래서 둘 다 쓴다.
+  DB에만 쓰면 python -m scripts.etl.build 한 번에 전부 사라진다. JSON에만
+  쓰면 다시 구축하기 전까지 반영이 안 된다. 그래서 둘 다 쓴다.
 
 ── 무엇을 확인해야 하나 ──
   12개 플래그 중 9개는 PokeAPI CSV 에서 온 확정값이라 볼 필요가 거의 없다.
@@ -205,7 +205,8 @@ def check_schema():
     missing = [f for f in FLAGS + ["reviewed"] if f not in have]
     if missing:
         print("moves 테이블에 플래그 컬럼이 없습니다:", ", ".join(missing))
-        print("\nREADME §6 으로 DB를 지우고 python main.py 를 다시 돌리세요.")
+        print("\nREADME §7 로 DB를 지우고 python -m scripts.etl.build 를"
+              " 다시 돌리세요.")
         raise SystemExit(1)
 
 

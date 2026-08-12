@@ -15,9 +15,6 @@ pokemons 와 items 를 읽어서 만들기 때문에 03·06 단계 뒤에 와야
 
   겹치는 길이가 베이스 이름의 60% 에 못 미치면 매칭하지 않고 NULL 로
   두고 끝에 목록을 출력한다. 틀린 스톤을 넣느니 비워두는 편이 낫다.
-
-단독 실행:
-    python get_mega_evolutions.py
 """
 
 from pokemon_champions.db import connect
@@ -31,7 +28,6 @@ FILENAME = "10_mega_evolutions.sql"
 TABLE = "mega_evolutions"
 COLUMNS = ["mega_name", "base_name", "variant", "item_name"]
 DDL = schema.MEGA_EVOLUTIONS
-USES_API = False   # 생성 시 PokeAPI를 호출하는가
 
 # 이름 규칙으로 베이스를 못 찾는 예외는 get_pokemons.MANUAL_BASE 에 있다.
 # can_mega 를 켜는 쪽과 같은 표를 봐야 둘이 어긋나지 않는다.

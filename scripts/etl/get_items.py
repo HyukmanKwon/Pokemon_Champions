@@ -9,9 +9,6 @@ items 테이블용 06_items.sql 을 생성한다.
 주의:
   - 기술/특성은 flavor_text_entries 의 본문 키가 "flavor_text" 지만
     도구는 "text" 다. pick_korean_flavor 에 키를 넘겨줘야 한다.
-
-단독 실행:
-    python get_items.py
 """
 
 from pokemon_champions.db import connect
@@ -36,7 +33,6 @@ TABLE = "items"
 COLUMNS = ["id", "name", "ko_name", "category",
            "fling_power", "description", "effect", "usable", "reviewed"]
 DDL = schema.ITEMS
-USES_API = True   # 생성 시 PokeAPI를 호출하는가
 
 # ─────────────────────────────────────────────────────────────
 # 수집 대상 카테고리 (옆의 숫자는 현재 PokeAPI 기준 개수)

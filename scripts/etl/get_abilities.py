@@ -7,9 +7,6 @@ abilities 테이블용 05_abilities.sql 을 생성한다.
     (포켓몬 목록이 바뀌면 특성 목록도 자동으로 따라간다)
   - 따라서 03_pokemons.sql 이 DB에 올라간 뒤에 실행돼야 한다.
     main.py 는 생성과 실행을 번갈아 하므로 순서가 저절로 맞는다.
-
-단독 실행:
-    python get_abilities.py
 """
 
 from pokemon_champions.db import connect
@@ -27,7 +24,6 @@ FILENAME = "05_abilities.sql"
 TABLE = "abilities"
 COLUMNS = ["id", "name", "ko_name", "description", "effect"]
 DDL = schema.ABILITIES
-USES_API = True   # 생성 시 PokeAPI를 호출하는가
 
 
 def fetch_ability(name):

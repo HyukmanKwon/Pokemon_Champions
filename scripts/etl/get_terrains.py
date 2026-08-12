@@ -12,9 +12,6 @@ name 은 기술 이름의 접두사와 같다.
 
   위력 보정 1.3배도 '기술을 쓰는 쪽이 접지되어 있을 때'만 붙는다.
   일렉트릭필드에서 공중에 뜬 포켓몬이 쓰는 전기 기술은 그대로 1.0배다.
-
-단독 실행:
-    python get_terrains.py
 """
 
 from pokemon_champions.db import connect
@@ -28,7 +25,6 @@ TABLE = "terrains"
 COLUMNS = ["name", "ko_name", "boost_type", "boost_mult",
            "weaken_type", "weaken_mult", "heal_fraction", "note"]
 DDL = schema.TERRAINS
-USES_API = False   # 생성 시 PokeAPI를 호출하는가
 
 TERRAINS = [
     ("electric", "일렉트릭필드",

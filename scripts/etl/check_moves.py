@@ -1,6 +1,6 @@
 """외부 목록과 DB의 기술을 대조한다.
 
-    python check_moves.py 목록.txt
+    python -m scripts.etl.check_moves 목록.txt
 
 목록 파일은 한국어 기술 이름 한 줄에 하나. op.gg / Game8 / 포켓몬 Zone 같은
 포챔스 전용 사이트에서 기술 목록을 복사해 붙이면 된다.

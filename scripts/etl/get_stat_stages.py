@@ -7,9 +7,6 @@
 
 같은 +1이라도 공격은 1.5배지만 명중은 1.33배다. 이 차이 때문에
 계산기에서 배수를 잘못 쓰기 쉬워서 테이블로 못 박아 둔다.
-
-단독 실행:
-    python get_stat_stages.py
 """
 
 from pokemon_champions.db import connect
@@ -22,7 +19,6 @@ FILENAME = "08_stat_stages.sql"
 TABLE = "stat_stages"
 COLUMNS = ["stage", "battle_mult", "accuracy_mult"]
 DDL = schema.STAT_STAGES
-USES_API = False   # 생성 시 PokeAPI를 호출하는가
 
 STAGES = range(-6, 7)
 

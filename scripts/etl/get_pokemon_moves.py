@@ -8,9 +8,6 @@ pokemon_moves 연결 테이블용 07_pokemon_moves.sql 을 생성한다.
   - 유효 기술 목록   = DB의 moves 테이블에서 SELECT
   - PokeAPI가 준 습득 기술 중, 위 유효 기술과 겹치는 것만 저장
   - 따라서 03_pokemons.sql / 04_moves.sql 이 DB에 올라간 뒤에 실행돼야 한다.
-
-단독 실행:
-    python get_pokemon_moves.py
 """
 
 from pokemon_champions.db import connect
@@ -25,7 +22,6 @@ FILENAME = "07_pokemon_moves.sql"
 TABLE = "pokemon_moves"
 COLUMNS = ["pokemon_name", "move_name"]
 DDL = schema.POKEMON_MOVES
-USES_API = True   # 생성 시 PokeAPI를 호출하는가
 
 
 def fetch_pokemon(name):

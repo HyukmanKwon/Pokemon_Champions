@@ -8,7 +8,6 @@ FILENAME = "02_natures.sql"
 TABLE = "pokemon_natures"
 COLUMNS = ["en_name", "ko_name", "up", "down"]
 DDL = schema.NATURES
-USES_API = False   # 생성 시 PokeAPI를 호출하는가
 
 # (영문명, 한글명, 오르는 능력치, 내리는 능력치)
 NATURES = [

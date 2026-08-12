@@ -16,9 +16,6 @@ name 은 기술 이름과 맞춰 뒀다. 날씨를 까는 기술과 바로 이�
 9세대 본가 기준이다. 8세대까지 '싸라기눈(hail)'은 얼음 타입을 뺀 전원이
 매 턴 1/16을 잃었지만, 9세대 '눈(snow)'은 지속 데미지가 없고 대신 얼음
 타입의 방어가 1.5배가 된다. 포챔스가 다르면 WEATHERS 만 고치면 된다.
-
-단독 실행:
-    python get_weathers.py
 """
 
 from pokemon_champions.db import connect
@@ -34,7 +31,6 @@ COLUMNS = ["name", "ko_name", "boost_type", "boost_mult",
            "def_boost_type", "def_boost_stat", "def_boost_mult",
            "chip_damage", "chip_immune", "note"]
 DDL = schema.WEATHERS
-USES_API = False   # 생성 시 PokeAPI를 호출하는가
 
 WEATHERS = [
     ("sun", "쾌청",

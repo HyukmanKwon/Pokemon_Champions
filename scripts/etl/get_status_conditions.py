@@ -16,9 +16,6 @@ CONDITIONS 만 고치면 된다. 세대마다 실제로 바뀐 적이 있는 항
 
 맹독(toxic)은 턴마다 1/16씩 누적되는 특수 계산이라 turn_damage 를
 NULL 로 두고 note 로만 남긴다.
-
-단독 실행:
-    python get_status_conditions.py
 """
 
 from pokemon_champions.db import connect
@@ -32,7 +29,6 @@ TABLE = "status_conditions"
 COLUMNS = ["name", "ko_name", "attack_mult", "speed_mult",
            "turn_damage", "immobile", "fail_chance", "note"]
 DDL = schema.STATUS_CONDITIONS
-USES_API = False   # 생성 시 PokeAPI를 호출하는가
 
 # (name, ko_name, attack_mult, speed_mult, turn_damage, immobile, fail_chance, note)
 CONDITIONS = [
