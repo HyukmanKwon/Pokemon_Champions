@@ -19,7 +19,7 @@ NULL 로 두고 note 로만 남긴다.
 """
 
 from . import schema
-from .parse_utils import render, mogrify_rows
+from .parse_utils import literal_build
 
 FILENAME = "09_status_conditions.sql"
 TABLE = "status_conditions"
@@ -48,9 +48,6 @@ CONDITIONS = [
 
 def build(conn):
     """09_status_conditions.sql 전문을 만들어 돌려준다. (7행)"""
-    cur = conn.cursor()
-    for c in CONDITIONS:
-        print(f"{c[0]:<10} {c[1]}")
-    return render(schema.STATUS_CONDITIONS, TABLE, COLUMNS,
-                  mogrify_rows(cur, CONDITIONS, len(COLUMNS)))
+    return literal_build(conn, DDL, TABLE, COLUMNS, CONDITIONS,
+                         echo=lambda c: f"{c[0]:<10} {c[1]}")
 

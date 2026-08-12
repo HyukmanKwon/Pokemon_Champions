@@ -10,7 +10,7 @@
 """
 
 from . import schema
-from .parse_utils import render, mogrify_rows
+from .parse_utils import literal_build
 
 FILENAME = "08_stat_stages.sql"
 TABLE = "stat_stages"
@@ -36,13 +36,9 @@ def accuracy_mult(stage):
 
 def build(conn):
     """08_stat_stages.sql 전문을 만들어 돌려준다. (13행)"""
-    cur = conn.cursor()
-    values = [
-        (s, round(battle_mult(s), 4), round(accuracy_mult(s), 4))
-        for s in STAGES
-    ]
-    for stage, bm, am in values:
-        print(f"{stage:+d}  공방 {bm:.4f}  명중회피 {am:.4f}")
-    return render(schema.STAT_STAGES, TABLE, COLUMNS,
-                  mogrify_rows(cur, values, len(COLUMNS)))
+    values = [(s, round(battle_mult(s), 4), round(accuracy_mult(s), 4))
+              for s in STAGES]
+    return literal_build(
+        conn, DDL, TABLE, COLUMNS, values,
+        echo=lambda v: f"{v[0]:+d}  공방 {v[1]:.4f}  명중회피 {v[2]:.4f}")
 

@@ -53,3 +53,21 @@ def mogrify_rows(cur, values_list, width):
     """값 튜플 리스트를 SQL 리터럴 행 문자열 리스트로 바꾼다."""
     placeholder = "    (" + ", ".join(["%s"] * width) + ")"
     return [cur.mogrify(placeholder, v).decode("utf-8") for v in values_list]
+
+
+def literal_build(conn, ddl, table, columns, values, echo=None):
+    """코드에 적힌 행 목록을 그대로 SQL 로. API 를 안 부르는 생성기의 build().
+
+    타입 상성·성격·날씨·필드·랭크·상태이상 여섯 개가 하는 일이 같다 — 파일에
+    적어둔 튜플 목록을 mogrify 로 굳혀 render 에 넘긴다. 그 세 줄을 여섯 벌
+    두는 대신 여기 한 벌 둔다. 각 파일에는 포켓몬 규칙만 남는다.
+
+    echo 는 한 행을 어떻게 찍을지 정하는 함수다. 생성기마다 보고 싶은 칸이
+    달라서(성격은 이름만, 날씨는 이름+한글) 형식까지 통일하지는 않는다.
+    None 이면 아무것도 안 찍는다.
+    """
+    cur = conn.cursor()
+    if echo is not None:
+        for v in values:
+            print(echo(v))
+    return render(ddl, table, columns, mogrify_rows(cur, values, len(columns)))

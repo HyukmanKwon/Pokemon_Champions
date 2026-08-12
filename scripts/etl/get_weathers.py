@@ -19,7 +19,7 @@ name 은 기술 이름과 맞춰 뒀다. 날씨를 까는 기술과 바로 이�
 """
 
 from . import schema
-from .parse_utils import render, mogrify_rows
+from .parse_utils import literal_build
 
 FILENAME = "11_weathers.sql"
 TABLE = "weathers"
@@ -48,9 +48,6 @@ WEATHERS = [
 
 def build(conn):
     """11_weathers.sql 전문을 만들어 돌려준다. (4행)"""
-    cur = conn.cursor()
-    for w in WEATHERS:
-        print(f"{w[0]:<10} {w[1]}")
-    return render(schema.WEATHERS, TABLE, COLUMNS,
-                  mogrify_rows(cur, WEATHERS, len(COLUMNS)))
+    return literal_build(conn, DDL, TABLE, COLUMNS, WEATHERS,
+                         echo=lambda w: f"{w[0]:<10} {w[1]}")
 

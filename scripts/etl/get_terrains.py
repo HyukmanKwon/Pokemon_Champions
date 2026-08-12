@@ -15,7 +15,7 @@ name 은 기술 이름의 접두사와 같다.
 """
 
 from . import schema
-from .parse_utils import render, mogrify_rows
+from .parse_utils import literal_build
 
 FILENAME = "12_terrains.sql"
 TABLE = "terrains"
@@ -41,9 +41,6 @@ TERRAINS = [
 
 def build(conn):
     """12_terrains.sql 전문을 만들어 돌려준다. (4행)"""
-    cur = conn.cursor()
-    for t in TERRAINS:
-        print(f"{t[0]:<10} {t[1]}")
-    return render(schema.TERRAINS, TABLE, COLUMNS,
-                  mogrify_rows(cur, TERRAINS, len(COLUMNS)))
+    return literal_build(conn, DDL, TABLE, COLUMNS, TERRAINS,
+                         echo=lambda t: f"{t[0]:<10} {t[1]}")
 

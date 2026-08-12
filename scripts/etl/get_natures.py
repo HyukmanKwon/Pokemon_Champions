@@ -1,5 +1,5 @@
 from . import schema
-from .parse_utils import render, mogrify_rows
+from .parse_utils import literal_build
 
 FILENAME = "02_natures.sql"
 TABLE = "pokemon_natures"
@@ -33,8 +33,7 @@ NATURES = [
 
 
 def build(conn):
-    """02_natures.sql 전문을 만들어 돌려준다. (API 호출 없음)"""
-    cur = conn.cursor()
-    rows = mogrify_rows(cur, NATURES, len(COLUMNS))
-    return render(schema.NATURES, TABLE, COLUMNS, rows)
+    """02_natures.sql 전문을 만들어 돌려준다. (21행, API 호출 없음)"""
+    return literal_build(conn, DDL, TABLE, COLUMNS, NATURES,
+                         echo=lambda n: f"{n[0]:<10} {n[1]}")
 

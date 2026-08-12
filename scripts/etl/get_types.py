@@ -1,5 +1,5 @@
 from . import schema
-from .parse_utils import render
+from .parse_utils import literal_build
 
 FILENAME = "01_types.sql"
 TABLE = "pokemon_types"
@@ -101,11 +101,14 @@ def multiplier(attack, defense):
 
 
 def build(conn):
-    """01_types.sql 전문을 만들어 돌려준다. (API 호출 없음)"""
-    rows = []
-    for atk in TYPES:
-        for dfn in TYPES:
-            rows.append(f"    ('{atk}', '{dfn}', {multiplier(atk, dfn)})")
-        print(f"{atk} 완료")
-    return render(schema.TYPES, TABLE, COLUMNS, rows)
+    """01_types.sql 전문을 만들어 돌려준다. (API 호출 없음)
+
+    TYPE_CHART 는 '배수 -> 그 배수를 받는 타입들' 이라 빈칸이 많다. 여기서
+    18×18 을 전부 펴서 324행으로 만든다 — 표에 없는 짝이 1.0 이라는 것을
+    조회하는 쪽이 알아야 할 이유가 없다.
+    """
+    values = [(atk, dfn, multiplier(atk, dfn))
+              for atk in TYPES for dfn in TYPES]
+    print(f"{len(TYPES)}×{len(TYPES)} = {len(values)}행")
+    return literal_build(conn, DDL, TABLE, COLUMNS, values)
 
