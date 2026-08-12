@@ -18,9 +18,6 @@ name 은 기술 이름과 맞춰 뒀다. 날씨를 까는 기술과 바로 이�
 타입의 방어가 1.5배가 된다. 포챔스가 다르면 WEATHERS 만 고치면 된다.
 """
 
-from pokemon_champions.db import connect
-
-from . import paths
 from . import schema
 from .parse_utils import render, mogrify_rows
 
@@ -57,14 +54,3 @@ def build(conn):
     return render(schema.WEATHERS, TABLE, COLUMNS,
                   mogrify_rows(cur, WEATHERS, len(COLUMNS)))
 
-
-def main():
-    conn = connect()
-    paths.SQL_DIR.mkdir(exist_ok=True)
-    (paths.SQL_DIR / FILENAME).write_text(build(conn), encoding="utf-8")
-    print(f"\n{FILENAME} 생성 완료")
-    conn.close()
-
-
-if __name__ == "__main__":
-    main()

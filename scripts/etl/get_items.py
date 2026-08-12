@@ -11,10 +11,7 @@ items 테이블용 06_items.sql 을 생성한다.
     도구는 "text" 다. pick_korean_flavor 에 키를 넘겨줘야 한다.
 """
 
-from pokemon_champions.db import connect
-
 from . import overrides
-from . import paths
 from . import schema
 from .parse_utils import (get_json, pick_korean, pick_korean_flavor,
                          pick_english_effect, render, mogrify_rows)
@@ -188,14 +185,3 @@ def build(conn):
     return render(schema.ITEMS, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
 
-
-def main():
-    conn = connect()
-    paths.SQL_DIR.mkdir(exist_ok=True)
-    (paths.SQL_DIR / FILENAME).write_text(build(conn), encoding="utf-8")
-    print(f"{FILENAME} 생성 완료")
-    conn.close()
-
-
-if __name__ == "__main__":
-    main()

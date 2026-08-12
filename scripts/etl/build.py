@@ -33,10 +33,23 @@ data/sql/ 폴더를 만들고, 아래 순서대로
 
 ── 매 실행마다 PokeAPI 를 다시 호출한다 ──
   data/sql/ 에 파일이 남아 있어도 재사용하지 않는다.
-  전체 약 1300회. SQL 파일만 따로 뽑고 싶으면 개별 생성기를 쓴다.
+  전체 약 1300회. 한 표만 따로 뽑고 싶으면 --only 를 준다.
 
-    python -m scripts.etl.get_items        sql/06_items.sql 만 생성 (DB 실행 안 함)
+── 부분 실행 ──
+      python -m scripts.etl.build --only items          06_items.sql 만 생성
+      python -m scripts.etl.build --only items --exec   생성하고 DB 에도 실행
+      python -m scripts.etl.build --only 06 --only 07   여러 개
+
+  --only 는 SQL 파일만 만들고 DB 를 건드리지 않는 것이 기본이다. 한 표만
+  다시 넣는 일은 드물고, 잘못 넣으면 되돌릴 방법이 psql 뿐이라(README §7)
+  실행은 --exec 로 따로 시키게 한다.
+
+  예전에는 생성기마다 main() 이 있어서 `python -m scripts.etl.get_items` 로
+  돌렸다. 그 아홉 줄이 열두 파일에 똑같이 들어 있었고, 파일을 쓰는 자리가
+  여기 ensure_sql() 과 둘로 갈려 있었다. 진입점을 여기 하나로 모은다.
 """
+
+import argparse
 
 from pokemon_champions.config import DB_CONFIG
 from pokemon_champions.db import connect
@@ -63,6 +76,37 @@ STEPS = [
 ]
 
 
+def step_name(step):
+    """모듈 이름 꼬리. scripts.etl.get_items -> items"""
+    return step.__name__.rsplit(".", 1)[-1].removeprefix("get_")
+
+
+def select(names):
+    """--only 로 받은 이름들을 STEPS 의 부분집합으로. 순서는 STEPS 를 따른다.
+
+    세 가지로 걸린다 — 모듈 꼬리(items) · 파일명 앞자리(06) · 확장자 뺀
+    파일명(06_items). 손으로 치는 값이라, 무엇을 기억하고 있든 걸리는
+    편이 낫다. 하나라도 못 찾으면 그 자리에서 멈춘다 — 오타를 조용히
+    건너뛰면 "돌렸는데 파일이 안 바뀐다" 가 된다.
+    """
+    wanted = {n.lower().removesuffix(".sql") for n in names}
+    chosen, found = [], set()
+    for step in STEPS:
+        keys = {step_name(step),
+                step.FILENAME.split("_")[0],
+                step.FILENAME.removesuffix(".sql")}
+        if wanted & keys:
+            chosen.append(step)
+            found |= wanted & keys
+
+    missing = wanted - found
+    if missing:
+        raise SystemExit(
+            f"그런 단계가 없습니다: {', '.join(sorted(missing))}\n"
+            f"고를 수 있는 것: {', '.join(step_name(s) for s in STEPS)}")
+    return chosen
+
+
 def row_count(conn, table):
     cur = conn.cursor()
     cur.execute(f"SELECT count(*) FROM {table}")
@@ -83,18 +127,37 @@ def execute_sql(conn, path):
     conn.commit()
 
 
-def main():
+def main(argv=None):
+    ap = argparse.ArgumentParser(
+        description="PokeAPI 에서 받아 SQL 을 만들고 DB 에 올린다.")
+    ap.add_argument(
+        "--only", action="append", metavar="단계",
+        help="이 단계만 만든다. 여러 번 줄 수 있다. "
+             "items · 06 · 06_items 가 모두 같은 것을 가리킨다")
+    ap.add_argument(
+        "--exec", dest="execute", action="store_true",
+        help="--only 로 만든 SQL 을 DB 에도 실행한다 (기본은 파일만)")
+    args = ap.parse_args(argv)
+
+    steps = select(args.only) if args.only else STEPS
+    # 전체 구축은 생성과 실행을 번갈아 해야 뒤 단계가 앞 단계의 테이블을
+    # 읽을 수 있다. 부분 실행만 파일에서 멈추는 것이 기본이다.
+    execute = args.execute or not args.only
+
     print(f"대상 DB  : {DB_CONFIG['dbname']} @ {DB_CONFIG['host']}")
     print(f"SQL 폴더 : {paths.SQL_DIR}")
+    if not execute:
+        print("DB 실행  : 안 함 (--exec 로 켠다)")
 
     paths.SQL_DIR.mkdir(exist_ok=True)
     conn = connect()
 
-    for step in STEPS:
+    for step in steps:
         print(f"\n── {step.FILENAME} ──")
         try:
             path = ensure_sql(step, conn)
-            execute_sql(conn, path)
+            if execute:
+                execute_sql(conn, path)
         except Exception as e:
             # 롤백하지 않으면 커넥션이 aborted 로 남아 이후 단계가
             # 전부 "current transaction is aborted" 로 무너진다.
@@ -102,14 +165,21 @@ def main():
             conn.close()
             print(f"\n{step.FILENAME} 에서 멈췄습니다.")
             print(f"  {type(e).__name__}: {e}")
-            print("\n앞 단계까지는 DB에 반영돼 있습니다. 이어서 진행할 수 없으니")
-            print("README §5 로 전부 지운 뒤 다시 실행하세요.")
+            if execute:
+                print("\n앞 단계까지는 DB에 반영돼 있습니다. 이어서 진행할 수 없으니")
+                print("README §7 로 전부 지운 뒤 다시 실행하세요.")
             raise SystemExit(1)
-        print(f"    실행 완료 - {step.TABLE} {row_count(conn, step.TABLE)}행")
+        if execute:
+            print(f"    실행 완료 - {step.TABLE} {row_count(conn, step.TABLE)}행")
+        else:
+            print(f"    {path}")
 
-    print("\n구축 완료")
-    for step in STEPS:
-        print(f"  {step.TABLE:<16} {row_count(conn, step.TABLE):>6}행")
+    if execute:
+        print("\n구축 완료")
+        for step in steps:
+            print(f"  {step.TABLE:<16} {row_count(conn, step.TABLE):>6}행")
+    else:
+        print(f"\n{len(steps)}개 파일 생성 완료")
     conn.close()
 
 

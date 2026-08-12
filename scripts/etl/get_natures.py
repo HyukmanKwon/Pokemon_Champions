@@ -1,6 +1,3 @@
-from pokemon_champions.db import connect
-
-from . import paths
 from . import schema
 from .parse_utils import render, mogrify_rows
 
@@ -41,14 +38,3 @@ def build(conn):
     rows = mogrify_rows(cur, NATURES, len(COLUMNS))
     return render(schema.NATURES, TABLE, COLUMNS, rows)
 
-
-def main():
-    conn = connect()
-    paths.SQL_DIR.mkdir(exist_ok=True)
-    (paths.SQL_DIR / FILENAME).write_text(build(conn), encoding="utf-8")
-    print(f"\n{FILENAME} 생성 완료")
-    conn.close()
-
-
-if __name__ == "__main__":
-    main()

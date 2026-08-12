@@ -17,9 +17,6 @@ pokemons 와 items 를 읽어서 만들기 때문에 03·06 단계 뒤에 와야
   두고 끝에 목록을 출력한다. 틀린 스톤을 넣느니 비워두는 편이 낫다.
 """
 
-from pokemon_champions.db import connect
-
-from . import paths
 from . import schema
 from .get_pokemons import MANUAL_BASE, split_mega
 from .parse_utils import render, mogrify_rows
@@ -123,14 +120,3 @@ def build(conn):
     return render(schema.MEGA_EVOLUTIONS, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
 
-
-def main():
-    conn = connect()
-    paths.SQL_DIR.mkdir(exist_ok=True)
-    (paths.SQL_DIR / FILENAME).write_text(build(conn), encoding="utf-8")
-    print(f"\n{FILENAME} 생성 완료")
-    conn.close()
-
-
-if __name__ == "__main__":
-    main()

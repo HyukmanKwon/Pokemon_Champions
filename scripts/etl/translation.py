@@ -3,7 +3,7 @@
 get_pokemons.py 가 폼 이름을 한국어로 조립할 때 쓴다.
 
 - 모듈 로드 시점에 DB 커넥션을 열지 않는다. import 만 해도 접속이 일어나면
-  아직 테이블이 없는 구축 초기 단계에서 main.py 가 죽기 때문이다.
+  아직 테이블이 없는 구축 초기 단계에서 build.py 가 죽기 때문이다.
 - get_pokemons 를 import 하지 않는다. get_pokemons 가 이 모듈을 import 하고
   있어서 서로 물고 도는 순환 import 가 된다.
 """

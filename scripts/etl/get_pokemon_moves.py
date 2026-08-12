@@ -10,9 +10,6 @@ pokemon_moves 연결 테이블용 07_pokemon_moves.sql 을 생성한다.
   - 따라서 03_pokemons.sql / 04_moves.sql 이 DB에 올라간 뒤에 실행돼야 한다.
 """
 
-from pokemon_champions.db import connect
-
-from . import paths
 from . import schema
 from .parse_utils import get_json, render, mogrify_rows
 
@@ -66,14 +63,3 @@ def build(conn):
     return render(schema.POKEMON_MOVES, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
 
-
-def main():
-    conn = connect()
-    paths.SQL_DIR.mkdir(exist_ok=True)
-    (paths.SQL_DIR / FILENAME).write_text(build(conn), encoding="utf-8")
-    print(f"{FILENAME} 생성 완료")
-    conn.close()
-
-
-if __name__ == "__main__":
-    main()

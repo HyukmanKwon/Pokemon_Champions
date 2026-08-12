@@ -6,13 +6,10 @@ abilities 테이블용 05_abilities.sql 을 생성한다.
   - 대상 특성 목록 = DB의 pokemons 테이블 ability1/2/3 에서 중복 없이 SELECT
     (포켓몬 목록이 바뀌면 특성 목록도 자동으로 따라간다)
   - 따라서 03_pokemons.sql 이 DB에 올라간 뒤에 실행돼야 한다.
-    main.py 는 생성과 실행을 번갈아 하므로 순서가 저절로 맞는다.
+    build.py 는 생성과 실행을 번갈아 하므로 순서가 저절로 맞는다.
 """
 
-from pokemon_champions.db import connect
-
 from . import overrides
-from . import paths
 from . import schema
 from .parse_utils import (get_json, pick_korean, pick_korean_flavor,
                          pick_english_effect, render, mogrify_rows)
@@ -94,14 +91,3 @@ def build(conn):
     return render(schema.ABILITIES, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
 
-
-def main():
-    conn = connect()
-    paths.SQL_DIR.mkdir(exist_ok=True)
-    (paths.SQL_DIR / FILENAME).write_text(build(conn), encoding="utf-8")
-    print(f"{FILENAME} 생성 완료")
-    conn.close()
-
-
-if __name__ == "__main__":
-    main()

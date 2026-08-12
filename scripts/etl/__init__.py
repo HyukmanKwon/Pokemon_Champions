@@ -12,7 +12,10 @@
 ── 실행 ──
   프로젝트 루트에서 -m 으로 돌린다. 예전처럼 cd 해서 실행하지 않는다.
 
-      python -m scripts.etl.build          전체 구축
-      python -m scripts.etl.get_items      06_items.sql 만 생성
+      python -m scripts.etl.build                    전체 구축
+      python -m scripts.etl.build --only items       06_items.sql 만 생성
       python -m scripts.etl.annotator.moves
+
+  get_*.py 는 직접 돌리지 않는다. 그 파일들이 노출하는 것은 build(conn) 과
+  표 이름 몇 개뿐이고, 파일을 만들고 DB 에 올리는 일은 build.py 가 한다.
 """

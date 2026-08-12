@@ -150,11 +150,25 @@ data/
 `data/sql/` 에 파일이 남아 있어도 재사용하지 않는다. `build.py` 의
 `ensure_sql()` 이 조건 없이 `step.build(conn)` 을 부르고 파일을 덮어쓴다.
 
-SQL 파일만 따로 뽑고 싶으면 개별 생성기를 쓴다. DB에는 실행하지 않는다.
+한 표만 따로 뽑고 싶으면 `--only` 를 준다. DB에는 실행하지 않는다.
 
 ```bash
-python -m scripts.etl.get_items   # data/sql/06_items.sql 만 생성
+python -m scripts.etl.build --only items          # data/sql/06_items.sql 만 생성
+python -m scripts.etl.build --only items --exec   # 만들고 DB 에도 실행
+python -m scripts.etl.build --only 06 --only 07   # 여러 개
 ```
+
+이름은 `items` · `06` · `06_items` 가 모두 같은 것을 가리킨다. 못 찾는 이름을
+주면 고를 수 있는 목록을 보여주고 멈춘다 — 오타를 조용히 건너뛰면 "돌렸는데
+파일이 안 바뀐다" 가 되기 때문이다.
+
+`--only` 없이 돌리는 전체 구축만 생성과 실행을 번갈아 한다. 부분 실행은
+파일에서 멈추는 것이 기본이다. 한 표만 다시 넣는 일은 드물고, 잘못 넣으면
+되돌릴 방법이 §7 의 psql 명령뿐이라 `--exec` 로 따로 시키게 했다.
+
+> `get_*.py` 를 직접 돌리지 않는다. 예전에는 파일마다 `main()` 이 있었지만,
+> 그 아홉 줄이 열두 벌 똑같이 들어 있었고 파일을 쓰는 자리가 `build.py` 의
+> `ensure_sql()` 과 둘로 갈려 있었다. 진입점은 `build.py` 하나다.
 
 ### 재시도와 요청 간격이 없다
 
@@ -822,7 +836,6 @@ PokeAPI에 한국어가 아직 없는 항목이 있다.
    TABLE    = "XXX"
    COLUMNS  = [...]          # INSERT 컬럼 순서
    DDL      = schema.XXX
-   USES_API = True
 
    def build(conn) -> str:   # SQL 전문을 문자열로 반환
        ...
@@ -831,6 +844,6 @@ PokeAPI에 한국어가 아직 없는 항목이 있다.
 3. `build.py` 의 `STEPS` 에 의존 순서에 맞게 끼워 넣는다
 4. `schema.py` 의 `ALL_TABLES` 에 테이블 이름을 추가한다
 
-파일에 직접 쓰지 않고 문자열을 반환하는 것이 규칙이다. 파일 배치는 `build.py` 가 한다.
-각 `get_*.py` 의 `main()` 은 그 파일을 단독 실행할 때만 쓰는 진입점이고,
-`build.py` 는 `build()` 만 호출한다.
+**노출하는 것은 이 다섯 개가 전부다.** 파일에 직접 쓰지 않고 문자열을 반환하는
+것이 규칙이고, 파일 배치와 DB 실행은 `build.py` 가 한다. `main()` 도 `connect()`
+도 적지 않는다 — `STEPS` 에 넣는 순간 `--only` 로 단독 실행이 된다.

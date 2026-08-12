@@ -9,9 +9,6 @@ import re
 
 import requests
 
-from pokemon_champions.db import connect
-
-from . import paths
 from . import schema
 from . import translation
 from .parse_utils import render, mogrify_rows
@@ -221,13 +218,3 @@ def build(conn):
         print(f"베이스가 목록에 없는 메가: {len(orphans)}개 - {orphans}")
     return render(schema.POKEMONS, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
-
-def main():
-    conn = connect()
-    paths.SQL_DIR.mkdir(exist_ok=True)
-    (paths.SQL_DIR / FILENAME).write_text(build(conn), encoding="utf-8")
-    print(f"{FILENAME} 생성 완료")
-    conn.close()
-
-if __name__ == "__main__":
-    main()

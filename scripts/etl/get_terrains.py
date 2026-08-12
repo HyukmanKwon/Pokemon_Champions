@@ -14,9 +14,6 @@ name 은 기술 이름의 접두사와 같다.
   일렉트릭필드에서 공중에 뜬 포켓몬이 쓰는 전기 기술은 그대로 1.0배다.
 """
 
-from pokemon_champions.db import connect
-
-from . import paths
 from . import schema
 from .parse_utils import render, mogrify_rows
 
@@ -50,14 +47,3 @@ def build(conn):
     return render(schema.TERRAINS, TABLE, COLUMNS,
                   mogrify_rows(cur, TERRAINS, len(COLUMNS)))
 
-
-def main():
-    conn = connect()
-    paths.SQL_DIR.mkdir(exist_ok=True)
-    (paths.SQL_DIR / FILENAME).write_text(build(conn), encoding="utf-8")
-    print(f"\n{FILENAME} 생성 완료")
-    conn.close()
-
-
-if __name__ == "__main__":
-    main()

@@ -9,9 +9,6 @@
 계산기에서 배수를 잘못 쓰기 쉬워서 테이블로 못 박아 둔다.
 """
 
-from pokemon_champions.db import connect
-
-from . import paths
 from . import schema
 from .parse_utils import render, mogrify_rows
 
@@ -49,14 +46,3 @@ def build(conn):
     return render(schema.STAT_STAGES, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
 
-
-def main():
-    conn = connect()
-    paths.SQL_DIR.mkdir(exist_ok=True)
-    (paths.SQL_DIR / FILENAME).write_text(build(conn), encoding="utf-8")
-    print(f"\n{FILENAME} 생성 완료")
-    conn.close()
-
-
-if __name__ == "__main__":
-    main()

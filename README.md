@@ -378,9 +378,9 @@ Python은 "현재 실행 위치"를 기준으로 모듈을 찾는다. 파일이 
 때문에, 프로젝트 루트에서 `-m`으로 돌린다.
 
 ```bash
-python -m scripts.etl.build              # 이전: cd database && python main.py
-python -m scripts.etl.get_items          # 이전: python get_items.py
-python -m scripts.etl.annotator.moves    # 이전: python annotator/moves.py
+python -m scripts.etl.build                 # 이전: cd database && python main.py
+python -m scripts.etl.build --only items    # 이전: python get_items.py
+python -m scripts.etl.annotator.moves       # 이전: python annotator/moves.py
 ```
 
 DB 스키마와 데이터는 건드리지 않았다. 재구축 없이 그대로 쓸 수 있다.
