@@ -230,34 +230,40 @@ def sprite_item(item_name: str):
 #
 # 목록은 전부 한 번에 보낸다. 가장 큰 moves 가 498줄이라, 검색·정렬은
 # 브라우저가 메모리에서 하는 편이 왕복보다 빠르다.
+#
+# 네 종류가 하는 일이 같다 — 목록은 "repo 에서 받아 그림 주소를 붙여 보낸다",
+# 상세는 "repo 에서 받아(없으면 404) 그림 주소를 붙여 보낸다". 그래서 라우트를
+# 여덟 개 적지 않고, 무엇을 어느 repo 에서 받아 어떻게 장식할지만 DEX 에
+# 적는다. 화면 쪽 dex.js 의 DEX 상수가 네 탭을 한 렌더러로 접는 것과 같은
+# 모양이라, 한쪽을 읽으면 다른 쪽도 읽힌다.
 # ─────────────────────────────────────────────────────────────
 
+# ── 행 하나에 그림 주소를 붙이는 것들 ──
+# repositories 가 아니라 여기서 붙인다. 어떤 크기의 그림을 쓰는지는 화면
+# 사정이지 DB 의 성질이 아니다. 목록과 상세가 같은 함수를 쓴다.
+
 def _decorate_pokemon(row):
-    """포켓몬 행에 화면용 그림 주소를 붙인다. 여기서만 붙이는 이유는,
-    repositories 가 화면 사정(어떤 크기의 그림을 쓰는지)을 모르게 하려는 것."""
     row["types"] = _type_badges(row.get("type1"), row.get("type2"))
     row["icon"] = assets.url_pokemon_icon(row.get("id"))
     row["sprite"] = assets.url_pokemon_sprite(row.get("id"))
     return row
 
 
-def _found(fetch, *args):
-    """repositories 의 ValueError('존재하지 않는 …') 를 404 로 바꾼다."""
-    try:
-        return fetch(*args)
-    except ValueError as e:
-        raise HTTPException(404, str(e))
+def _decorate_move(row):
+    row["icon"] = assets.url_type_icon(row["type"])
+    return row
 
 
-@app.get("/api/dex/pokemons")
-def dex_pokemons():
-    return [_decorate_pokemon(r)
-            for r in pokemon_repo.fetch_list(state["conn"])]
+def _decorate_item(row):
+    row["icon"] = assets.url_item_sprite(row["name"])
+    return row
 
 
-@app.get("/api/dex/pokemons/{name}")
-def dex_pokemon(name: str):
-    row = _found(pokemon_repo.fetch_detail, state["conn"], name)
+# ── 상세에만 있는 딸린 목록 ──
+# 상세 응답에는 목록에 없는 칸이 붙는다(배우는 포켓몬, 메가 관계 …).
+# 여기서만 다르므로 종류마다 따로 적는다.
+
+def _detail_pokemon(row):
     _decorate_pokemon(row)
     for m in row["moves"]:
         m["icon"] = assets.url_type_icon(m["type"])
@@ -269,52 +275,65 @@ def dex_pokemon(name: str):
     return row
 
 
-@app.get("/api/dex/moves")
-def dex_moves():
-    rows = move_repo.fetch_list(state["conn"])
-    for r in rows:
-        r["icon"] = assets.url_type_icon(r["type"])
-    return rows
-
-
-@app.get("/api/dex/moves/{name}")
-def dex_move(name: str):
-    row = _found(move_repo.fetch_detail, state["conn"], name)
-    row["icon"] = assets.url_type_icon(row["type"])
+def _detail_move(row):
+    _decorate_move(row)
     row["learners"] = [_decorate_pokemon(p) for p in row["learners"]]
     return row
 
 
-@app.get("/api/dex/abilities")
-def dex_abilities():
-    return ability_repo.fetch_list(state["conn"])
-
-
-@app.get("/api/dex/abilities/{name}")
-def dex_ability(name: str):
-    row = _found(ability_repo.fetch_detail, state["conn"], name)
+def _detail_ability(row):
     row["pokemons"] = [_decorate_pokemon(p) for p in row["pokemons"]]
     return row
 
 
-@app.get("/api/dex/items")
-def dex_items():
-    rows = item_repo.fetch_list(state["conn"])
-    for r in rows:
-        r["icon"] = assets.url_item_sprite(r["name"])
-    return rows
-
-
-@app.get("/api/dex/items/{name}")
-def dex_item(name: str):
-    row = _found(item_repo.fetch_detail, state["conn"], name)
-    row["icon"] = assets.url_item_sprite(row["name"])
+def _detail_item(row):
+    _decorate_item(row)
     if row["mega"]:
         row["mega"]["base_icon"] = assets.url_pokemon_icon(
             row["mega"]["base_id"])
         row["mega"]["mega_icon"] = assets.url_pokemon_icon(
             row["mega"]["mega_id"])
     return row
+
+
+# {URL 의 종류: (조회 모듈, 목록 행 장식, 상세 장식)}
+# 목록 장식이 None 이면 repo 가 준 것을 그대로 보낸다 — 특성에는 그림이 없다.
+DEX = {
+    "pokemons":  (pokemon_repo, _decorate_pokemon, _detail_pokemon),
+    "moves":     (move_repo,    _decorate_move,    _detail_move),
+    "abilities": (ability_repo, None,              _detail_ability),
+    "items":     (item_repo,    _decorate_item,    _detail_item),
+}
+
+
+def _dex(kind):
+    spec = DEX.get(kind)
+    if spec is None:
+        raise HTTPException(
+            404, f"그런 도감이 없습니다: {kind} "
+                 f"(있는 것: {', '.join(DEX)})")
+    return spec
+
+
+def _found(fetch, *args):
+    """repositories 의 ValueError('존재하지 않는 …') 를 404 로 바꾼다."""
+    try:
+        return fetch(*args)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+
+@app.get("/api/dex/{kind}")
+def dex_list(kind: str):
+    repo, decorate, _ = _dex(kind)
+    rows = repo.fetch_list(state["conn"])
+    return [decorate(r) for r in rows] if decorate else rows
+
+
+@app.get("/api/dex/{kind}/{name}")
+def dex_detail(kind: str, name: str):
+    repo, _, decorate = _dex(kind)
+    return decorate(_found(repo.fetch_detail, state["conn"], name))
 
 
 # ─────────────────────────────────────────────────────────────

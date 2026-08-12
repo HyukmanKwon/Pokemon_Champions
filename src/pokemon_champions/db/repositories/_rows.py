@@ -23,3 +23,17 @@ def one(cur):
     if row is None:
         return None
     return dict(zip([d[0] for d in cur.description], row))
+
+
+def keyed(cur):
+    """SELECT 결과를 {첫 칸 값: {컬럼명: 값}} 로.
+
+    참조표(날씨·필드·상태이상)를 통째로 읽어 이름으로 찾는 자리에 쓴다.
+    rows() 로 받아 부르는 쪽이 dict 로 다시 접는 것과 결과가 같지만, 그
+    두 줄이 세 함수에 그대로 반복되고 있었다.
+
+    첫 칸이 열쇠라는 것은 SELECT 문이 정한다 — 이 표들의 기본키가 전부
+    name 이고 조회도 이름으로 하므로, 열쇠를 인자로 받게 만들 이유가 없다.
+    """
+    names = [d[0] for d in cur.description]
+    return {r[0]: dict(zip(names, r)) for r in cur.fetchall()}

@@ -12,6 +12,8 @@
   (services/damage.py 의 Rules 참고)
 """
 
+from ._rows import keyed
+
 
 def fetch_type_chart(conn):
     """{(공격타입, 방어타입): 배수} 로 324행 전부.
@@ -52,8 +54,7 @@ def fetch_weathers(conn):
         FROM weathers
         """
     )
-    names = [d[0] for d in cur.description]
-    return {r[0]: dict(zip(names, r)) for r in cur.fetchall()}
+    return keyed(cur)
 
 
 def fetch_terrains(conn):
@@ -66,8 +67,7 @@ def fetch_terrains(conn):
         FROM terrains
         """
     )
-    names = [d[0] for d in cur.description]
-    return {r[0]: dict(zip(names, r)) for r in cur.fetchall()}
+    return keyed(cur)
 
 
 def fetch_status_conditions(conn):
@@ -80,5 +80,4 @@ def fetch_status_conditions(conn):
         FROM status_conditions
         """
     )
-    names = [d[0] for d in cur.description]
-    return {r[0]: dict(zip(names, r)) for r in cur.fetchall()}
+    return keyed(cur)
