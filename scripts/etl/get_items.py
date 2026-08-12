@@ -13,8 +13,8 @@ items 테이블용 06_items.sql 을 생성한다.
 
 from . import overrides
 from . import schema
-from .parse_utils import (get_json, pick_korean, pick_korean_flavor,
-                         pick_english_effect, render, mogrify_rows)
+from .parse_utils import (collect, get_json, mogrify_rows, pick_korean,
+                         pick_english_effect, pick_korean_flavor, render)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/item"
 KO_OVERRIDE_KEY = "item_ko_names"
@@ -161,27 +161,11 @@ def build(conn):
     items = collect_item_names()
     print(f"\n수집 대상 도구 수: {len(items)}\n")
 
-    failed = []
-    no_ko = []
-    values = []
-    for name in items:
-        data = fetch_item(name)
-        if data is None:
-            failed.append(name)
-            print(f"{name} - failed")
-            continue
-        it = parse_item(data)
-        if it["ko_name"] is None:
-            no_ko.append(it["name"])
-        values.append(tuple(it[c] for c in COLUMNS))
-        print(f"{it['name']} -> {it['ko_name']}")
+    values = collect(items, fetch_item, parse_item, COLUMNS)
 
-    print(f"\n수집 {len(values)}개")
-    print(f"한국어 이름 없음: {len(no_ko)}개 - {no_ko}")
-    print(f"실패: {len(failed)}개 - {failed}")
     judged = len(overrides.load(USABLE_OVERRIDE_KEY)["values"])
     print(f"지닐 수 없다고 확인된 도구: {judged}개 "
           f"(annotator/items.py 로 확인합니다)")
-    return render(schema.ITEMS, TABLE, COLUMNS,
+    return render(DDL, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
 

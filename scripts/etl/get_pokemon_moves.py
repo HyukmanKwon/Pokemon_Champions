@@ -60,6 +60,6 @@ def build(conn):
         print(f"{name} - {len(valid)}개")
 
     print(f"\n연결 {len(values)}행 / 실패: {len(failed)}개 - {failed}")
-    return render(schema.POKEMON_MOVES, TABLE, COLUMNS,
+    return render(DDL, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
 

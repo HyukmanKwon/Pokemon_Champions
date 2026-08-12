@@ -11,8 +11,8 @@ abilities 테이블용 05_abilities.sql 을 생성한다.
 
 from . import overrides
 from . import schema
-from .parse_utils import (get_json, pick_korean, pick_korean_flavor,
-                         pick_english_effect, render, mogrify_rows)
+from .parse_utils import (collect, get_json, mogrify_rows, pick_korean,
+                         pick_english_effect, pick_korean_flavor, render)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/ability"
 KO_OVERRIDE_KEY = "ability_ko_names"
@@ -70,24 +70,7 @@ def build(conn):
     abilities = select_ability_names(cur)
     print(f"DB 특성 수: {len(abilities)}")
 
-    failed = []
-    no_ko = []
-    values = []
-    for name in abilities:
-        data = fetch_ability(name)
-        if data is None:
-            failed.append(name)
-            print(f"{name} - failed")
-            continue
-        a = parse_ability(data)
-        if a["ko_name"] is None:
-            no_ko.append(a["name"])
-        values.append(tuple(a[c] for c in COLUMNS))
-        print(f"{a['name']} -> {a['ko_name']}")
-
-    print(f"\n수집 {len(values)}개")
-    print(f"한국어 이름 없음: {len(no_ko)}개 - {no_ko}")
-    print(f"실패: {len(failed)}개 - {failed}")
-    return render(schema.ABILITIES, TABLE, COLUMNS,
+    values = collect(abilities, fetch_ability, parse_ability, COLUMNS)
+    return render(DDL, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
 

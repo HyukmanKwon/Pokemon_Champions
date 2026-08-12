@@ -216,5 +216,5 @@ def build(conn):
     orphans = sorted(bases - set(pokemon_M_B))
     if orphans:
         print(f"베이스가 목록에 없는 메가: {len(orphans)}개 - {orphans}")
-    return render(schema.POKEMONS, TABLE, COLUMNS,
+    return render(DDL, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))

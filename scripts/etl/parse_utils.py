@@ -55,6 +55,37 @@ def mogrify_rows(cur, values_list, width):
     return [cur.mogrify(placeholder, v).decode("utf-8") for v in values_list]
 
 
+def collect(names, fetch, parse, columns):
+    """이름 목록을 하나씩 받아 파싱하고, INSERT 할 값 튜플 목록으로 만든다.
+
+    특성과 도구가 같은 모양이다 — 받고, 못 받으면 건너뛰고, 파싱하고,
+    한국어 이름이 비었으면 세어 두고, 진행 상황을 한 줄씩 찍는다.
+
+    실패와 '한국어 이름 없음' 은 돌려주지 않고 여기서 세어 찍기만 한다.
+    부르는 쪽이 그 값으로 하는 일이 없기 때문이다 — 실패가 0이 아닐 때
+    이 SQL 을 쓸지 말지는 사람이 화면을 보고 정한다. (README §4)
+
+    parse 는 dict 를 돌려줘야 하고 그 안에 name·ko_name 이 있어야 한다.
+    """
+    values, no_ko, failed = [], [], []
+    for name in names:
+        data = fetch(name)
+        if data is None:
+            failed.append(name)
+            print(f"{name} - failed")
+            continue
+        row = parse(data)
+        if row["ko_name"] is None:
+            no_ko.append(row["name"])
+        values.append(tuple(row[c] for c in columns))
+        print(f"{row['name']} -> {row['ko_name']}")
+
+    print(f"\n수집 {len(values)}개")
+    print(f"한국어 이름 없음: {len(no_ko)}개 - {no_ko}")
+    print(f"실패: {len(failed)}개 - {failed}")
+    return values
+
+
 def literal_build(conn, ddl, table, columns, values, echo=None):
     """코드에 적힌 행 목록을 그대로 SQL 로. API 를 안 부르는 생성기의 build().
 

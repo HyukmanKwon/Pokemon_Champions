@@ -32,6 +32,7 @@ DDL = schema.MOVES
 # API를 다시 부르지 않으려고 04 단계에 합쳤다.
 STAT_TABLE = "move_stat_changes"
 STAT_COLUMNS = ["move_name", "stat", "change"]
+STAT_DDL = schema.MOVE_STAT_CHANGES
 
 # PokeAPI 능력치 이름 -> 이 프로젝트 표기
 STAT_MAP = {
@@ -261,14 +262,14 @@ def build(conn):
     print("  바람·베기·압박은 CSV 에 없어 전부 추측입니다."
           " annotator/moves.py 로 확인하세요.")
 
-    sql = render(schema.MOVES, TABLE, COLUMNS,
+    sql = render(DDL, TABLE, COLUMNS,
                  mogrify_rows(cur, values, len(COLUMNS)))
 
     # 변화가 하나도 없으면 INSERT 없이 테이블만 만든다 (VALUES; 는 문법 오류)
     if stat_values:
-        sql += "\n" + render(schema.MOVE_STAT_CHANGES, STAT_TABLE, STAT_COLUMNS,
+        sql += "\n" + render(STAT_DDL, STAT_TABLE, STAT_COLUMNS,
                              mogrify_rows(cur, stat_values, len(STAT_COLUMNS)))
     else:
-        sql += "\n" + schema.MOVE_STAT_CHANGES
+        sql += "\n" + STAT_DDL
     return sql
 

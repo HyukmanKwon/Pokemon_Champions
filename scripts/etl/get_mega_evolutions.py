@@ -117,6 +117,6 @@ def build(conn):
     print(f"\n연결 {len(values)}행")
     print(f"베이스 없음: {len(no_base)}개 - {no_base}")
     print(f"스톤 못 찾음: {len(no_stone)}개 - {no_stone}")
-    return render(schema.MEGA_EVOLUTIONS, TABLE, COLUMNS,
+    return render(DDL, TABLE, COLUMNS,
                   mogrify_rows(cur, values, len(COLUMNS)))
 
