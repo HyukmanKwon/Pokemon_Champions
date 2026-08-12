@@ -46,24 +46,17 @@ PGDATABASE=pokemon_test python -m scripts.etl.build   # 다른 DB에 구축
 
 ## 2. 파일 구성
 
+**파이프라인** — 구축에 실제로 참여하는 코드.
+
 ```
 scripts/etl/
-├── build.py              진입점. SQL 생성 → 실행을 순서대로 수행
+├── build.py              유일한 진입점. SQL 생성 → 실행. --only 로 부분 실행
 ├── paths.py              data/ 하위 경로. config.py 의 값을 그대로 쓴다
 ├── schema.py             모든 CREATE TABLE / ENUM 정의 (단일 출처)
 ├── parse_utils.py        PokeAPI 응답 파싱 + SQL 조립 공용 헬퍼
 ├── translation.py        포켓몬 이름 한↔영 변환, 폼 이름 조립
 ├── move_flags.py         기술 플래그 (PokeAPI CSV + 이름 규칙)
 ├── overrides.py          사람이 확정한 값 읽기/쓰기
-├── check_moves.py        외부 목록과 기술 대조 (누락 찾기)
-├── dump_sql.py           지금 DB 를 data/sql/ 에 받아 적기 (build 의 반대 방향)
-│
-├── annotator/            브라우저에서 손으로 고치는 도구들
-│   ├── _common.py        서버·화면 뼈대 (도구마다 재사용)
-│   ├── moves.py          기술 플래그
-│   ├── ko_names.py       한국어 이름·설명 (특성·도구·기술)
-│   └── items.py          도구를 지닐 수 있는가
-│
 │
 ├── get_types.py          01_types.sql
 ├── get_natures.py        02_natures.sql
@@ -78,7 +71,34 @@ scripts/etl/
 ├── get_mega_evolutions.py    10_mega_evolutions.sql
 ├── get_weathers.py           11_weathers.sql
 ├── get_terrains.py           12_terrains.sql
+│
+└── annotator/            브라우저에서 손으로 고치는 도구들 (§5)
+    ├── _common.py        서버·화면 뼈대 (도구마다 재사용)
+    ├── moves.py          기술 플래그
+    ├── ko_names.py       한국어 이름·설명 (특성·도구·기술)
+    └── items.py          도구를 지닐 수 있는가
 ```
+
+`get_*.py` 는 직접 돌리지 않는다. 노출하는 것은 `FILENAME`·`TABLE`·`COLUMNS`·
+`DDL`·`build(conn)` 다섯 개뿐이고, 파일을 만들고 DB 에 올리는 일은 `build.py` 가
+한다. (§11)
+
+**일회성·진단 도구** — 구축에 참여하지 않는다. 손으로 필요할 때만 돌린다.
+
+```
+scripts/etl/
+├── migrate_roster.py     로스터가 바뀐 것을 재구축 없이 DB 에 반영
+├── sync_moves.py         moves_M_B 에 있는데 DB 에 없는 기술만 채우기
+├── pin_ko_names.py       지금 DB 의 한국어 표기를 override 에 고정
+├── check_moves.py        외부 목록과 기술 대조 (누락 찾기)
+└── dump_sql.py           지금 DB 를 data/sql/ 에 받아 적기 (build 의 반대 방향)
+```
+
+앞의 셋은 **`build.py` 를 다시 못 돌리기 때문에** 있다. 스키마에
+`IF NOT EXISTS` 가 없어 빈 DB 여야 하고, 전체 재구축은 PokeAPI 를 1,900번
+부른다. 몇 마리 늘고 주는 일로 그 값을 치를 이유가 없어서 우회로를 냈다.
+`build.py` 가 멱등해지면 `sync_moves` 는 통째로, `migrate_roster` 는 INSERT
+쪽이 사라진다. (지우는 쪽은 UPSERT 로 대체되지 않으므로 남는다.)
 
 접속 설정(`connect()`, `DB_CONFIG`)은 여기 없다. `pokemon_champions.db` 와
 `pokemon_champions.config` 에 있고 ETL 이 그것을 import 한다 — 앱과 ETL 이 서로 다른
