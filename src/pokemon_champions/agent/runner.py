@@ -72,6 +72,30 @@ MAX_TURNS = 8
 # 뽑아 한 번에 6할이므로 네 번이면 97%. 그래도 안 되면 모델을 바꿀 문제다.
 RETRIES = 4
 
+# ── 생각(thinking)을 끈다 ──
+#   qwen3.5 는 답하기 전에 생각을 길게 쓴다. 도구를 두 번 부르는 질문이면
+#   그 생각이 세 번 나오고, 그게 시간의 대부분이다. 같은 질문을 재보면:
+#
+#     한 턴    생각 켬  97토큰 6.3초    생각 끔  14토큰 0.9초
+#     전체     생각 켬     59초         생각 끔     22초
+#
+#   끄고도 도구 선택은 그대로였다 — 상성표를 물으면 type_matchup, 데미지를
+#   물으면 calc_damage, 기술을 물으면 moves_of 를 부른다. 어느 도구를
+#   부를지는 스키마의 설명이 정하는 것이지 모델의 독백이 정하는 게 아니다.
+#   숫자와 이름도 도구가 만들어 주므로 생각할 거리가 애초에 적다.
+#
+#   더 어려운 질문에서 도구를 잘못 고르기 시작하면 이걸 True 로 되돌린다.
+THINK = False
+
+# ── 모델을 메모리에 얹어 둔다 ──
+#   Ollama 기본은 5분이다. 그 뒤 처음 묻는 한 번이 유난히 느린데, 재보면
+#   모델 로드 4.8초 + 프롬프트 3,689토큰 재계산 19.9초다. 두 번째부터는
+#   프롬프트가 캐시에 맞아 0.2초로 떨어진다.
+#
+#   9b 4비트가 6GB 쯤 잡는다. 24GB 맥에서 30분 얹어 두는 건 감당되지만,
+#   메모리가 아쉬우면 "5m" 로 되돌리면 된다.
+KEEP_ALIVE = "30m"
+
 # ── 컨텍스트를 왜 우리가 정하나 ──
 #   Ollama 는 VRAM 을 보고 기본값을 정한다. M4 에서 4096 이 잡혔는데 그건
 #   이 용도에 좁다. 시스템 프롬프트와 도구 스키마 13개만으로 2천 토큰쯤
@@ -142,7 +166,8 @@ LAST_CALL = ("The tool budget is used up and no more tool calls are available. "
              "you could not check rather than filling it in from memory.")
 
 
-def chat(messages, model=DEFAULT_MODEL, url=OLLAMA_URL, use_tools=True):
+def chat(messages, model=DEFAULT_MODEL, url=OLLAMA_URL, use_tools=True,
+         think=THINK):
     """Ollama 에 한 번 물어본다. 돌려주는 값은 message 하나.
 
     use_tools=False 면 도구 스키마를 빼고 보낸다. 도구를 못 부르니 모델은
@@ -156,6 +181,8 @@ def chat(messages, model=DEFAULT_MODEL, url=OLLAMA_URL, use_tools=True):
         "model": model,
         "messages": messages,
         "stream": False,
+        "think": think,
+        "keep_alive": KEEP_ALIVE,
         # 도구 인자를 지어내지 않게 낮게 둔다. 답변 문장의 다양성보다
         # "포켓몬 이름을 정확히 적는가" 가 훨씬 중요하다.
         "options": {"temperature": 0.2, "num_ctx": NUM_CTX},
