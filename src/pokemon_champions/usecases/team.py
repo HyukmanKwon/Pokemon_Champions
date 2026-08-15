@@ -18,8 +18,8 @@
 """
 
 from ..config import MAX_MOVES
-from ..db.repositories import (item_repo, mega_repo, move_repo, nature_repo,
-                               pokemon_repo)
+from ..db.repositories import (ability_repo, item_repo, mega_repo, move_repo,
+                               nature_repo, pokemon_repo)
 from ..domain import Pokemon
 from ..text import normalize
 from ..calc.stats import calc_stats, make_sp
@@ -195,3 +195,42 @@ def resolve_mega(conn, spec):
 def mega_hint(conn, ko_name):
     """이 포켓몬이 메가진화하려면 무슨 스톤이 필요한지. 없으면 빈 리스트."""
     return mega_repo.fetch_stones(conn, ko_name)
+
+
+def slot_data(conn, spec):
+    """엔트리 한 칸을 그리는 데 필요한 조회를 한자리에서 끝낸다.
+
+    돌려주는 것은 뷰가 아니라 값이다. 아이콘 URL 도 칸 이름도 여기서 정하지
+    않는다 — 그건 interfaces/api/views.slot() 이 한다. 웹과 CLI 가 같은 칸을
+    다르게 그려야 하므로, 조회만 여기서 한 번 하고 모양은 각자 만든다.
+
+    조회가 여덟 번이라 한 곳에 모아 두는 편이 낫다. 흩어져 있으면 반복문
+    안에 들어가도 안 보인다 — 엔트리 여섯 칸이면 마흔여덟 번이 된다.
+    """
+    ko_name = spec["ko_name"]
+
+    base = pokemon_repo.fetch_base(conn, ko_name)
+    sp = make_sp(spec["sp_values"])
+    nature_mods = nature_repo.fetch_modifiers(conn, spec["ko_nature"])
+
+    # 메가가 아예 없는 포켓몬이면 stones 가 빈 리스트라 화면에 아무것도
+    # 안 뜬다. 스톤을 이미 지녀 메가가 성립할 때도 목록은 그대로 준다 —
+    # 도구 선택 목록에 그 스톤을 올리려면 이름을 알아야 하기 때문이다.
+    stones = [s for s in mega_hint(conn, ko_name) if s["item_ko_name"]]
+
+    return {
+        "base": base,
+        "sp": sp,
+        "stats": calc_stats(base, sp, nature_mods),
+        "meta": pokemon_repo.fetch_meta(conn, ko_name),
+        "ability_effect": ability_repo.fetch_effect(conn, spec["ability"]),
+        "nature_up": next((k for k, v in nature_mods.items() if v == 1.1), None),
+        "nature_down": next((k for k, v in nature_mods.items() if v == 0.9), None),
+        "moves": [{"name": normalize(m),
+                   "type": move_repo.fetch_type(conn, normalize(m))}
+                  for m in (spec.get("moves") or [])],
+        "selectable_abilities": pokemon_repo.fetch_abilities(conn, ko_name),
+        "learnable_moves": move_repo.fetch_learnable(conn, ko_name),
+        "mega_form": resolve_mega(conn, spec),
+        "mega_stones": stones,
+    }

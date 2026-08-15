@@ -1,8 +1,17 @@
 """로컬 웹으로 내 포켓몬 팀을 보고 필드 단위로 바로 고치는 FastAPI 앱.
 
-CLI(interfaces/cli.py)와 완전히 같은 services 를 쓴다 — 검증/부분수정 로직을
-여기서 다시 만들지 않고 services.team, services.stats, repositories 를
-호출만 한다. 이 파일에 계산이나 SQL 이 생기면 CLI 와 웹의 동작이 갈라진다.
+라우트만 있다. 세 가지를 각자 다른 곳에 두고 여기서는 잇기만 한다.
+
+    무엇을 계산할까   usecases/   (battle · team · roster · naming)
+    어떤 칸에 담을까   views.py
+    무슨 상태코드일까  여기
+
+CLI(interfaces/cli.py)와 완전히 같은 usecases 를 쓴다 — 검증과 부분수정을
+여기서 다시 만들지 않는다. 이 파일에 계산이나 SQL 이 생기면 CLI 와 웹의
+동작이 갈라진다.
+
+라우트 본문이 dict 리터럴로 길어지면 views.py 로 옮긴다. 예전에 이 파일이
+833줄이었는데 그중 대부분이 그것이었다.
 """
 
 import json
@@ -24,12 +33,11 @@ from ...agent import tools as agent_tools
 from ...db import connect, connection
 from ...db.repositories import (ability_repo, item_repo, move_repo,
                                 nature_repo, pokemon_repo, rules_repo)
-from ...domain import STAT_LABELS, STAT_ORDER
 from ...usecases import team
 from ...calc.damage import Rules
-from ...calc.stats import calc_stats, make_sp
 from ...text import normalize
 from ...usecases import battle, naming, roster
+from . import views
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -68,100 +76,6 @@ class SlotEdit(BaseModel):
     ability: Optional[str] = None
     item: Optional[str] = None
     moves: Optional[List[str]] = None
-
-
-def _stats_dict(stats):
-    d = stats.as_dict()
-    d["total"] = stats.total()
-    return d
-
-
-def _type_badges(*names):
-    return [{"name": t, "icon": assets.url_type_icon(t)} for t in names if t]
-
-
-def _mega_view(spec):
-    """메가진화 후 모습. 스톤을 안 지녔으면 None 이고, 그때는 힌트만 준다.
-
-    화면 표현(아이콘 URL·스프라이트)만 여기서 붙인다. 무엇이 바뀌는지는
-    services.team.resolve_mega 가 정한다.
-    """
-    conn = state["conn"]
-    form = team.resolve_mega(conn, spec)
-
-    # 메가가 아예 없는 포켓몬이면 빈 리스트라 화면에서 아무것도 안 뜬다.
-    # 스톤을 이미 지녀 메가가 성립할 때도 목록은 그대로 돌려준다 — 도구
-    # 선택 목록에 그 포켓몬의 스톤을 올리려면 이름을 알아야 하기 때문이다.
-    # 화면 안내는 megaBar() 가 slot.mega 를 먼저 보므로 겹치지 않는다.
-    stones = [s for s in team.mega_hint(conn, spec["ko_name"])
-              if s["item_ko_name"]]
-
-    if form is None:
-        return None, stones
-
-    return {
-        "name": form["ko_name"],
-        "sprite": assets.url_pokemon_sprite(form["id"]),
-        "types": _type_badges(form["type1"], form["type2"]),
-        "base": _stats_dict(form["base"]),
-        "stats": {k: form["stats"][k] for k in STAT_ORDER},
-        "ability": form["ability"],
-    }, stones
-
-
-def _slot_view(index, spec):
-    conn = state["conn"]
-
-    base = pokemon_repo.fetch_base(conn, spec["ko_name"])
-    sp = make_sp(spec["sp_values"])
-    nature_mods = nature_repo.fetch_modifiers(conn, spec["ko_nature"])
-    stats = calc_stats(base, sp, nature_mods)
-    effect = ability_repo.fetch_effect(conn, spec["ability"])
-    meta = pokemon_repo.fetch_meta(conn, spec["ko_name"])
-
-    up = next((k for k, v in nature_mods.items() if v == 1.1), None)
-    down = next((k for k, v in nature_mods.items() if v == 0.9), None)
-
-    types = _type_badges(meta["type1"], meta["type2"])
-    mega, mega_stones = _mega_view(spec)
-    moves = []
-    for m in (spec.get("moves") or []):
-        m = normalize(m)
-        move_type = move_repo.fetch_type(conn, m)
-        moves.append({
-            "name": m,
-            "type": move_type,
-            "icon": assets.url_type_icon(move_type),
-        })
-
-    return {
-        "index": index,
-        "spec": spec,
-        "name": normalize(spec["ko_name"]),
-        "sprite": assets.url_pokemon_sprite(meta["id"]),
-        "types": types,
-        "base": _stats_dict(base),
-        "sp": _stats_dict(sp),
-        "stats": {k: stats[k] for k in STAT_ORDER},
-        "nature": {
-            "name": normalize(spec["ko_nature"]),
-            "up": STAT_LABELS.get(up),
-            "down": STAT_LABELS.get(down),
-        },
-        "ability": {"name": spec["ability"], "effect": effect},
-        "item": (normalize(spec["item"]) if spec.get("item") else None) or "없음",
-        "condition": spec.get("condition") or "정상",
-        "moves": moves,
-        # 고를 수 있는 것들. 포켓몬마다 다르므로 슬롯별로 실어 보낸다.
-        # (도구는 포켓몬을 안 가리므로 /api/items 로 따로 한 번만 받는다)
-        "selectable_abilities": pokemon_repo.fetch_abilities(
-            conn, spec["ko_name"]),
-        "learnable_moves": move_repo.fetch_learnable(conn, spec["ko_name"]),
-        # 메가스톤을 지녔을 때만 값이 있다. 그때만 화면에 On/Off 버튼이 뜬다.
-        "mega": mega,
-        # 메가는 가능한데 스톤을 안 지닌 경우의 안내
-        "mega_stones": mega_stones,
-    }
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -243,71 +157,13 @@ def sprite_item(item_name: str):
 # 모양이라, 한쪽을 읽으면 다른 쪽도 읽힌다.
 # ─────────────────────────────────────────────────────────────
 
-# ── 행 하나에 그림 주소를 붙이는 것들 ──
-# repositories 가 아니라 여기서 붙인다. 어떤 크기의 그림을 쓰는지는 화면
-# 사정이지 DB 의 성질이 아니다. 목록과 상세가 같은 함수를 쓴다.
-
-def _decorate_pokemon(row):
-    row["types"] = _type_badges(row.get("type1"), row.get("type2"))
-    row["icon"] = assets.url_pokemon_icon(row.get("id"))
-    row["sprite"] = assets.url_pokemon_sprite(row.get("id"))
-    return row
-
-
-def _decorate_move(row):
-    row["icon"] = assets.url_type_icon(row["type"])
-    return row
-
-
-def _decorate_item(row):
-    row["icon"] = assets.url_item_sprite(row["name"])
-    return row
-
-
-# ── 상세에만 있는 딸린 목록 ──
-# 상세 응답에는 목록에 없는 칸이 붙는다(배우는 포켓몬, 메가 관계 …).
-# 여기서만 다르므로 종류마다 따로 적는다.
-
-def _detail_pokemon(row):
-    _decorate_pokemon(row)
-    for m in row["moves"]:
-        m["icon"] = assets.url_type_icon(m["type"])
-    for f in row["mega_forms"]:
-        f["item_icon"] = assets.url_item_sprite(f["item_name"])
-    if row["mega_of"]:
-        row["mega_of"]["item_icon"] = assets.url_item_sprite(
-            row["mega_of"]["item_name"])
-    return row
-
-
-def _detail_move(row):
-    _decorate_move(row)
-    row["learners"] = [_decorate_pokemon(p) for p in row["learners"]]
-    return row
-
-
-def _detail_ability(row):
-    row["pokemons"] = [_decorate_pokemon(p) for p in row["pokemons"]]
-    return row
-
-
-def _detail_item(row):
-    _decorate_item(row)
-    if row["mega"]:
-        row["mega"]["base_icon"] = assets.url_pokemon_icon(
-            row["mega"]["base_id"])
-        row["mega"]["mega_icon"] = assets.url_pokemon_icon(
-            row["mega"]["mega_id"])
-    return row
-
-
 # {URL 의 종류: (조회 모듈, 목록 행 장식, 상세 장식)}
 # 목록 장식이 None 이면 repo 가 준 것을 그대로 보낸다 — 특성에는 그림이 없다.
 DEX = {
-    "pokemons":  (pokemon_repo, _decorate_pokemon, _detail_pokemon),
-    "moves":     (move_repo,    _decorate_move,    _detail_move),
-    "abilities": (ability_repo, None,              _detail_ability),
-    "items":     (item_repo,    _decorate_item,    _detail_item),
+    "pokemons":  (pokemon_repo, views.decorate_pokemon, views.detail_pokemon),
+    "moves":     (move_repo,    views.decorate_move,    views.detail_move),
+    "abilities": (ability_repo, None,                   views.detail_ability),
+    "items":     (item_repo,    views.decorate_item,    views.detail_item),
 }
 
 
@@ -490,7 +346,9 @@ def get_team(deck: Optional[str] = None):
         slots = roster.slots(deck)
     except LookupError as e:
         raise HTTPException(404, str(e))
-    return [_slot_view(i, spec) for i, spec in enumerate(slots)]
+    conn = state["conn"]
+    return [views.slot(i, spec, team.slot_data(conn, spec))
+            for i, spec in enumerate(slots)]
 
 
 @app.get("/api/pokemon/{ko_name}/options")
@@ -560,9 +418,7 @@ def get_types():
     같은 내용이 두 벌이 되는데, 표기를 다듬으면 한쪽만 고치게 된다.
     LLM 쪽도 같은 표를 읽는다(usecases/naming.type_names).
     """
-    ko = naming.type_names(state["conn"])
-    return [{"name": t, "ko_name": ko[t], "icon": assets.url_type_icon(t)}
-            for t in sorted(ko)]
+    return views.types(naming.type_names(state["conn"]))
 
 
 @app.get("/api/natures")
@@ -572,14 +428,7 @@ def get_natures():
     이름만 주면 화면에서 무엇이 오르고 내리는지 알 수 없으니 능력치 이름을
     같이 붙인다. 성실은 둘 다 None 이다.
     """
-    return [
-        {
-            "name": n["ko_name"],
-            "up": STAT_LABELS.get(n["up"]),
-            "down": STAT_LABELS.get(n["down"]),
-        }
-        for n in nature_repo.fetch_all(state["conn"])
-    ]
+    return views.natures(nature_repo.fetch_all(state["conn"]))
 
 
 @app.patch("/api/team/{index}")
@@ -594,7 +443,7 @@ def patch_team(index: int, edit: SlotEdit, deck: Optional[str] = None):
     fields = edit.dict(exclude_unset=True)
     merged = {**slots[index], **fields}
     try:
-        # _slot_view 는 repositories 를 직접 부르므로 build_pokemon 을 거치지
+        # slot_data 는 repositories 를 직접 부르므로 build_pokemon 을 거치지
         # 않는다. 여기서 부르지 않으면 CLI 만 검증되고 웹은 무엇이든 통과한다.
         team.validate_spec(state["conn"], merged)
     except ValueError as e:
@@ -603,7 +452,8 @@ def patch_team(index: int, edit: SlotEdit, deck: Optional[str] = None):
         raise HTTPException(400, str(e))
 
     saved = roster.edit_slot(index, deck, **fields)
-    return _slot_view(index, saved)
+    return views.slot(index, saved,
+                      team.slot_data(state["conn"], saved))
 
 
 # ─────────────────────────────────────────────────────────────
@@ -665,37 +515,15 @@ def _spec(side: CalcSide):
             "grounded": side.grounded}
 
 
-def _side_view(p, side: CalcSide):
-    return {
-        "name": p.name,
-        "types": _type_badges(*p.types),
-        "stats": {k: p.stats[k] for k in STAT_ORDER},
-        "ability": p.ability,
-        "item": p.item,
-        "nature": p.nature,
-        "rank": side.rank,
-        "condition": side.condition,
-    }
-
-
 @app.get("/api/calc/rules")
 def calc_rules():
     """날씨·필드·상태이상 선택지. 화면의 드롭다운을 이걸로 채운다.
 
     코드에 목록을 적어두면 DB 에 새 날씨가 생겼을 때 조용히 빠진다.
     """
-    def pairs(rows):
-        return [{"name": k, "ko_name": v["ko_name"]} for k, v in rows.items()]
-
-    # 상태이상도 이제 rules 에 들어 있다. 여기서 다시 SELECT 하면 뜰 때
-    # 한 번 읽어둔 뜻이 없다.
-    return {
-        "weathers": pairs(state["rules"].weathers),
-        "terrains": pairs(state["rules"].terrains),
-        "conditions": pairs(state["rules"].conditions),
-        "stat_order": list(STAT_ORDER),
-        "stat_labels": {k: STAT_LABELS[k] for k in STAT_ORDER},
-    }
+    # 상태이상도 rules 에 들어 있다. 여기서 다시 SELECT 하면 뜰 때 한 번
+    # 읽어둔 뜻이 없다.
+    return views.calc_rules(state["rules"])
 
 
 class IndexRequest(BaseModel):
@@ -723,17 +551,7 @@ def calc_power(req: IndexRequest):
         if s.row is None:
             raise HTTPException(404, f"없는 기술입니다: {s.asked}")
 
-    return {
-        "side": _side_view(got.pokemon, req.side),
-        "moves": [{"name": s.row["ko_name"] or s.row["name"],
-                   "type": s.row["type"],
-                   "icon": assets.url_type_icon(s.row["type"]),
-                   "category": s.row["category"],
-                   "power": s.row["power"],
-                   "stab": s.stab,
-                   "index": s.index}
-                  for s in got.moves],
-    }
+    return views.power(got, req.side)
 
 
 @app.post("/api/calc/bulk")
@@ -747,11 +565,7 @@ def calc_bulk(req: IndexRequest):
         got = battle.bulk(state["conn"], _spec(req.side))
     except ValueError as e:
         raise HTTPException(400, str(e))
-    return {
-        "side": _side_view(got.pokemon, req.side),
-        "bulk": {"physical": got.physical, "special": got.special,
-                 "factor": got.factor},
-    }
+    return views.bulk(got, req.side)
 
 
 @app.post("/api/calc/damage")
@@ -774,60 +588,4 @@ def calc_damage(req: CalcRequest):
     except ValueError as e:
         raise HTTPException(400, str(e))
 
-    attacker, defender = shot.attacker, shot.defender
-    move, ctx, dmg, ko = shot.move, shot.ctx, shot.damage, shot.ko
-    max_hp = defender.stats.h
-    lo, hi = shot.percent()
-
-    return {
-        "attacker": _side_view(attacker, req.attacker),
-        "defender": _side_view(defender, req.defender),
-        "move": {
-            "name": move["ko_name"] or move["name"],
-            "type": move["type"],
-            "icon": assets.url_type_icon(move["type"]),
-            "category": move["category"],
-            "power": move["power"],
-            "accuracy": move["accuracy"],
-        },
-        "type_effect": shot.effect,
-        # 실제로 계산에 들어간 판 상황을 그대로 돌려준다. 화면이 보낸 것을
-        # 화면이 다시 그리면 "보냈다고 믿는 것" 을 보게 되어, 서버가 못 받은
-        # 경우와 구별이 안 된다.
-        "context": {
-            "weather": ctx.weather,
-            "terrain": ctx.terrain,
-            "attacker_rank": ctx.attacker_rank,
-            "defender_rank": ctx.defender_rank,
-            "is_critical": ctx.is_critical,
-            "reflect": ctx.reflect,
-            "light_screen": ctx.light_screen,
-            "is_doubles": ctx.is_doubles,
-            "attacker_hp": ctx.attacker_hp,
-            "defender_hp": ctx.defender_hp,
-        },
-        "damage": {
-            "min": dmg.min,
-            "max": dmg.max,
-            "rolls": dmg.rolls,
-            "percent_min": lo,
-            "percent_max": hi,
-            "defender_hp": max_hp,
-        },
-        "ko": {
-            "text": ko["text"],
-            "guaranteed": ko["guaranteed"],
-            "possible": ko["possible"],
-            "residual": ko["residual"],
-            "turns": [
-                {"damage_min": t["damage"].min,
-                 "damage_max": t["damage"].max,
-                 "hp_before": t["hp_before"],
-                 # 턴 끝 정산. 아무 일도 없었으면 null 이다. 합계만 주면
-                 # "왜 한 턴 빨리 죽었나" 를 화면에서 되짚을 수 없다.
-                 "tick": (None if t["tick"] is None else
-                          {"net": t["tick"].net, "text": t["tick"].text})}
-                for t in ko["turns"]
-            ],
-        },
-    }
+    return views.damage(shot, req.attacker, req.defender)
