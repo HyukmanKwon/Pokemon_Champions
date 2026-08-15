@@ -221,9 +221,26 @@ STATUS_CONDITIONS = """CREATE TABLE status_conditions (
     turn_damage   REAL,      -- 매 턴 최대 HP의 몇 배를 잃는가
     immobile      BOOLEAN,   -- 행동 자체가 막히는가 (잠듦·얼음)
     fail_chance   REAL,      -- 행동이 실패할 확률. 마비 0.25
-    note          TEXT
+    note          TEXT,
+    sort_order    INT NOT NULL UNIQUE   -- 화면에 늘어놓는 순서. 아래 주석 참고
 );
 """
+
+# ─────────────────────────────────────────────────────────────
+# sort_order 가 weathers · terrains · status_conditions 셋에 있는 이유
+#
+#   이 셋은 화면의 드롭다운을 채운다. 그런데 조회에 ORDER BY 가 없으면
+#   순서가 "행이 디스크에 놓인 순서" 가 된다. DB 가 하나뿐일 때는 그게
+#   생성기가 적은 순서(쾌청·비·모래바람·눈)와 같아서 문제가 안 보인다.
+#
+#   dump_sql 은 diff 를 안정시키려고 행을 기본키순으로 정렬한다. 그래서
+#   data/sql/ 로 세운 DB 는 알파벳순(rain·sandstorm·snow·sun)이 된다.
+#   같은 저장소인데 설치 방법에 따라 화면이 달라진다.
+#
+#   ORDER BY name 으로 맞추면 둘이 같아지기는 하지만 의미를 잃는다.
+#   쾌청이 먼저인 것은 알파벳이 아니라 본가 순서다. 그러니 그 순서를
+#   값으로 적어 둔다 — 생성기의 목록 순서에서 그대로 뽑는다.
+# ─────────────────────────────────────────────────────────────
 
 # 메가진화 관계. 한 포켓몬이 X/Y 두 개를 가질 수 있어서 mega_name 이 PK다.
 # pokemons 와 items 가 DB에 올라간 뒤에 만든다.
@@ -251,7 +268,8 @@ WEATHERS = f"""CREATE TABLE weathers (
     def_boost_mult  REAL,
     chip_damage     REAL,           -- 매 턴 최대 HP의 몇 배를 잃는가
     chip_immune     TEXT[],         -- 그 지속 데미지를 안 받는 타입
-    note            TEXT
+    note            TEXT,
+    sort_order      INT NOT NULL UNIQUE   -- 화면 순서. STATUS_CONDITIONS 위 주석
 );
 """
 
@@ -265,7 +283,8 @@ TERRAINS = f"""CREATE TABLE terrains (
     weaken_type    {TYPES_ENUM},   -- 미스트필드의 드래곤 0.5배
     weaken_mult    REAL,
     heal_fraction  REAL,           -- 매 턴 회복량. 그래스필드 1/16
-    note           TEXT
+    note           TEXT,
+    sort_order     INT NOT NULL UNIQUE   -- 화면 순서. STATUS_CONDITIONS 위 주석
 );
 """
 

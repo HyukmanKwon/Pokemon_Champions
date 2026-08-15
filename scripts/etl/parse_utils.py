@@ -158,6 +158,17 @@ def collect(names, fetch, parse):
     return rows
 
 
+def numbered(rows):
+    """각 행 끝에 0부터의 순번을 붙인다. sort_order 를 만드는 자리.
+
+    날씨·필드·상태이상 셋은 화면에 늘어놓는 순서가 의미를 갖는다(쾌청이
+    먼저인 것은 알파벳이 아니라 본가 순서다). 그 순서는 이미 생성기의
+    목록에 적혀 있으므로, 숫자를 손으로 다시 적지 않고 여기서 뽑는다 —
+    손으로 적으면 목록을 재배열했을 때 둘이 어긋난다.
+    """
+    return [(*row, i) for i, row in enumerate(rows)]
+
+
 def literal_build(conn, ddl, table, columns, values, echo=None):
     """코드에 적힌 행 목록을 그대로 SQL 로. API 를 안 부르는 생성기의 build().
 

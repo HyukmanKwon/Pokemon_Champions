@@ -19,12 +19,13 @@ NULL 로 두고 note 로만 남긴다.
 """
 
 from . import schema
-from .parse_utils import literal_build
+from .parse_utils import literal_build, numbered
 
 FILENAME = "09_status_conditions.sql"
 TABLE = "status_conditions"
+# sort_order 는 아래 CONDITIONS 의 줄 순서에서 뽑는다.
 COLUMNS = ["name", "ko_name", "attack_mult", "speed_mult",
-           "turn_damage", "immobile", "fail_chance", "note"]
+           "turn_damage", "immobile", "fail_chance", "note", "sort_order"]
 DDL = schema.STATUS_CONDITIONS
 
 # (name, ko_name, attack_mult, speed_mult, turn_damage, immobile, fail_chance, note)
@@ -48,6 +49,6 @@ CONDITIONS = [
 
 def build(conn):
     """09_status_conditions.sql 전문을 만들어 돌려준다. (7행)"""
-    return literal_build(conn, DDL, TABLE, COLUMNS, CONDITIONS,
+    return literal_build(conn, DDL, TABLE, COLUMNS, numbered(CONDITIONS),
                          echo=lambda c: f"{c[0]:<10} {c[1]}")
 

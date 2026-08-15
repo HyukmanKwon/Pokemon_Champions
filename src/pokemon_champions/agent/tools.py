@@ -135,7 +135,7 @@ def find_pokemon(s, name):
     """한 마리의 종족값·타입·특성·메가 관계."""
     en = _resolve(s, "pokemons", name)
     if en is None:
-        return {"error": f"'{name}' 은(는) 포챔스 목록에 없습니다."}
+        return {"error": f"'{name}' 은(는) 포켓몬 목록에 없습니다."}
     row = pokemon_repo.fetch_detail(s.conn, en)
     return {
         "name": row["name"], "ko_name": row["ko_name"],
@@ -215,7 +215,7 @@ def type_matchup(s, pokemon):
     """
     en = _resolve(s, "pokemons", pokemon)
     if en is None:
-        return {"error": f"'{pokemon}' 은(는) 포챔스 목록에 없습니다."}
+        return {"error": f"'{pokemon}' 은(는) 포켓몬 목록에 없습니다."}
 
     chart = s.rules.chart
     types = _types_of(s, en)
@@ -244,7 +244,7 @@ def type_effectiveness(s, attack_type, defender):
     """
     en = _resolve(s, "pokemons", defender)
     if en is None:
-        return {"error": f"'{defender}' 은(는) 포챔스 목록에 없습니다."}
+        return {"error": f"'{defender}' 은(는) 포켓몬 목록에 없습니다."}
     at = normalize(attack_type)
     types = _types_of(s, en)
     return {"attack_type": at,
@@ -281,7 +281,7 @@ def moves_of(s, pokemon, type=None, category=None, min_power=None, limit=40):
     """
     en = _resolve(s, "pokemons", pokemon)
     if en is None:
-        return {"error": f"'{pokemon}' 은(는) 포챔스 목록에 없습니다."}
+        return {"error": f"'{pokemon}' 은(는) 포켓몬 목록에 없습니다."}
 
     rows = pokemon_repo.fetch_detail(s.conn, en)["moves"]
     if type:
@@ -521,7 +521,7 @@ def team_weaknesses(s, deck=None):
         en = _resolve(s, "pokemons", spec["ko_name"])
         if en is None:
             return {"error": f"엔트리의 '{spec['ko_name']}' 을(를) "
-                             "포챔스 목록에서 찾지 못했습니다."}
+                             "포켓몬 목록에서 찾지 못했습니다."}
         members.append((en, _types_of(s, en)))
 
     table = {}
@@ -543,7 +543,7 @@ def usage_stats(s, pokemon, format="Singles"):
     """랭크배틀 채용률 — 기술·도구·특성·성격·SP·함께 쓰는 포켓몬."""
     en = _resolve(s, "pokemons", pokemon)
     if en is None:
-        return {"error": f"'{pokemon}' 은(는) 포챔스 목록에 없습니다."}
+        return {"error": f"'{pokemon}' 은(는) 포켓몬 목록에 없습니다."}
     return usage.usage_of(s.conn, en, ko_name=_ko(s, "pokemons", en),
                           fmt=format if format in ("Singles", "Doubles")
                           else "Singles")

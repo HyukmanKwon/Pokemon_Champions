@@ -15,12 +15,14 @@ name 은 기술 이름의 접두사와 같다.
 """
 
 from . import schema
-from .parse_utils import literal_build
+from .parse_utils import literal_build, numbered
 
 FILENAME = "12_terrains.sql"
 TABLE = "terrains"
+# sort_order 는 아래 TERRAINS 의 줄 순서에서 뽑는다.
 COLUMNS = ["name", "ko_name", "boost_type", "boost_mult",
-           "weaken_type", "weaken_mult", "heal_fraction", "note"]
+           "weaken_type", "weaken_mult", "heal_fraction", "note",
+           "sort_order"]
 DDL = schema.TERRAINS
 
 TERRAINS = [
@@ -41,6 +43,6 @@ TERRAINS = [
 
 def build(conn):
     """12_terrains.sql 전문을 만들어 돌려준다. (4행)"""
-    return literal_build(conn, DDL, TABLE, COLUMNS, TERRAINS,
+    return literal_build(conn, DDL, TABLE, COLUMNS, numbered(TERRAINS),
                          echo=lambda t: f"{t[0]:<10} {t[1]}")
 
