@@ -17,7 +17,7 @@
 import argparse
 import sys
 
-from pokemon_champions import battledata
+from pokemon_champions.usecases import usage_source
 from pokemon_champions.db import connect
 from pokemon_champions.db.repositories import pokemon_repo
 from pokemon_champions.usecases import usage
@@ -32,7 +32,7 @@ def main():
     args = ap.parse_args()
 
     if args.clear:
-        print(f"캐시 {battledata.clear()}개 삭제")
+        print(f"캐시 {usage_source.clear()}개 삭제")
 
     conn = connect()
     try:
@@ -50,13 +50,13 @@ def main():
             return 0
 
         rows = pokemon_repo.fetch_list(conn)
-        if battledata.fetch_index() is None:
+        if usage_source.fetch_index() is None:
             print("색인을 못 받았습니다. 네트워크를 확인하세요.")
             return 1
 
         hit = miss = mega = 0
         for r in sorted(rows, key=lambda r: r["name"]):
-            name, was_mega = battledata.battle_name(r["name"])
+            name, was_mega = usage_source.battle_name(r["name"])
             if name is None:
                 miss += 1
                 print(f"  ✗ {r['ko_name'] or r['name']:<18} {r['name']}")

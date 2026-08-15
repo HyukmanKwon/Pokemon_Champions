@@ -80,6 +80,7 @@ Pokemon_Champions/
 │       ├── get_*.py            단계별 생성기 12개
 │       ├── sync_moves.py       기술만 추가 (전체 재구축 없이)
 │       ├── sync_usage.py       채용률 하루치를 DB 에 쌓기 (매일)
+│       ├── usage_csv.py        지난 날짜를 CSV 로 (sync_usage 만 쓴다)
 │       ├── migrate_roster.py   로스터 증감만 반영
 │       ├── pin_ko_names.py     DB 의 한국어 표기를 override 로 고정
 │       ├── check_moves.py      외부 목록과 기술 대조
@@ -95,7 +96,6 @@ Pokemon_Champions/
 │   ├── config.py               레귤레이션 상수 · 경로 · 접속 정보
 │   ├── text.py                 NFC 정규화
 │   ├── assets.py               스프라이트 다운로드 캐시
-│   ├── battledata.py           배틀 데이터 받아오기 + 캐시
 │   │
 │   ├── agent/                  LLM 도우미. 모델은 도구만 고르고 계산은 안 한다
 │   │   ├── tools.py            도구 15개 + 스키마 (repositories/usecases 호출)
@@ -130,7 +130,8 @@ Pokemon_Champions/
 │   │   ├── team.py             스펙 검증·빌드 (저장은 roster)
 │   │   ├── roster.py           덱 여러 벌 (최대 MAX_DECKS)
 │   │   ├── naming.py           한↔영 이름 해석
-│   │   └── usage.py            채용률을 DB 의 한국어와 잇기
+│   │   ├── usage.py            채용률을 DB 의 한국어와 잇기
+│   │   └── usage_source.py     채용률 원본 받아오기 + 캐시
 │   │
 │   └── interfaces/             print/input/HTTP는 여기서만
 │       ├── cli.py

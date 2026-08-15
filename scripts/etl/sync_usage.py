@@ -35,7 +35,9 @@ import argparse
 import sys
 import time
 
-from pokemon_champions import battledata
+from pokemon_champions.usecases import usage_source
+
+from . import usage_csv
 from pokemon_champions.db import connect
 from pokemon_champions.db.repositories import pokemon_repo, usage_repo
 from pokemon_champions.usecases import usage
@@ -52,7 +54,7 @@ FILLABLE = {"move": ("moves", "name"), "held_item": ("items", "name")}
 
 
 def to_row(raw):
-    """battledata 의 rows 한 줄 -> usage_rows 한 줄."""
+    """usage_csv 의 rows 한 줄 -> usage_rows 한 줄."""
     return {
         "category": raw["category"],
         "rank": raw["rank"],
@@ -60,20 +62,20 @@ def to_row(raw):
         "percent": raw["percentage_value"],
         "stat_up": usage.STAT_KEY.get(raw["stat_up"]),
         "stat_down": usage.STAT_KEY.get(raw["stat_down"]),
-        **{c: raw.get(c) for c in battledata.SP_COLUMNS},
+        **{c: raw.get(c) for c in usage_csv.SP_COLUMNS},
     }
 
 
 def collect(conn, fmt, season, date, sleep, limit, dry_run):
     """하루치를 받아 넣는다. (넣음, 건너뜀, 실패) 를 돌려준다."""
-    entries = battledata.csv_entries(fmt=fmt, season=season, date=date)
+    entries = usage_csv.csv_entries(fmt=fmt, season=season, date=date)
     if not entries:
         print("받을 것이 없습니다. 색인을 못 받았거나 그 날짜가 없습니다.")
         return 0, 0, 0
 
     season = entries[0]["season"]
     date = entries[0]["date"]
-    day = battledata.to_date(date)
+    day = usage_csv.to_date(date)
     print(f"{season} · {date} · {fmt} — 대상 {len(entries)}마리")
 
     have = usage_repo.known_keys(conn, season, fmt) if not dry_run else set()
@@ -87,7 +89,7 @@ def collect(conn, fmt, season, date, sleep, limit, dry_run):
             skipped += 1
             continue
 
-        rows = battledata.fetch_csv(entry["path"])
+        rows = usage_csv.fetch_csv(entry["path"])
         if rows is None:
             failed += 1
             print(f"  ✗ {name} — 못 받았습니다")
@@ -183,7 +185,7 @@ def fill_items(conn, gaps):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--format", default="Singles",
-                    choices=list(battledata.FORMATS))
+                    choices=list(usage_source.FORMATS))
     ap.add_argument("--season", help="예: M4. 안 주면 색인의 최신 시즌")
     ap.add_argument("--date", help="저쪽 폴더 이름. 예: 30_07_2026. "
                                    "안 주면 가장 최근 하루")
@@ -209,9 +211,9 @@ def main(argv=None):
         total, rows, first, last = usage_repo.counts(conn)
         print(f"쌓인 것: 스냅샷 {total}장 · {rows}행 · {first} ~ {last}")
 
-        entries = battledata.csv_entries(
+        entries = usage_csv.csv_entries(
             fmt=args.format, season=args.season, date=args.date)
-        day = battledata.to_date(entries[0]["date"]) if entries else None
+        day = usage_csv.to_date(entries[0]["date"]) if entries else None
         gaps = find_missing(conn, day, args.format)
         if not gaps:
             print("\n우리 표에 없는 기술·도구는 없습니다.")
