@@ -90,6 +90,7 @@ scripts/etl/
 ├── migrate_roster.py     로스터가 바뀐 것을 재구축 없이 DB 에 반영
 ├── sync_moves.py         moves_M_B 에 있는데 DB 에 없는 기술만 채우기
 ├── pin_ko_names.py       지금 DB 의 한국어 표기를 override 에 고정
+├── sync_usage.py         채용률 하루치를 받아 usage_snapshots 에 쌓기
 ├── check_moves.py        외부 목록과 기술 대조 (누락 찾기)
 └── dump_sql.py           지금 DB 를 data/sql/ 에 받아 적기 (build 의 반대 방향)
 ```
@@ -99,6 +100,25 @@ scripts/etl/
 부른다. 몇 마리 늘고 주는 일로 그 값을 치를 이유가 없어서 우회로를 냈다.
 `build.py` 가 멱등해지면 `sync_moves` 는 통째로, `migrate_roster` 는 INSERT
 쪽이 사라진다. (지우는 쪽은 UPSERT 로 대체되지 않으므로 남는다.)
+
+`sync_usage` 만 성질이 다르다. 우회로가 아니라 **매일 도는 것**이고, 받아오는
+곳도 PokeAPI 가 아니라 championsbattledata.com 이다. 저쪽이 일자별 자료를
+16일치만 남기므로, 오늘 안 받은 날짜는 16일 뒤에 사라진다.
+
+```bash
+python -m scripts.etl.sync_usage --dry-run   # 받아만 보기
+python -m scripts.etl.sync_usage             # 최신 하루, Singles (235회 호출)
+python -m scripts.etl.sync_usage --date 30_07_2026 --format Doubles
+python -m scripts.etl.sync_usage --fill-missing   # 처음 보는 기술·도구를 채운다
+```
+
+쌓이는 곳은 `usage_snapshots` · `usage_rows` 두 표다. 둘 다 `build.py` 의
+STEPS 에 없어서 **재구축이 다시 만들어 주지 않는다.** §7 로 전부 지우면
+기록도 함께 사라지므로, 지우기 전에 따로 떠 둔다.
+
+```bash
+pg_dump -d pokemon -t usage_snapshots -t usage_rows > usage_backup.sql
+```
 
 접속 설정(`connect()`, `DB_CONFIG`)은 여기 없다. `pokemon_champions.db` 와
 `pokemon_champions.config` 에 있고 ETL 이 그것을 import 한다 — 앱과 ETL 이 서로 다른

@@ -15,7 +15,7 @@
 import pytest
 
 from pokemon_champions.domain import Pokemon, Stats
-from pokemon_champions.services import damage
+from pokemon_champions.services import damage, residual
 from pokemon_champions.services.damage import (BattleContext, Rules,
                                                calc_damage, pokeround, staged)
 
@@ -42,12 +42,29 @@ RULES = Rules(
                  "weaken_type": None, "weaken_mult": None,
                  "def_boost_type": "ice", "def_boost_stat": "b",
                  "def_boost_mult": 1.5},
+        "sandstorm": {"ko_name": "모래바람",
+                      "boost_type": None, "boost_mult": None,
+                      "weaken_type": None, "weaken_mult": None,
+                      "def_boost_type": "rock", "def_boost_stat": "d",
+                      "def_boost_mult": 1.5,
+                      "chip_damage": 1 / 16,
+                      "chip_immune": ["rock", "ground", "steel"]},
     },
     terrains={
         "electric": {"boost_type": "electric", "boost_mult": 1.3,
                      "weaken_type": None, "weaken_mult": None},
         "misty": {"boost_type": None, "boost_mult": None,
                   "weaken_type": "dragon", "weaken_mult": 0.5},
+        "grassy": {"ko_name": "그래스필드",
+                   "boost_type": "grass", "boost_mult": 1.3,
+                   "weaken_type": None, "weaken_mult": None,
+                   "heal_fraction": 1 / 16},
+    },
+    conditions={
+        "burn": {"ko_name": "화상", "turn_damage": 1 / 16},
+        "poison": {"ko_name": "독", "turn_damage": 1 / 8},
+        "toxic": {"ko_name": "맹독", "turn_damage": None},
+        "paralysis": {"ko_name": "마비", "turn_damage": None},
     },
 )
 
@@ -276,6 +293,39 @@ def test_색안경은_반감일_때만_걸린다():
     assert dmg(lens, neutral).max == dmg(mon(), neutral).max
 
 
+def test_약점_반감_열매는_그_타입_약점일_때만_걸린다():
+    grass = mon("방어", ("grass",))                       # 불꽃이 2배
+    normal = mon("방어", ("normal",))                     # 불꽃이 등배
+    assert dmg(defender=mon("방어", ("grass",), item="오카열매")).max \
+        < dmg(defender=grass).max
+    # 등배에서는 안 걸린다
+    assert dmg(defender=mon("방어", ("normal",), item="오카열매")).max \
+        == dmg(defender=normal).max
+    # 타입이 다른 열매도 안 걸린다
+    assert dmg(defender=mon("방어", ("grass",), item="꼬시개열매")).max \
+        == dmg(defender=grass).max
+
+
+def test_카리열매는_등배_노말에도_걸린다():
+    # 노말은 약점이 될 수 없다. "효과가 뛰어날 때" 조건을 달면 영영 안 걸린다.
+    plain = mon("방어", ("normal",))
+    berry = mon("방어", ("normal",), item="카리열매")
+    m = move("몸통박치기", "normal", "physical", 100)
+    assert dmg(mon(types=("normal",)), berry, m).max \
+        < dmg(mon(types=("normal",)), plain, m).max
+
+
+def test_위력_1할_도구는_분류가_맞을_때만_걸린다():
+    phys = move("불꽃펀치", "fire", "physical", 75)
+    spec = move("화염방사", "fire", "special", 90)
+    base_p = dmg(mon(), m=phys).max
+    base_s = dmg(mon(), m=spec).max
+    assert dmg(mon(item="힘의머리띠"), m=phys).max > base_p
+    assert dmg(mon(item="힘의머리띠"), m=spec).max == base_s
+    assert dmg(mon(item="박식안경"), m=spec).max > base_s
+    assert dmg(mon(item="박식안경"), m=phys).max == base_p
+
+
 def test_필터류는_약점일_때만_깎는다():
     weak_filter = mon("방어", ("grass",), ability="필터")     # 불꽃 -> 풀 2배
     weak_plain = mon("방어", ("grass",))
@@ -339,9 +389,35 @@ def test_변화기의_결정력은_0이다():
 def test_내구력은_물리와_특수를_따로_준다():
     m = mon(stats=(175, 150, 200, 150, 100, 100))
     bulk = damage.bulk_index(m)
-    assert bulk["physical"] == 175 * 200
-    assert bulk["special"] == 175 * 100
+    assert bulk["physical"] == pytest.approx(175 * 200 / 0.411)
+    assert bulk["special"] == pytest.approx(175 * 100 / 0.411)
     assert bulk["physical"] > bulk["special"]
+
+
+def test_내구력_비는_실제로_버티는_횟수의_비다():
+    # 0.411 로 나누는 이유가 이것이다. 방어가 두 배면 내구력도 두 배고,
+    # 위력 100 등배 기술을 견디는 횟수도 두 배여야 한다.
+    thin = mon("방어", ("normal",), stats=(800, 100, 100, 100, 100, 100))
+    thick = mon("방어", ("normal",), stats=(800, 100, 200, 100, 100, 100))
+    ratio = damage.bulk_index(thick)["physical"] / damage.bulk_index(thin)["physical"]
+    assert ratio == pytest.approx(2.0)
+
+    # 실제로 재 봐도 2배쯤 버틴다. 데미지 공식의 내림 때문에 딱 떨어지지
+    # 않고, 확정타는 정수라 몇 방 안 되는 판에서는 오차가 20% 를 넘는다.
+    # 그래서 여러 방 버티는 몸으로 잰다.
+    m = move("몸통박치기", "normal", "physical", 100)
+    hits = [damage.analyze_ko(mon(types=("normal",)), p, m, rules=RULES,
+                              max_turns=60)["guaranteed"]
+            for p in (thin, thick)]
+    assert hits == [10, 19]     # 딱 2배가 아닌 것은 내림이 쌓여서다
+
+
+def test_내구력에도_랭크가_걸린다():
+    plain = mon(stats=(200, 100, 100, 100, 100, 100))
+    guarded = mon(stats=(200, 100, 100, 100, 100, 100))
+    guarded.rank = {"b": 2}
+    assert (damage.bulk_index(guarded)["physical"]
+            == pytest.approx(damage.bulk_index(plain)["physical"] * 2))
 
 
 # ─────────────────────────────────────────────────────────────
@@ -387,3 +463,155 @@ def test_난수타는_확정타보다_먼저_온다():
 def test_rules_없이_부르면_친절하게_막는다():
     with pytest.raises(ValueError, match="rules"):
         calc_damage(mon(), mon("방어"), move())
+
+
+# ─────────────────────────────────────────────────────────────
+# 턴 끝 정산 (services/residual.py)
+#
+# 여기도 DB 를 안 본다. 분수는 위 RULES 의 conditions·weathers·terrains 에
+# 손으로 적어 뒀다.
+# ─────────────────────────────────────────────────────────────
+
+def tick(p, hp=None, **kw):
+    return residual.end_of_turn(p, hp, rules=RULES, **kw)
+
+
+def test_분수는_내림하되_최소_1이다():
+    # HP 10 이면 1/16 이 0.625 다. 0 이 되면 모래바람이 영영 안 깎인다.
+    assert residual.fraction(160, 16) == 10
+    assert residual.fraction(159, 16) == 9
+    assert residual.fraction(10, 16) == 1
+
+
+def test_맹독은_턴마다_세지고_15턴에서_멈춘다():
+    assert residual.toxic_damage(160, 1) == 10      # 1/16
+    assert residual.toxic_damage(160, 3) == 30      # 3/16
+    assert residual.toxic_damage(160, 15) == 150
+    assert residual.toxic_damage(160, 99) == 150    # 카운터가 멈춘다
+
+
+def test_독은_최대HP의_8분의1을_깎는다():
+    t = tick(mon(stats=(160, 100, 100, 100, 100, 100)), condition="poison")
+    assert t.net == -20
+    assert t.entries == [("독", -20)]
+
+
+def test_먹다남은음식은_만피에서는_아무_일도_안_한다():
+    p = mon(stats=(160, 100, 100, 100, 100, 100), item="먹다남은음식")
+    assert tick(p, hp=160).net == 0        # 이미 가득
+    assert tick(p, hp=100).net == 10       # 1/16
+    # 남은 칸보다 회복량이 크면 남은 칸까지만
+    assert tick(p, hp=155).net == 5
+
+
+def test_매직가드는_간접_데미지만_막고_회복은_받는다():
+    p = mon(stats=(160, 100, 100, 100, 100, 100),
+            ability="매직가드", item="먹다남은음식")
+    t = tick(p, hp=100, condition="poison", weather="sandstorm")
+    assert t.net == 10                      # 독도 모래바람도 안 걸린다
+    assert t.entries == [("먹다남은음식", 10)]
+
+
+def test_포이즌힐은_독을_회복으로_뒤집는다():
+    p = mon(stats=(160, 100, 100, 100, 100, 100), ability="포이즌힐")
+    assert tick(p, hp=100, condition="poison").net == 20        # 1/8 회복
+    assert tick(p, hp=100, condition="toxic").net == 20         # 맹독도 같다
+
+
+def test_모래바람은_바위_땅_강철을_깎지_않는다():
+    frail = mon("방어", ("normal",), stats=(160, 100, 100, 100, 100, 100))
+    rocky = mon("방어", ("rock", "ground"), stats=(160, 100, 100, 100, 100, 100))
+    assert tick(frail, weather="sandstorm").net == -10
+    assert tick(rocky, weather="sandstorm").net == 0
+
+
+def test_그래스필드는_접지된_쪽만_회복시킨다():
+    p = mon(stats=(160, 100, 100, 100, 100, 100))
+    assert tick(p, hp=100, terrain="grassy").net == 10
+    assert tick(p, hp=100, terrain="grassy", grounded=False).net == 0
+
+
+def test_정산_없는_판에서는_Tick_이_비어_있다():
+    assert not tick(mon())
+
+
+# ─────────────────────────────────────────────────────────────
+# 정산이 확정타를 뒤집는다
+# ─────────────────────────────────────────────────────────────
+
+def wall(hp=200):
+    return mon("방어", ("normal",), stats=(hp, 100, 100, 100, 100, 100))
+
+
+def test_아무것도_안_걸리면_정산_전과_결과가_같다():
+    ko = damage.analyze_ko(mon(), wall(), move(power=90), rules=RULES)
+    assert ko["residual"] is False
+    assert "타" in ko["text"]              # '턴' 이 아니다
+    assert all(t["tick"] is None for t in ko["turns"])
+
+
+def test_독이_확정_3타를_확정_2타로_바꾼다():
+    # 같은 판에 독만 얹는다. 기술 데미지는 한 글자도 안 건드린다.
+    target = wall(123)
+    m = move(power=60)
+    plain = damage.analyze_ko(mon(), target, m, rules=RULES)
+    poisoned = damage.analyze_ko(
+        mon(), target, m, BattleContext(defender_condition="poison"), RULES)
+
+    assert plain["guaranteed"] == 3
+    assert poisoned["guaranteed"] == 2
+    assert poisoned["residual"] is True
+    # 기술 데미지 자체는 그대로여야 한다 — 독은 턴 끝에만 걸린다
+    assert plain["turns"][0]["damage"].rolls == poisoned["turns"][0]["damage"].rolls
+
+
+def test_지속_데미지가_섞이면_타가_아니라_턴이다():
+    ko = damage.analyze_ko(
+        mon(), wall(123), move(power=60),
+        BattleContext(defender_condition="poison"), RULES)
+    assert ko["text"] == "확정 2턴"
+
+
+def test_맹독은_무효인_기술_상대로도_결국_쓰러뜨린다():
+    # 지진은 비행에게 안 통한다. 그래도 맹독은 턴마다 쌓인다.
+    flyer = mon("방어", ("flying",), stats=(160, 100, 100, 100, 100, 100))
+    ko = damage.analyze_ko(
+        mon(types=("ground",)), flyer,
+        move("지진", "ground", "physical", 100),
+        BattleContext(defender_condition="toxic"), RULES, max_turns=10)
+    # 1/16 + 2/16 + ... 로 쌓여 6턴째 누계가 21/16 > 1 이다
+    assert ko["guaranteed"] == 6
+    assert ko["text"] == "확정 6턴"
+
+
+def test_먹다남은음식은_확정타를_뒤로_민다():
+    # 한 방이 최대 HP 의 1/16 을 겨우 넘는 구간에서 가장 크게 벌어진다.
+    stats = (150, 100, 100, 100, 100, 100)
+    lefty = mon("방어", ("normal",), stats=stats, item="먹다남은음식")
+    bare = mon("방어", ("normal",), stats=stats)
+    m = move(power=31)
+    assert damage.analyze_ko(mon(), bare, m, rules=RULES,
+                             max_turns=10)["guaranteed"] == 6
+    assert damage.analyze_ko(mon(), lefty, m, rules=RULES,
+                             max_turns=10)["guaranteed"] == 8
+
+
+def test_맹독_시작_턴을_앞당기면_더_빨리_쓰러진다():
+    target = wall(300)
+    m = move(power=60)
+    fresh = damage.analyze_ko(
+        mon(), target, m, BattleContext(defender_condition="toxic"), RULES)
+    stale = damage.analyze_ko(
+        mon(), target, m,
+        BattleContext(defender_condition="toxic", toxic_turn=5), RULES)
+    assert stale["guaranteed"] <= fresh["guaranteed"]
+
+
+def test_턴마다_무엇이_얼마나_움직였는지_남는다():
+    ko = damage.analyze_ko(
+        mon(), wall(240), move(power=20),
+        BattleContext(defender_condition="poison", weather="sandstorm"),
+        RULES, max_turns=3)
+    first = ko["turns"][0]["tick"]
+    assert [name for name, _ in first.entries] == ["모래바람", "독"]
+    assert first.text == "모래바람 -15, 독 -30"

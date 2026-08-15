@@ -1,4 +1,4 @@
-"""services/modifiers.py 의 표에 적힌 이름이 DB에 실제로 있는지 검사한다.
+"""modifiers.py · residual.py 의 표에 적힌 이름이 DB에 실제로 있는지 검사한다.
 
     python -m scripts.check_modifiers
 
@@ -15,7 +15,7 @@
 import sys
 
 from pokemon_champions.db import connection
-from pokemon_champions.services import modifiers
+from pokemon_champions.services import modifiers, residual
 
 
 def _known(conn, table):
@@ -29,9 +29,12 @@ def main():
         abilities = _known(conn, "abilities")
         items = _known(conn, "items")
 
+    # residual.py 도 한국어 이름으로 특성·도구를 찾는다. 오타가 나면
+    # 예외 없이 "먹다남은음식이 영영 안 차는" 값이 나오는 것도 똑같다.
     checks = [
-        ("특성", modifiers.all_ability_keys(), abilities),
-        ("도구", modifiers.all_item_keys(), items),
+        ("특성", modifiers.all_ability_keys() | residual.all_ability_keys(),
+         abilities),
+        ("도구", modifiers.all_item_keys() | residual.all_item_keys(), items),
     ]
 
     missing_total = 0

@@ -23,7 +23,7 @@ import json
 import os
 import uuid
 
-from ..config import DECKS_PATH, TEAM_PATH, TEAM_SIZE
+from ..config import DECKS_PATH, MAX_DECKS, TEAM_PATH, TEAM_SIZE
 from ..services import team
 
 # 처음 열었을 때 보게 될 덱 이름. 마이그레이션에도 이 이름을 쓴다.
@@ -111,6 +111,9 @@ def summary():
     book = load()
     return {
         "active": book["active"],
+        # 화면이 "새 덱" 버튼을 언제 잠글지 알아야 한다. 눌러보고 나서
+        # 오류를 받는 것보다 못 누르게 하는 편이 낫다.
+        "max": MAX_DECKS,
         "decks": [{"id": d["id"], "name": d["name"],
                    "size": len(d["slots"]),
                    "members": [s["ko_name"] for s in d["slots"]]}
@@ -123,12 +126,21 @@ def summary():
 # ─────────────────────────────────────────────────────────────
 
 def create(name, slots=None):
-    """새 덱. 칸을 안 주면 기본 팀으로 채운다.
+    """새 덱. 칸을 안 주면 기본 팀으로 채운다. 상한을 넘으면 ValueError.
 
     빈 덱으로 시작하지 않는 이유는 화면 때문이다. 여섯 칸이 다 비면
     고칠 대상이 없어서 아무것도 누를 수 없다.
+
+    ── 왜 상한이 있나 ──
+      규칙이 아니라 화면의 사정이다(config.MAX_DECKS). 몇 벌이든 만들 수
+      있으면 목록이 길어져 어느 덱을 보고 있는지 한눈에 안 들어온다.
+      복제 버튼이 한 번에 한 벌씩 늘리는 자리라 특히 그렇다.
     """
     book = load()
+    if len(book["decks"]) >= MAX_DECKS:
+        raise ValueError(
+            f"덱은 {MAX_DECKS}벌까지 만들 수 있습니다. "
+            "쓰지 않는 덱을 지우고 다시 시도하세요.")
     deck = _deck(name or "새 덱", slots or team.DEFAULT_TEAM)
     book["decks"].append(deck)
     save(book)

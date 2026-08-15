@@ -2,8 +2,9 @@
   "calc_bulk": {
     "body": {
       "bulk": {
-        "physical": 25254,
-        "special": 16836
+        "factor": 0.411,
+        "physical": 61445.255474452555,
+        "special": 40963.50364963504
       },
       "side": {
         "ability": "모래날림",
@@ -124,12 +125,131 @@
       "ko": {
         "guaranteed": 1,
         "possible": 1,
+        "residual": false,
         "text": "확정 1타",
         "turns": [
           {
             "damage_max": 300,
             "damage_min": 252,
-            "hp_before": 183
+            "hp_before": 183,
+            "tick": null
+          }
+        ]
+      },
+      "move": {
+        "accuracy": 90,
+        "category": "physical",
+        "icon": "/sprite/type/ice",
+        "name": "고드름떨구기",
+        "power": 85,
+        "type": "ice"
+      },
+      "type_effect": 4.0
+    },
+    "status": 200
+  },
+  "calc_damage_맹독": {
+    "body": {
+      "attacker": {
+        "ability": "둔감",
+        "condition": null,
+        "item": null,
+        "name": "맘모꾸리",
+        "nature": "성실",
+        "rank": {},
+        "stats": {
+          "a": 150,
+          "b": 100,
+          "c": 90,
+          "d": 80,
+          "h": 185,
+          "s": 100
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/ice",
+            "name": "ice"
+          },
+          {
+            "icon": "/sprite/type/ground",
+            "name": "ground"
+          }
+        ]
+      },
+      "context": {
+        "attacker_hp": null,
+        "attacker_rank": {},
+        "defender_hp": null,
+        "defender_rank": {},
+        "is_critical": false,
+        "is_doubles": false,
+        "light_screen": false,
+        "reflect": false,
+        "terrain": null,
+        "weather": null
+      },
+      "damage": {
+        "defender_hp": 183,
+        "max": 300,
+        "min": 252,
+        "percent_max": 163.9344262295082,
+        "percent_min": 137.70491803278688,
+        "rolls": [
+          252,
+          256,
+          256,
+          264,
+          264,
+          268,
+          268,
+          276,
+          276,
+          280,
+          280,
+          288,
+          288,
+          292,
+          292,
+          300
+        ]
+      },
+      "defender": {
+        "ability": "까칠한피부",
+        "condition": "toxic",
+        "item": "먹다남은음식",
+        "name": "한카리아스",
+        "nature": "성실",
+        "rank": {},
+        "stats": {
+          "a": 150,
+          "b": 115,
+          "c": 100,
+          "d": 105,
+          "h": 183,
+          "s": 122
+        },
+        "types": [
+          {
+            "icon": "/sprite/type/dragon",
+            "name": "dragon"
+          },
+          {
+            "icon": "/sprite/type/ground",
+            "name": "ground"
+          }
+        ]
+      },
+      "ko": {
+        "guaranteed": 1,
+        "possible": 1,
+        "residual": false,
+        "text": "확정 1타",
+        "turns": [
+          {
+            "damage_max": 300,
+            "damage_min": 252,
+            "hp_before": 183,
+            "tick": null
           }
         ]
       },
@@ -222,7 +342,7 @@
       },
       "defender": {
         "ability": "모래숨기",
-        "condition": "화상",
+        "condition": "burn",
         "item": null,
         "name": "한카리아스",
         "nature": "성실",
@@ -249,17 +369,23 @@
       "ko": {
         "guaranteed": 2,
         "possible": 2,
-        "text": "확정 2타",
+        "residual": true,
+        "text": "확정 2턴",
         "turns": [
           {
             "damage_max": 87,
             "damage_min": 74,
-            "hp_before": 100
+            "hp_before": 100,
+            "tick": {
+              "net": -11,
+              "text": "화상 -11"
+            }
           },
           {
             "damage_max": 87,
             "damage_min": 74,
-            "hp_before": 26
+            "hp_before": 15,
+            "tick": null
           }
         ]
       },

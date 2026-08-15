@@ -10,7 +10,7 @@ DB 없이 테스트할 수 있다.
 """
 
 from . import (ability_repo, item_repo, lookup_repo, mega_repo, move_repo,
-               nature_repo, pokemon_repo, rules_repo)
+               nature_repo, pokemon_repo, rules_repo, usage_repo)
 
 __all__ = ["pokemon_repo", "nature_repo", "ability_repo", "move_repo",
-           "mega_repo", "item_repo", "rules_repo", "lookup_repo"]
+           "mega_repo", "item_repo", "rules_repo", "lookup_repo", "usage_repo"]

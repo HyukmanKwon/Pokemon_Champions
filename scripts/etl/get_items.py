@@ -59,6 +59,10 @@ EXTRA_ITEMS = [
     "rawst-berry",     # 화상
     # 열매 — 회복
     "sitrus-berry",    # 자뭉열매
+    "oran-berry",      # 오랭열매
+    # 목탄·자석과 하는 일이 같은데 PokeAPI 가 type-enhancement 가 아니라
+    # held-items 로 분류해서 카테고리 수집에 안 걸린다.
+    "fairy-feather",   # 요정의깃털
     # 허브류
     "mental-herb", "mirror-herb", "power-herb", "white-herb",
     # 렌즈류 (노력치용 파워렌즈는 대전에서 안 쓴다)

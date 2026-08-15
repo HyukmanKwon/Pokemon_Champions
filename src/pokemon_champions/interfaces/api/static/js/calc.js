@@ -583,15 +583,23 @@ const Calc = {
       ${ko.turns.length > 1 ? `
       <table class="rolltable">
         <thead><tr><th>턴</th><th class="num">맞기 전 HP</th>
-          <th class="num">데미지</th><th class="num">맞은 뒤</th></tr></thead>
+          <th class="num">데미지</th><th class="num">맞은 뒤</th>
+          ${ko.residual ? "<th>턴 끝</th>" : ""}</tr></thead>
         <tbody>${ko.turns.map((t, i) => `<tr>
           <td>${i + 1}턴</td>
           <td class="num">${t.hp_before}</td>
           <td class="num">${t.damage_min}~${t.damage_max}</td>
           <td class="num">${Math.max(0, t.hp_before - t.damage_max)}~${
             Math.max(0, t.hp_before - t.damage_min)}</td>
+          ${ko.residual
+            ? `<td class="${t.tick && t.tick.net < 0 ? "warn" : ""}">${
+                t.tick ? esc(t.tick.text) : "&mdash;"}</td>`
+            : ""}
         </tr>`).join("")}</tbody>
-      </table>` : ""}
+      </table>
+      ${ko.residual ? `<div class="applied">판정이 '타'가 아니라 '턴'인 것은
+        마지막 공격을 넣지 않아도 턴 끝 정산으로 쓰러지기 때문입니다.</div>` : ""}
+      ` : ""}
 
       <details class="rolls">
         <summary>난수 16단계 펼치기</summary>
@@ -630,8 +638,8 @@ const Calc = {
     const max = Math.max(d.bulk.physical, d.bulk.special) || 1;
     const row = (label, value, stat) => `<tr>
       <td>${label}</td>
-      <td class="num">${s.h} × ${stat}</td>
-      <td class="num"><b>${value.toLocaleString()}</b></td>
+      <td class="num">${s.h} × ${stat} ÷ ${d.bulk.factor}</td>
+      <td class="num"><b>${Math.round(value).toLocaleString()}</b></td>
       <td style="width:45%"><span class="minibar"><i style="width:${
         value / max * 100}%"></i></span></td></tr>`;
     return `
@@ -645,7 +653,10 @@ const Calc = {
           ${row("물리 내구", d.bulk.physical, s.b)}
           ${row("특수 내구", d.bulk.special, s.d)}
         </tbody>
-      </table>`;
+      </table>
+      <div class="sub2">${d.bulk.factor} 은 레벨 50 데미지 공식에서 실능치를
+        뺀 나머지입니다. 그래서 이 값은 위력 100 등배 기술을 몇 번 견디는가에
+        비례합니다 — 두 포켓몬의 내구력 비가 곧 버티는 횟수의 비입니다.</div>`;
   },
 };
 

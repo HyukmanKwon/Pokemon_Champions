@@ -139,6 +139,7 @@ def main():
             chart=rules_repo.fetch_type_chart(conn),
             weathers=rules_repo.fetch_weathers(conn),
             terrains=rules_repo.fetch_terrains(conn),
+            conditions=rules_repo.fetch_status_conditions(conn),
         )
 
         print("포케챔스 계산기: https://pokemon.yodams.com/calc/damage")

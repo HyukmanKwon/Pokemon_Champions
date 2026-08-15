@@ -245,7 +245,95 @@ TERRAINS = f"""CREATE TABLE terrains (
 );
 """
 
+# ─────────────────────────────────────────────────────────────
+# 채용률 기록. 다른 표와 달리 PokeAPI 가 아니라
+# championsbattledata.com 에서 오고, 한 번 만들고 끝이 아니라
+# 하루 한 벌씩 쌓인다. (scripts/etl/sync_usage.py)
+#
+# ── 왜 DB 에 쌓나 ──
+#   저쪽은 일자별 자료를 16일치만 남긴다. 그보다 오래된 날짜는 색인에서
+#   사라지고 다시 받을 방법이 없다. 오늘 값을 보는 데는 캐시한 JSON 이면
+#   충분하지만, 지난 달과 비교하려면 사라지기 전에 옮겨 두는 수밖에 없다.
+#
+# ── 왜 두 표인가 ──
+#   한 스냅샷이 50줄쯤 된다. 한 표로 두면 시즌·일자·포맷·이름이 그 50줄에
+#   전부 따라붙고, "어느 날짜를 이미 받았나" 를 세려면 DISTINCT 를 해야
+#   한다. 백필은 3,750번 받는 동안 언제든 끊길 수 있어서, 이어받을 때
+#   읽는 그 질문이 한 줄로 끝나야 한다.
+#
+# ── 왜 영문 이름을 그대로 넣나 ──
+#   services/usage.py 와 같은 판단이다. 한국어는 조회할 때 lookup_repo 로
+#   붙인다. 여기에 굳혀 두면 나중에 ko_name 을 고쳤을 때 지난 스냅샷만
+#   옛 표기로 남는다.
+# ─────────────────────────────────────────────────────────────
+
+USAGE_SNAPSHOTS = """CREATE TABLE usage_snapshots (
+    id             SERIAL PRIMARY KEY,
+    season         VARCHAR(10) NOT NULL,   -- M4
+    snapshot_date  DATE NOT NULL,          -- 저쪽 폴더명 DD_MM_YYYY 를 날짜로
+    format         VARCHAR(10) NOT NULL,   -- Singles / Doubles
+    battle_name    VARCHAR(50) NOT NULL,   -- 저쪽 표기 (Garchomp, Alolan Raichu)
+
+    -- 우리 pokemons.name. 저쪽에만 있는 이름이면 NULL 이다 — 못 붙였다고
+    -- 스냅샷을 버리면 나중에 로스터가 늘었을 때 그 날짜만 구멍이 난다.
+    --
+    -- ON DELETE SET NULL 인 이유: migrate_roster 가 로스터에서 빠진 포켓몬을
+    -- DELETE 한다. 기본값(RESTRICT)이면 채용률을 한 번이라도 받아둔 포켓몬은
+    -- 지워지지 않아 그 스크립트가 통째로 롤백된다. 기록은 지난 일이라 로스터가
+    -- 바뀌어도 사실로 남아야 하고, battle_name 이 남아 있으므로 그 포켓몬이
+    -- 다시 들어오면 UPDATE 한 번으로 도로 이어붙일 수 있다.
+    pokemon_name   VARCHAR(50) REFERENCES pokemons(name) ON DELETE SET NULL,
+
+    source         TEXT,                   -- 받아온 CSV 경로. 어디서 왔는지 되짚을 때
+    fetched_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    UNIQUE (season, snapshot_date, format, battle_name)
+);
+
+-- 한 마리의 추세를 훑는 질의용. UNIQUE 는 (시즌,일자,...) 순이라 이쪽으로 못 쓴다.
+CREATE INDEX usage_snapshots_pokemon_idx
+    ON usage_snapshots (pokemon_name, format, snapshot_date);
+"""
+
+# 한 스냅샷의 본문. category 마다 채우는 칸이 다르다.
+#   move · held_item · ability   name + percent
+#   teammate                     name 만 (저쪽이 비율을 안 준다)
+#   stat_alignment               name(성격) + percent + stat_up/down
+#   stat_points                  percent + SP 여섯 칸 (name 은 NULL)
+USAGE_ROWS = """CREATE TABLE usage_rows (
+    snapshot_id  INT NOT NULL REFERENCES usage_snapshots(id) ON DELETE CASCADE,
+    category     VARCHAR(20) NOT NULL,
+    rank         INT NOT NULL,
+    name         VARCHAR(50),   -- 영문 표기 그대로. stat_points 는 NULL
+
+    -- teammate 는 NULL (저쪽이 비율을 안 준다).
+    --
+    -- REAL 이 아니라 NUMERIC 인 이유: 원본이 "99.4%" 처럼 소수 한 자리로
+    -- 떨어지는데 REAL 은 그 값을 정확히 담지 못한다. 다른 표의 REAL 은
+    -- 배수(1.5배)라 오차가 묻히지만, 이 표는 존재 이유가 두 날짜를 빼서
+    -- 추세를 보는 것이다. 99.4 - 99.3 이 -0.099998474 로 나오면 곤란하다.
+    percent      NUMERIC(4,1),
+    stat_up      VARCHAR(3),    -- stat_alignment 만. 우리 키(spa)로 접어서 넣는다
+    stat_down    VARCHAR(3),
+
+    -- stat_points 만. 이름을 pokemons 의 h/a/b/c/d/s 가 아니라 저쪽 컬럼명
+    -- 그대로 두는 것은, 이 표가 남의 자료를 받아 적은 것이기 때문이다.
+    hp_points       INT,
+    attack_points   INT,
+    defense_points  INT,
+    sp_atk_points   INT,
+    sp_def_points   INT,
+    speed_points    INT,
+
+    PRIMARY KEY (snapshot_id, category, rank)
+);
+
+-- "지진을 쓰는 비율이 어떻게 변했나" 는 이름으로 먼저 좁힌다.
+CREATE INDEX usage_rows_name_idx ON usage_rows (category, name);
+"""
+
 ALL_TABLES = [
+    "usage_rows", "usage_snapshots",
     "pokemon_moves", "move_stat_changes", "mega_evolutions",
     "items", "abilities", "moves", "pokemons",
     "pokemon_types", "pokemon_natures",

@@ -14,27 +14,41 @@
 const deckbar = document.getElementById("deckbar");
 
 let DECKS = [];
+let MAX_DECKS = 6;      // 서버가 알려준다. 첫 응답 전까지의 기본값이다
 
 async function loadDecks() {
   const book = await fetch("/api/decks").then(r => r.json());
   DECKS = book.decks;
+  MAX_DECKS = book.max || MAX_DECKS;
   // 처음 열 때만 서버의 활성 덱을 따라간다. 그 뒤로는 이 탭의 선택이 이긴다.
   if (!ACTIVE_DECK) ACTIVE_DECK = book.active;
   renderDeckBar();
 }
 
-function renderDeckBar() {
-  deckbar.innerHTML = DECKS.map(d => `
+// 덱 하나가 목록의 한 줄이다. 이름 아래에 여섯 마리를 흐리게 적어 두면
+// 이름만 보고 어느 덱인지 기억해내지 않아도 된다.
+function deckRow(d) {
+  return `
     <button class="deck${d.id === ACTIVE_DECK ? " on" : ""}"
-            data-deck="${esc(d.id)}" title="${esc(d.members.join(" · "))}">
-      ${esc(d.name)}
-    </button>`).join("") + `
-    <span class="deck-actions">
-      <button data-act="new">새 덱</button>
-      <button data-act="copy">복제</button>
+            data-deck="${esc(d.id)}">
+      <b>${esc(d.name)}</b>
+      <small>${esc(d.members.join(" · "))}</small>
+    </button>`;
+}
+
+function renderDeckBar() {
+  // 가득 차면 누르지 못하게 한다. 눌러보고 오류를 받는 것보다 낫다.
+  const full = DECKS.length >= MAX_DECKS;
+  const cap = full ? ` disabled title="덱은 ${MAX_DECKS}벌까지입니다"` : "";
+  deckbar.innerHTML = `
+    <div class="deck-head">덱 <span>${DECKS.length}/${MAX_DECKS}</span></div>
+    <div class="deck-list">${DECKS.map(deckRow).join("")}</div>
+    <div class="deck-actions">
+      <button data-act="new"${cap}>새 덱</button>
+      <button data-act="copy"${cap}>복제</button>
       <button data-act="rename">이름</button>
       <button data-act="delete">삭제</button>
-    </span>`;
+    </div>`;
 }
 
 async function switchDeck(id) {

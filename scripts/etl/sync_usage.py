@@ -1,0 +1,245 @@
+"""채용률 하루치를 받아 DB 에 쌓는다.
+
+    python -m scripts.etl.sync_usage                  최신 하루, Singles
+    python -m scripts.etl.sync_usage --dry-run        받아만 보고 넣지 않는다
+    python -m scripts.etl.sync_usage --date 30_07_2026
+    python -m scripts.etl.sync_usage --format Doubles
+    python -m scripts.etl.sync_usage --fill-missing   처음 보는 기술·도구를 채운다
+
+── 왜 build.py 에 안 들어가나 ──
+  PokeAPI 가 아니고, 한 번 만들고 끝이 아니다. build.py 는 빈 DB 에 한 번
+  도는 물건이고 이것은 매일 도는 물건이다. 성질이 달라서 STEPS 에 넣지
+  않는다. migrate_roster · sync_moves 와 같은 자리다. (README §2)
+
+── 왜 서두르나 ──
+  저쪽은 일자별 자료를 16일치만 남긴다. 오늘 안 받은 날짜는 16일 뒤에
+  사라지고 다시 받을 방법이 없다.
+
+── 이어받기 ──
+  이미 있는 (시즌·날짜·포맷·이름) 은 건너뛴다. 중간에 끊겨도 다시 돌리면
+  남은 것부터 이어간다. 같은 날을 다시 받으면 행을 갈아끼운다 —
+  두 벌이 되면 추세가 조용히 틀어진다. (usage_repo.save)
+
+── 처음 보는 기술·도구 ──
+  우리 moves · items 는 사람이 고른 목록이다. 저쪽에는 그 목록에 없는 것이
+  나올 수 있다(요정의깃털). 이름은 텍스트로 저장하므로 적재는 막히지
+  않지만, 한국어 이름이 안 붙고 계산기에서도 못 고른다. --fill-missing 을
+  주면 PokeAPI 에서 받아 채운다.
+
+  채운 것은 get_moves.moves_M_B / get_items.EXTRA_ITEMS 에도 손으로
+  넣어야 한다. 그 목록이 재구축의 출처라서, 안 넣으면 다시 지어질 때
+  사라진다. 무엇을 넣어야 하는지는 끝에 출력한다.
+"""
+
+import argparse
+import sys
+import time
+
+from pokemon_champions import battledata
+from pokemon_champions.db import connect
+from pokemon_champions.db.repositories import pokemon_repo, usage_repo
+from pokemon_champions.services import usage
+
+from .get_items import COLUMNS as ITEM_COLUMNS
+from .get_items import fetch_item, parse_item
+from .get_moves import COLUMNS as MOVE_COLUMNS
+from .get_moves import (STAT_COLUMNS, STAT_TABLE, fetch_move, parse_move,
+                        parse_stat_changes)
+
+# 저쪽 갈래 -> 이름을 맞춰볼 우리 표. teammate 는 pokemons 지만 이름 규칙이
+# 달라 여기 넣지 않는다 (resolve_pokemon 이 따로 한다).
+FILLABLE = {"move": ("moves", "name"), "held_item": ("items", "name")}
+
+
+def to_row(raw):
+    """battledata 의 rows 한 줄 -> usage_rows 한 줄."""
+    return {
+        "category": raw["category"],
+        "rank": raw["rank"],
+        "name": raw["name"] or None,      # SP 배분 줄은 이름이 없다
+        "percent": raw["percentage_value"],
+        "stat_up": usage.STAT_KEY.get(raw["stat_up"]),
+        "stat_down": usage.STAT_KEY.get(raw["stat_down"]),
+        **{c: raw.get(c) for c in battledata.SP_COLUMNS},
+    }
+
+
+def collect(conn, fmt, season, date, sleep, limit, dry_run):
+    """하루치를 받아 넣는다. (넣음, 건너뜀, 실패) 를 돌려준다."""
+    entries = battledata.csv_entries(fmt=fmt, season=season, date=date)
+    if not entries:
+        print("받을 것이 없습니다. 색인을 못 받았거나 그 날짜가 없습니다.")
+        return 0, 0, 0
+
+    season = entries[0]["season"]
+    date = entries[0]["date"]
+    day = battledata.to_date(date)
+    print(f"{season} · {date} · {fmt} — 대상 {len(entries)}마리")
+
+    have = usage_repo.known_keys(conn, season, fmt) if not dry_run else set()
+    index = usage.pokemon_index(pokemon_repo.fetch_list(conn))
+
+    saved = skipped = failed = 0
+    unlinked = []
+    for i, entry in enumerate(entries[:limit] if limit else entries, 1):
+        name = entry["battle_name"]
+        if (day, name) in have:
+            skipped += 1
+            continue
+
+        rows = battledata.fetch_csv(entry["path"])
+        if rows is None:
+            failed += 1
+            print(f"  ✗ {name} — 못 받았습니다")
+            continue
+
+        ours = usage.resolve_pokemon(index, name)
+        if ours is None:
+            unlinked.append(name)
+
+        if not dry_run:
+            usage_repo.save(
+                conn,
+                {"season": season, "snapshot_date": day, "format": fmt,
+                 "battle_name": name, "pokemon_name": ours,
+                 "source": entry["path"]},
+                [to_row(r) for r in rows],
+            )
+            conn.commit()      # 한 마리씩 확정한다. 끊겨도 앞의 것은 남는다
+        saved += 1
+
+        if i % 25 == 0 or i == len(entries):
+            print(f"  {i}/{len(entries)} …")
+        time.sleep(sleep)
+
+    if unlinked:
+        print(f"\n우리 로스터에 없는 이름 {len(unlinked)}개는 "
+              f"pokemon_name 을 비워 두고 넣었습니다: {', '.join(unlinked)}")
+    return saved, skipped, failed
+
+
+def find_missing(conn, day, fmt):
+    """받은 이름 중 우리 표에 없는 것. {갈래: [(영문, 슬러그)]}"""
+    cur = conn.cursor()
+    out = {}
+    for category, (table, column) in FILLABLE.items():
+        cur.execute(f"SELECT {column} FROM {table}")
+        have = {r[0] for r in cur.fetchall()}
+        gaps = [(en, usage.slugify(en))
+                for en in usage_repo.distinct_names(
+                    conn, category, snapshot_date=day, fmt=fmt)
+                if usage.slugify(en) not in have]
+        if gaps:
+            out[category] = gaps
+    return out
+
+
+def fill_moves(conn, gaps):
+    """없는 기술을 PokeAPI 에서 받아 moves 와 move_stat_changes 에 넣는다."""
+    cur = conn.cursor()
+    done = []
+    for en, slug in gaps:
+        data = fetch_move(slug)
+        if data is None:
+            print(f"  ✗ {en} ({slug}) — PokeAPI 에 없습니다")
+            continue
+        row = parse_move(data)
+        cur.execute(
+            f"INSERT INTO moves ({', '.join(MOVE_COLUMNS)})"
+            f" VALUES ({', '.join(['%s'] * len(MOVE_COLUMNS))})"
+            " ON CONFLICT (name) DO NOTHING",
+            tuple(row[c] for c in MOVE_COLUMNS))
+        for change in parse_stat_changes(data):
+            cur.execute(
+                f"INSERT INTO {STAT_TABLE} ({', '.join(STAT_COLUMNS)})"
+                " VALUES (%s, %s, %s) ON CONFLICT DO NOTHING", change)
+        done.append(slug)
+        print(f"  + {en:<20} {slug:<20} {row['ko_name'] or '(한국어 없음)'}")
+    conn.commit()
+    return done
+
+
+def fill_items(conn, gaps):
+    """없는 도구를 PokeAPI 에서 받아 items 에 넣는다."""
+    cur = conn.cursor()
+    done = []
+    for en, slug in gaps:
+        data = fetch_item(slug)
+        if data is None:
+            print(f"  ✗ {en} ({slug}) — PokeAPI 에 없습니다")
+            continue
+        row = parse_item(data)
+        cur.execute(
+            f"INSERT INTO items ({', '.join(ITEM_COLUMNS)})"
+            f" VALUES ({', '.join(['%s'] * len(ITEM_COLUMNS))})"
+            " ON CONFLICT (name) DO NOTHING",
+            tuple(row[c] for c in ITEM_COLUMNS))
+        done.append(slug)
+        print(f"  + {en:<20} {slug:<20} {row['ko_name'] or '(한국어 없음)'}")
+    conn.commit()
+    return done
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--format", default="Singles",
+                    choices=list(battledata.FORMATS))
+    ap.add_argument("--season", help="예: M4. 안 주면 색인의 최신 시즌")
+    ap.add_argument("--date", help="저쪽 폴더 이름. 예: 30_07_2026. "
+                                   "안 주면 가장 최근 하루")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="받아만 보고 DB 를 건드리지 않는다")
+    ap.add_argument("--fill-missing", action="store_true",
+                    help="처음 보는 기술·도구를 PokeAPI 에서 받아 채운다")
+    ap.add_argument("--limit", type=int, help="앞의 N 마리만 (시험용)")
+    ap.add_argument("--sleep", type=float, default=0.3,
+                    help="요청 간격(초). 남의 서버다 (기본 0.3)")
+    args = ap.parse_args(argv)
+
+    conn = connect()
+    try:
+        saved, skipped, failed = collect(
+            conn, args.format, args.season, args.date,
+            args.sleep, args.limit, args.dry_run)
+        print(f"\n넣음 {saved} · 건너뜀(이미 있음) {skipped} · 못 받음 {failed}")
+        if args.dry_run:
+            print("--dry-run 이라 DB 는 그대로입니다.")
+            return 0
+
+        total, rows, first, last = usage_repo.counts(conn)
+        print(f"쌓인 것: 스냅샷 {total}장 · {rows}행 · {first} ~ {last}")
+
+        entries = battledata.csv_entries(
+            fmt=args.format, season=args.season, date=args.date)
+        day = battledata.to_date(entries[0]["date"]) if entries else None
+        gaps = find_missing(conn, day, args.format)
+        if not gaps:
+            print("\n우리 표에 없는 기술·도구는 없습니다.")
+            return 0
+
+        for category, items in gaps.items():
+            print(f"\n{FILLABLE[category][0]} 에 없는 이름 {len(items)}개: "
+                  f"{', '.join(en for en, _ in items)}")
+        if not args.fill_missing:
+            print("\n--fill-missing 을 주면 PokeAPI 에서 받아 채웁니다.")
+            return 0
+
+        added = {}
+        if "move" in gaps:
+            print("\n기술 채우기")
+            added["moves_M_B"] = fill_moves(conn, gaps["move"])
+        if "held_item" in gaps:
+            print("\n도구 채우기")
+            added["EXTRA_ITEMS"] = fill_items(conn, gaps["held_item"])
+
+        print("\n재구축 때 사라지지 않게 아래 목록에도 넣으세요.")
+        for where, names in added.items():
+            if names:
+                print(f"  {where}: {', '.join(repr(n) for n in names)}")
+        return 0
+    finally:
+        conn.close()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

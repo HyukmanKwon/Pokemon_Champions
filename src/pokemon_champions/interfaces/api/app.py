@@ -25,7 +25,7 @@ from ...db import connect, connection
 from ...db.repositories import (ability_repo, item_repo, move_repo,
                                 nature_repo, pokemon_repo, rules_repo)
 from ...domain import STAT_LABELS, STAT_ORDER
-from ...services import damage, team
+from ...services import team
 from ...services.damage import Rules
 from ...services.stats import calc_stats, make_sp
 from ...text import normalize
@@ -51,6 +51,7 @@ def on_startup():
         chart=rules_repo.fetch_type_chart(state["conn"]),
         weathers=rules_repo.fetch_weathers(state["conn"]),
         terrains=rules_repo.fetch_terrains(state["conn"]),
+        conditions=rules_repo.fetch_status_conditions(state["conn"]),
     )
 
 
@@ -199,7 +200,11 @@ def _sprite(path):
 
 @app.get("/sprite/type/{type_name}")
 def sprite_type(type_name: str):
-    return _sprite(assets.ensure_type_icon(type_name))
+    """한국어 타입 배지. 아직 안 그렸으면 404 — 화면이 글자로 대신 쓴다.
+
+        python -m scripts.make_type_icons
+    """
+    return _sprite(assets.type_icon(type_name))
 
 
 @app.get("/sprite/pokemon/{pokemon_id}")
@@ -438,7 +443,14 @@ def list_decks():
 
 @app.post("/api/decks")
 def create_deck(edit: DeckEdit):
-    return roster.create(edit.name)
+    """새 덱. 상한(config.MAX_DECKS)을 넘으면 400.
+
+    _deck_op 을 못 쓴다 — 그건 deck_id 를 첫 인자로 받는 것들의 자리다.
+    """
+    try:
+        return roster.create(edit.name)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
 
 @app.post("/api/decks/{deck_id}/copy")
@@ -634,6 +646,9 @@ class CalcRequest(BaseModel):
     reflect: bool = False
     light_screen: bool = False
     is_doubles: bool = False
+    # 방어자의 맹독이 몇 턴째인가. 맹독은 n/16 으로 세지므로 이제 막
+    # 걸었는지 세 턴 버텼는지가 확정타를 가른다.
+    toxic_turn: int = 1
     max_turns: int = 4
 
 
@@ -648,11 +663,6 @@ def _spec(side: CalcSide):
             "nature": side.ko_nature, "sp": side.sp_values, "rank": side.rank,
             "condition": side.condition, "hp": side.hp,
             "grounded": side.grounded}
-
-
-def _side_pokemon(side: CalcSide, move=None):
-    """CalcSide 를 Pokemon 으로. 기술을 주면 그것까지 검증한다."""
-    return battle.build_side(state["conn"], _spec(side), move)[0]
 
 
 def _side_view(p, side: CalcSide):
@@ -674,14 +684,15 @@ def calc_rules():
 
     코드에 목록을 적어두면 DB 에 새 날씨가 생겼을 때 조용히 빠진다.
     """
-    conn = state["conn"]
     def pairs(rows):
         return [{"name": k, "ko_name": v["ko_name"]} for k, v in rows.items()]
 
+    # 상태이상도 이제 rules 에 들어 있다. 여기서 다시 SELECT 하면 뜰 때
+    # 한 번 읽어둔 뜻이 없다.
     return {
         "weathers": pairs(state["rules"].weathers),
         "terrains": pairs(state["rules"].terrains),
-        "conditions": pairs(rules_repo.fetch_status_conditions(conn)),
+        "conditions": pairs(state["rules"].conditions),
         "stat_order": list(STAT_ORDER),
         "stat_labels": {k: STAT_LABELS[k] for k in STAT_ORDER},
     }
@@ -701,45 +712,46 @@ def calc_power(req: IndexRequest):
     상성·랭크·날씨는 상대와 판이 있어야 정해지므로 빠진다. 절대값에는
     의미가 없고 기술끼리·포켓몬끼리 비교하는 데만 쓴다.
     """
-    conn = state["conn"]
     try:
-        p = _side_pokemon(req.side)
+        got = battle.power(state["conn"], _spec(req.side), req.moves)
     except ValueError as e:
         raise HTTPException(400, str(e))
 
-    out = []
-    for ko in req.moves:
-        if not ko:
-            continue
-        en = move_repo.fetch_en_name(conn, normalize(ko))
-        if en is None:
-            raise HTTPException(404, f"없는 기술입니다: {ko}")
-        move = move_repo.fetch_detail(conn, en)
-        out.append({
-            "name": move["ko_name"] or move["name"],
-            "type": move["type"],
-            "icon": assets.url_type_icon(move["type"]),
-            "category": move["category"],
-            "power": move["power"],
-            "stab": move["type"] in p.types,
-            "index": damage.power_index(p, move),
-        })
-    out.sort(key=lambda m: -m["index"])
-    return {"side": _side_view(p, req.side), "moves": out}
+    # 웹은 없는 기술을 404 로 막는다. 계산기 화면의 기술 칸은 콤보라 오타가
+    # 잘 안 나고, 한 줄만 조용히 빠지면 왜 안 보이는지 알 수 없다.
+    for s in got.moves:
+        if s.row is None:
+            raise HTTPException(404, f"없는 기술입니다: {s.asked}")
+
+    return {
+        "side": _side_view(got.pokemon, req.side),
+        "moves": [{"name": s.row["ko_name"] or s.row["name"],
+                   "type": s.row["type"],
+                   "icon": assets.url_type_icon(s.row["type"]),
+                   "category": s.row["category"],
+                   "power": s.row["power"],
+                   "stab": s.stab,
+                   "index": s.index}
+                  for s in got.moves],
+    }
 
 
 @app.post("/api/calc/bulk")
 def calc_bulk(req: IndexRequest):
-    """내구력 — HP × 방어, HP × 특수방어.
+    """내구력 — HP × 방어 / 0.411, HP × 특수방어 / 0.411.
 
-    HP 만 봐도 방어만 봐도 몇 방 버티는지가 안 나온다. 받는 데미지가
-    방어에 반비례하고 남은 턴이 HP 에 비례하므로 곱이 기준이 된다.
+    HP 만 봐도 방어만 봐도 몇 방 버티는지가 안 나온다. 나눈 상수까지 같이
+    주는 이유는 화면이 계산식을 그대로 적어 보여주기 때문이다.
     """
     try:
-        p = _side_pokemon(req.side)
+        got = battle.bulk(state["conn"], _spec(req.side))
     except ValueError as e:
         raise HTTPException(400, str(e))
-    return {"side": _side_view(p, req.side), "bulk": damage.bulk_index(p)}
+    return {
+        "side": _side_view(got.pokemon, req.side),
+        "bulk": {"physical": got.physical, "special": got.special,
+                 "factor": got.factor},
+    }
 
 
 @app.post("/api/calc/damage")
@@ -757,6 +769,7 @@ def calc_damage(req: CalcRequest):
             weather=req.weather, terrain=req.terrain,
             is_critical=req.is_critical, reflect=req.reflect,
             light_screen=req.light_screen, is_doubles=req.is_doubles,
+            toxic_turn=req.toxic_turn,
         )
     except ValueError as e:
         raise HTTPException(400, str(e))
@@ -805,10 +818,15 @@ def calc_damage(req: CalcRequest):
             "text": ko["text"],
             "guaranteed": ko["guaranteed"],
             "possible": ko["possible"],
+            "residual": ko["residual"],
             "turns": [
                 {"damage_min": t["damage"].min,
                  "damage_max": t["damage"].max,
-                 "hp_before": t["hp_before"]}
+                 "hp_before": t["hp_before"],
+                 # 턴 끝 정산. 아무 일도 없었으면 null 이다. 합계만 주면
+                 # "왜 한 턴 빨리 죽었나" 를 화면에서 되짚을 수 없다.
+                 "tick": (None if t["tick"] is None else
+                          {"net": t["tick"].net, "text": t["tick"].text})}
                 for t in ko["turns"]
             ],
         },

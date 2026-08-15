@@ -111,10 +111,13 @@ def main():
     print(f"저장 위치 : {IMAGES_DIR}")
     print()
 
-    print("타입 아이콘")
+    # 받는 것은 영문 원본까지다. 화면이 쓰는 한국어 배지는 이 원본의
+    # 심볼을 살려 따로 그린다 — python -m scripts.make_type_icons
+    print("타입 아이콘 (영문 원본. 한국어 배지는 make_type_icons 가 그린다)")
     t_got, t_skip, t_fail = fetch_all(
-        "", [(t, assets.TYPES_DIR / f"{t}.png",
-              lambda t=t: assets.ensure_type_icon(t)) for t in types], args.sleep)
+        "", [(t, assets.TYPES_EN_DIR / f"{t}.png",
+              lambda t=t: assets.ensure_type_source(t)) for t in types],
+        args.sleep)
     print(f"  받음 {t_got} · 이미 있음 {t_skip} · 실패 {len(t_fail)}")
 
     print("포켓몬 사진")

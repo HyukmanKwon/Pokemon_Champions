@@ -46,13 +46,25 @@ CALLS = [
         "move": "고드름떨구기"}),
 
     # 도구 쪽에는 없는 칸들 — 조립 층으로 합칠 때 이 답이 유지돼야 한다
+    #
+    # condition 은 영문 슬러그다. 화면이 keyOf("conditions", ...) 로 바꿔
+    # 보내고, 계산도 status_conditions.name 으로 찾는다. 여기 "화상" 이라고
+    # 적어 뒀던 동안에는 이 케이스에 화상이 아예 안 걸려 있었다.
     ("calc_damage_전부", "POST", "/api/calc/damage", {
         "attacker": side("메가갸라도스", "틀깨기", ko_nature="고집",
                          sp_values=[0, 32, 0, 0, 0, 32], rank={"a": 2}),
-        "defender": side("한카리아스", "모래숨기", condition="화상",
+        "defender": side("한카리아스", "모래숨기", condition="burn",
                          hp=100, grounded=True),
         "move": "지진", "weather": "sandstorm", "reflect": True,
         "is_critical": False, "is_doubles": False}),
+
+    # 맹독은 턴마다 n/16 으로 세진다. "데미지 × N" 으로는 안 나오는 판정이
+    # 여기서 나와야 한다. 먹다남은음식으로 회복 쪽도 같이 건다.
+    ("calc_damage_맹독", "POST", "/api/calc/damage", {
+        "attacker": side("맘모꾸리", "둔감"),
+        "defender": side("한카리아스", "까칠한피부", item="먹다남은음식",
+                         condition="toxic"),
+        "move": "고드름떨구기", "toxic_turn": 2, "max_turns": 6}),
 
     ("calc_damage_없는기술", "POST", "/api/calc/damage", {
         "attacker": side("맘모꾸리", "둔감"),

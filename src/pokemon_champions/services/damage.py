@@ -35,9 +35,9 @@
 import math
 from dataclasses import dataclass, field, replace
 
-from ..config import LEVEL_FACTOR, MOD_ONE, SPREAD_MULT
+from ..config import BULK_FACTOR, LEVEL_FACTOR, MOD_ONE, SPREAD_MULT
 from ..domain import Pokemon
-from . import modifiers
+from . import modifiers, residual
 
 # 여러 대상을 치는 기술. moves.target 이 이 값이면 더블에서 위력이 깎인다.
 SPREAD_TARGETS = {"all-opponents", "all-other-pokemon", "all-pokemon"}
@@ -67,6 +67,9 @@ class BattleContext:
     # 남은 HP. None 이면 만피로 본다. 멀티스케일·궁지 특성이 이걸 본다.
     attacker_hp: int = None
     defender_hp: int = None
+    # 맹독이 몇 턴째인가. 데미지가 n/16 으로 늘어나므로 1 부터 시작하는지
+    # 이미 세 턴 지났는지가 확정타를 가른다. 맹독이 아니면 안 쓰인다.
+    toxic_turn: int = 1
 
 
 @dataclass
@@ -79,6 +82,9 @@ class Rules:
     chart: dict                              # {(공격타입, 방어타입): 배수}
     weathers: dict = field(default_factory=dict)
     terrains: dict = field(default_factory=dict)
+    # 화상의 공격 반감은 여기 없이도 되지만(damage.py 가 직접 본다), 턴 끝
+    # 지속 데미지는 분수가 표에 있어야 한다. services/residual.py 가 본다.
+    conditions: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -195,45 +201,53 @@ def staged(value, stage):
 # ─────────────────────────────────────────────────────────────
 
 def power_index(pokemon, move, types=None):
-    """결정력 — 공격 실능 × 기술 위력 × 자속.
-
-    상성·날씨는 상대와 판이 있어야 정해지므로 뺀다. 여기 들어가는 것은
-    "이 포켓몬이 이 기술을 들었을 때 고정으로 갖는 화력" 뿐이다.
-
-    ── 랭크는 왜 넣나 ──
-      상성·날씨와 달리 랭크는 상대가 없어도 정해지는 자기 상태다. 검무를
-      두 번 춘 뒤의 화력은 상대가 누구든 같고, 그걸 못 보면 "쌓고 나면
-      얼마나 세지는가" 를 이 계산기로 물어볼 수 없다. Pokemon 이 이미
-      rank 를 들고 있는데 여기서 무시하면 화면의 랭크 칸이 조용히
-      아무 일도 안 하게 된다.
-
-    변화기(위력 없음)는 0 이다. 예외가 아니라 그냥 화력이 없는 것이다.
+    """
+    결정력 — 공격 실능 × 기술 위력 × 자속 보정.
     """
     power = move.get("power") or 0
     if not power:
         return 0
 
     stat = "a" if move["category"] == "physical" else "c"
-    types = types if types is not None else pokemon.types
-    stab = 1.5 if move["type"] in (types or ()) else 1.0
+    types = types if types is not None else pokemon.types  
+    stab = 1.5 if move["type"] in (types or ()) else 1.0    #자속 보정
     atk = staged(pokemon.stats[stat], pokemon.rank_of(stat))
     return int(atk * power * stab)
 
 
 def bulk_index(pokemon):
-    """내구력 — HP × 방어, HP × 특수방어.
+    """내구력 — HP × 방어 / 0.411, HP × 특수방어 / 0.411.
 
     ── 왜 곱인가 ──
       HP 만 봐도, 방어만 봐도 실제로 몇 방 버티는지가 안 나온다. 받는
       데미지가 방어에 반비례하고 남은 턴이 HP 에 비례하므로, 버티는 정도는
-      두 값의 곱에 비례한다. 절대값 자체에는 의미가 없고 비교에만 쓴다.
+      두 값의 곱에 비례한다.
+
+    ── 왜 0.411 로 나누는가 ──
+      곱만 두면 자릿수가 커서(3만~9만) 서로 견줄 때 눈에 안 들어온다.
+      0.411 은 레벨 50 데미지 공식에서 실능치를 뺀 나머지를 상수로 접은
+      값이다. 그래서 이 값은 그냥 큰 수가 아니라 **위력 100 등배 자속 없는
+      기술을 몇 번 견디는가에 비례하는 양**이 된다.
+
+          받는 데미지 ≈ (공격 실능 × 위력) × 0.411 / 방어 실능
+          견디는 횟수 ≈ HP / 받는 데미지 = HP × 방어 / (0.411 × 공격 × 위력)
+
+      공격 쪽을 1 로 두면 남는 것이 HP × 방어 / 0.411 이다. 절대값 자체를
+      게임에서 보는 일은 없고, 여전히 비교용이다 — 다만 두 포켓몬의
+      내구력 비가 실제로 버티는 횟수의 비와 같아진다.
+
+    ── 왜 소수를 그대로 두나 ──
+      데미지 계산과 달리 여기는 본가가 하는 연산이 아니다. 확정타를 가르는
+      1 이 없으므로 4096 정수로 옮길 이유가 없고, 반올림하면 비교값이 계단
+      모양이 된다. 화면에서 자리수를 줄이는 것은 표시하는 쪽 일이다.
 
     방어·특수방어에는 랭크가 걸리고 HP 에는 안 걸린다. 본가에 HP 랭크가
     없기 때문이다 — 화면에서 체력 칸을 올려도 여기서는 무시된다.
     """
+    h = pokemon.stats.h
     return {
-        "physical": pokemon.stats.h * staged(pokemon.stats.b, pokemon.rank_of("b")),
-        "special": pokemon.stats.h * staged(pokemon.stats.d, pokemon.rank_of("d")),
+        "physical": h * staged(pokemon.stats.b, pokemon.rank_of("b")) / BULK_FACTOR,
+        "special": h * staged(pokemon.stats.d, pokemon.rank_of("d")) / BULK_FACTOR,
     }
 
 
@@ -366,11 +380,19 @@ def analyze_ko(attacker, defender, move, ctx=None, rules=None, max_turns=4):
       한 단계 오르고, 멀티스케일은 첫 방에만 걸린다. 그래서 한 방씩
       계산하면서 그 사이에 ctx 를 갱신한다.
 
+    ── 기술 데미지만이 아니다 ──
+      턴이 끝나면 독이 깎고 모래바람이 깎고 먹다남은음식이 채운다. 그
+      정산을 빼면 맹독 깔고 버티는 판을 이 계산기로 물어볼 수 없다.
+      맹독은 특히 턴마다 세지므로 "한 방 × N" 으로는 영영 안 나온다.
+      계산은 services/residual.py 가 하고, 여기서는 턴 사이에 끼워 넣는
+      순서만 정한다 — 기술이 먼저, 정산이 나중이다.
+
     돌려주는 값
         {"guaranteed": 확정 N타 (전 난수가 쓰러뜨림) 또는 None,
          "possible":   최소 N타 (최고 난수가 쓰러뜨림) 또는 None,
          "text":       "확정 2타" / "난수 2타 (43.8%)" 같은 표시용 문구,
-         "turns":      턴별 [{damage: DamageRange, hp_before: int}, ...]}
+         "turns":      턴별 [{damage, hp_before, tick}, ...],
+         "residual":   턴 끝 정산이 한 번이라도 HP 를 움직였는가}
 
     ── 확률 계산의 한계 ──
       2타 이상의 정확한 확률은 난수 조합을 전부 세야 나온다(16^N). 여기서는
@@ -385,18 +407,24 @@ def analyze_ko(attacker, defender, move, ctx=None, rules=None, max_turns=4):
     # 하나로 굴리면 "중간 난수 기준" 이라는 아무 의미 없는 값이 나온다.
     worst_hp = best_hp = ctx.defender_hp if ctx.defender_hp is not None else max_hp
     guaranteed = possible = None
+    moved = False               # 정산이 한 번이라도 HP 를 움직였는가
 
     for turn in range(1, max_turns + 1):
         # 멀티스케일처럼 남은 HP 를 보는 특성이 있어서 매 턴 갱신한다.
         turn_ctx = replace(ctx, defender_hp=worst_hp)
         dmg = calc_damage(attacker, defender, move, turn_ctx, rules)
-        turns.append({"damage": dmg, "hp_before": worst_hp})
-
-        if dmg.max == 0:            # 무효면 영원히 안 쓰러진다
-            break
 
         best_hp -= dmg.max          # 운이 가장 좋았을 때
         worst_hp -= dmg.min         # 운이 가장 나빴을 때
+
+        # 턴 끝 정산. 기술로 이미 쓰러졌으면 그 턴은 정산이 없다.
+        # 두 갈래를 따로 굴리는 이유는 회복이 남은 HP 에서 잘리기
+        # 때문이다 — 만피에 가까운 쪽은 먹다남은음식이 덜 들어간다.
+        tick = _tick(defender, worst_hp, ctx, rules, turn) if worst_hp > 0 else None
+        best_tick = _tick(defender, best_hp, ctx, rules, turn) if best_hp > 0 else None
+
+        turns.append({"damage": dmg, "hp_before": worst_hp + dmg.min,
+                      "tick": tick})
 
         if possible is None and best_hp <= 0:
             possible = turn
@@ -404,19 +432,67 @@ def analyze_ko(attacker, defender, move, ctx=None, rules=None, max_turns=4):
             guaranteed = turn
             break
 
+        if best_tick:
+            best_hp += best_tick.net
+            moved = True
+        if tick:
+            worst_hp += tick.net
+            moved = True
+
+        if possible is None and best_hp <= 0:
+            possible = turn
+        if worst_hp <= 0:
+            guaranteed = turn
+            break
+
+        # 기술도 안 통하고 정산도 안 깎으면 영원히 안 쓰러진다.
+        # 정산 검사 뒤에 두는 이유: 무효기라도 맹독은 계속 쌓인다.
+        if dmg.max == 0 and (tick is None or tick.net >= 0):
+            break
+
     return {
         "guaranteed": guaranteed,
         "possible": possible,
-        "text": _ko_text(guaranteed, possible, max_turns),
+        "text": _ko_text(guaranteed, possible, max_turns, moved),
         "turns": turns,
+        "residual": moved,
     }
 
 
-def _ko_text(guaranteed, possible, max_turns):
+def _tick(defender, hp, ctx, rules, turn):
+    """방어자의 턴 종료 정산. 아무 일도 안 일어나면 None.
+
+    BattleContext 는 두 쪽을 다 들고 있으므로 방어자 몫만 골라 넘긴다.
+    residual 은 어느 쪽인지 모르는 편이 낫다 — 공격자 몫을 재고 싶어지면
+    같은 함수에 attacker_* 를 넘기면 된다.
+    """
+    tick = residual.end_of_turn(
+        defender, hp,
+        condition=ctx.defender_condition,
+        weather=ctx.weather,
+        terrain=ctx.terrain,
+        grounded=ctx.defender_grounded,
+        rules=rules,
+        # 맹독은 판이 시작하고 몇 턴째인가로 센다. 이 계산의 1턴째가
+        # 맹독의 1턴째라는 보장이 없어서 ctx 의 시작값에 더한다.
+        toxic_turn=ctx.toxic_turn + turn - 1,
+    )
+    return tick or None
+
+
+def _ko_text(guaranteed, possible, max_turns, residual=False):
+    """판정 한 줄.
+
+    ── 지속 데미지가 섞이면 '타' 가 '턴' 이 된다 ──
+      확정 2타는 "두 방이면 쓰러진다" 는 뜻이다. 그런데 맹독으로 쓰러뜨린
+      판은 두 방이 아니라 두 턴이다 — 세 번째 방을 안 넣어도 죽는다.
+      같은 말로 적으면 계산기를 믿고 세 방을 준비하게 된다.
+    """
+    unit = "턴" if residual else "타"
     if guaranteed is not None and guaranteed == possible:
-        return f"확정 {guaranteed}타"
+        return f"확정 {guaranteed}{unit}"
     if possible is not None:
         # 최고 난수는 쓰러뜨리는데 최저 난수는 못 쓰러뜨리는 구간
-        return f"난수 {possible}타" + (
-            f" (확정 {guaranteed}타)" if guaranteed is not None else "")
-    return f"{max_turns}타 이내로는 쓰러지지 않음"
+        return f"난수 {possible}{unit}" + (
+            f" (확정 {guaranteed}{unit})" if guaranteed is not None else "")
+    return f"{max_turns}{unit} 이내로는 쓰러지지 않음"

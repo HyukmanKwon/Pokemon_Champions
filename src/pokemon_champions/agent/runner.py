@@ -115,6 +115,11 @@ Rules you must follow:
    the multiplication in your head, you will get it wrong. The mainline formula
    uses 4096-based fixed-point arithmetic with its own peculiar rounding, so
    hand calculation flips a "guaranteed 2HKO" into a "roll-dependent 2HKO."
+   This includes end-of-turn HP. Status chip, sandstorm and Leftovers are
+   already folded into calc_damage's verdict — never add or subtract them
+   yourself. When calc_damage returns a "residual" field, the verdict counts
+   turns (턴), not hits (타): the target goes down without the last attack.
+   Say so, and quote the residual lines as the reason.
 
 2. Do not rely on memory. Verify base stats, learnable moves, Abilities, and
    types with the tools. Champions uses different data from the mainline games

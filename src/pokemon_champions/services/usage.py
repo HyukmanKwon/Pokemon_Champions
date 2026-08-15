@@ -106,6 +106,63 @@ def _pokemon_ko(maps, en_display):
             or alt["base"].get(slug.split("-")[0]))
 
 
+# ─────────────────────────────────────────────────────────────
+# 저쪽 이름 -> 우리 pokemons.name
+#
+# usage_of() 가 쓰는 battledata.battle_name() 과 방향이 반대다. 저쪽은
+# 우리보다 폼을 덜 나누므로(우리 317 : 저쪽 236) 이 방향은 1:N 이고,
+# 후보 중 하나를 골라야 한다. 기록을 쌓을 때만 필요하다.
+# ─────────────────────────────────────────────────────────────
+
+
+def pokemon_index(rows):
+    """pokemons 행들을 이름 맞추기용으로 한 번 접어 둔다.
+
+    236번 부르는 자리라 매번 317줄을 토큰으로 쪼개지 않게 미리 만든다.
+    """
+    return [(r["name"], r.get("id"), battledata.tokens(r["name"]))
+            for r in rows]
+
+
+def _default_form(candidates):
+    """후보가 여럿이면 기본 폼을 고른다.
+
+    PokeAPI 는 폼 변이에 10000번대 id 를 준다. 그래서 가장 작은 id 가
+    기본 폼이다 — castform(351) 이 castform-sunny(10013) 를 이긴다.
+    저쪽이 폼을 안 나누는 경우(Gourgeist, Morpeko)에 여기서 갈린다.
+    """
+    return min(candidates, key=lambda c: (c[1] if c[1] is not None else 10 ** 9))[0]
+
+
+def resolve_pokemon(index, battle_name):
+    """저쪽 battleName -> 우리 pokemons.name. 못 붙이면 None.
+
+    세 번 시도한다. 앞의 것이 걸리면 뒤는 보지 않는다.
+
+      1. 토큰이 똑같은 것        Alolan Raichu -> raichu-alola
+         메가는 여기서 저절로 걸러진다. 우리 charizard-mega-x 는 토큰이
+         하나 더 많아 Charizard 와 같지 않다.
+      2. 우리 토큰이 저쪽에 다 들어 있는 것 중 가장 많이 겹치는 것
+         Fan Rotom -> rotom-fan (rotom 도 걸리지만 겹치는 토큰이 적다)
+      3. 첫 낱말이 같은 것       Gourgeist -> gourgeist-average
+         저쪽이 폼을 안 나눠서 우리 이름이 모두 두 낱말인 경우다.
+    """
+    want = tokens = battledata.tokens(battle_name)
+
+    exact = [c for c in index if c[2] == want]
+    if exact:
+        return _default_form(exact)
+
+    subset = [c for c in index if c[2] and c[2] <= tokens]
+    if subset:
+        widest = max(len(c[2]) for c in subset)
+        return _default_form([c for c in subset if len(c[2]) == widest])
+
+    head = slugify(battle_name).split("-")[0]
+    base = [c for c in index if c[0].split("-")[0] == head]
+    return _default_form(base) if base else None
+
+
 def usage_of(conn, en_name, ko_name=None, fmt="Singles", top=8):
     """한 마리의 채용률. 못 받으면 {"error": ...}.
 

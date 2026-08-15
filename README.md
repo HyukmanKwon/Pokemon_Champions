@@ -61,6 +61,7 @@ Pokemon_Champions/
 │   ├── chat.py                 LLM 도우미와 대화
 │   ├── check_damage.py         계산 결과를 알려진 값과 대조
 │   ├── check_modifiers.py      보정 표를 대조
+│   ├── make_type_icons.py      타입 배지를 한국어로 다시 그린다
 │   ├── check_usage.py          채용률을 대조
 │   ├── fetch_assets.py         스프라이트 내려받기
 │   │
@@ -70,6 +71,7 @@ Pokemon_Champions/
 │       ├── schema.py           모든 DDL의 단일 출처
 │       ├── get_*.py            단계별 생성기 12개
 │       ├── sync_moves.py       기술만 추가 (전체 재구축 없이)
+│       ├── sync_usage.py       채용률 하루치를 DB 에 쌓기 (매일)
 │       ├── migrate_roster.py   로스터 증감만 반영
 │       ├── pin_ko_names.py     DB 의 한국어 표기를 override 로 고정
 │       ├── check_moves.py      외부 목록과 기술 대조
@@ -113,14 +115,14 @@ Pokemon_Champions/
 │   │   ├── damage.py           [순수] calc_damage, analyze_ko,
 │   │   │                              power_index, bulk_index
 │   │   ├── modifiers.py        [순수] 특성·도구 보정을 4096 정수로
+│   │   ├── residual.py         [순수] 턴 끝 지속 데미지·회복
 │   │   ├── team.py             [조립] 스펙 검증·빌드 (저장은 roster)
-│   │   ├── usage.py            [조립] 채용률을 DB 의 한국어와 잇기
-│   │   └── opponent.py         상대 엔트리 (아직 비어 있다 — §5)
+│   │   └── usage.py            [조립] 채용률을 DB 의 한국어와 잇기
 │   │
 │   ├── usecases/               조립 층 — DB 조회 + 기본값 + 계산 호출
 │   │   ├── naming.py           한↔영 이름 해석
-│   │   ├── battle.py           스펙 -> Pokemon -> 데미지
-│   │   └── roster.py           덱 여러 벌
+│   │   ├── battle.py           계산기 진입점 셋 — power · bulk · one_hit
+│   │   └── roster.py           덱 여러 벌 (최대 MAX_DECKS)
 │   │
 │   └── interfaces/             print/input/HTTP는 여기서만
 │       ├── cli.py
@@ -135,7 +137,8 @@ Pokemon_Champions/
 └── tests/                      계산 테스트는 DB 없이, 도구·라우트는 DB 로
     ├── conftest.py             overrides 격리 · db 픽스처 · 덱 격리
     ├── golden/                 도구·라우트 응답을 통째로 박아둔 것
-    ├── test_damage.py          40개
+    ├── test_damage.py          61개 (데미지 · 턴 끝 정산 · 내구력)
+    ├── test_roster.py          8개 — 덱 상한과 삭제 규칙
     ├── test_stats.py           10개
     └── test_team.py            14개
 ```
@@ -322,19 +325,59 @@ Python은 "현재 실행 위치"를 기준으로 모듈을 찾는다. 파일이 
 **3. 계산기** — `services/damage.py`에 `calc_damage` · `analyze_ko`와, 상대가 없어도
 나오는 단일 지표인 `power_index` · `bulk_index`가 있다. 보정은 `modifiers.py`가
 4096 정수로 다룬다. 날씨 · 필드 · 랭크 · 상태이상은 예상대로 `BattleContext` 한
-덩어리로 묶였고, 참조표는 `Rules`로 받는다. 검증 케이스는 `tests/test_damage.py`에
-40개 있다.
+덩어리로 묶였고, 참조표는 `Rules`로 받는다.
+
+**5. 턴 끝 정산** — `services/residual.py`. 독 · 맹독 · 화상 · 모래바람 ·
+그래스필드 · 먹다남은음식 · 매직가드 · 포이즌힐이 턴이 끝날 때 HP 를 얼마나
+움직이는가를 낸다. `analyze_ko`가 턴 사이에 끼워 부르므로, 확정타 판정이
+"한 방 × N"이 아니게 됐다. 이게 필요한 이유는 맹독 하나로 충분하다 — 턴마다
+n/16 으로 세지므로 곱셈으로는 영영 안 나온다.
+
+  분수는 코드가 아니라 DB(`status_conditions` · `weathers` · `terrains`)에 있고
+  `Rules.conditions`로 받는다. 특성·도구 이름만 `residual.py`에 한국어로
+  적혀 있어서, `modifiers.py`와 같이 `python -m scripts.check_modifiers`가
+  오타를 걸러 준다.
+
+  지속 데미지가 섞이면 판정 문구가 "확정 2타"가 아니라 "확정 2턴"이 된다.
+  두 방이 아니라 두 턴이라는 뜻이다 — 세 번째 방을 안 넣어도 죽는다.
+
+검증 케이스는 `tests/test_damage.py`에 56개 있다.
 
 **4. agent** — 위가 순수 함수로 완성된 뒤에 만들었다. 도구 13개 중 계산을 하는 것은
 없다(§4 참고).
 
 ### 다음 순서
 
-**`services/opponent.py`** — 아직 비어 있다. 내 엔트리와 다른 점이 둘이다. 상대
-스펙은 대부분 모르므로 **확정값과 추정값을 구분해서** 들고 있어야 하고(최속·최둔
-가정 등), 대전마다 새로 만들어지고 버려지므로 파일에 저장할 이유가 없다. 그래서
-`team.py`를 복사하지 말고, 공통이 정말 생겼을 때 `services/roster.py` 같은 곳으로
-뽑아내는 편이 낫다.
+**상대 엔트리** — `services/__init__.py` 의 메모 그대로다. 상대 스펙은 대부분
+모르므로 **확정값과 추정값을 구분해서** 들고 있어야 하고(최속·최둔 가정 등),
+대전마다 새로 만들어지고 버려지므로 파일에 저장할 이유가 없다. `team.py`를
+복사하지 말고, 공통이 정말 생겼을 때 `services/roster.py` 같은 곳으로 뽑아낸다.
+
+**계산기 진입점** — `usecases/battle.py` 의 `power` · `bulk` · `one_hit` 셋이
+전부다. 웹도 도구도 CLI 도 이 셋만 부른다. 예전에는 데미지만 조립 층을 거치고
+결정력·내구력은 `app.py` 와 `tools.py` 가 각자 적고 있었다 — 정렬 기준이 갈리면
+같은 질문에 웹과 도우미가 다른 순서로 답한다.
+
+**내구력** — `HP × 방어 / 0.411`. 0.411 은 레벨 50 데미지 공식에서 실능치를 뺀
+나머지를 접은 값이라(`config.BULK_FACTOR`), 이 값은 그냥 큰 수가 아니라 "위력
+100 등배 기술을 몇 번 견디는가" 에 비례한다. 두 포켓몬의 내구력 비가 곧 버티는
+횟수의 비다.
+
+**타입 배지** — 한국어다. PokeAPI 는 영문 배지밖에 안 주므로, 받아둔 원본에서
+왼쪽 심볼만 떼어내 오른쪽 글자만 한국어로 다시 얹는다.
+
+    python -m scripts.make_type_icons
+
+  `data/images/types_en/` 이 재료(영문), `data/images/types/` 가 화면이 보는
+  것(한국어)이다. 둘 다 `.gitignore` 에 있고, 이 스크립트가 결정적이라 지워도
+  같은 그림이 다시 나온다 — `data/sql/` 을 `build.py` 가 다시 만드는 것과 같다.
+  한국어 표기는 `pokemon_type_names` 에서 읽는다.
+
+**턴 끝 정산에서 아직 안 하는 것** — 아쿠아링 · 뿌리박기 · 씨뿌리기는 상태가
+아니라 판에 걸린 효과라 `Pokemon`이 들고 있지 않다. 생명의구슬 반동과 맹독을
+쓴 쪽의 손실은 `residual.end_of_turn`에 공격자를 넣으면 바로 나오는데,
+`analyze_ko`가 아직 방어자에게만 부른다. 둘 중 무엇이 먼저 필요한지는 실제로
+써 보고 정한다.
 
 **도구 `reviewed` 채우기** — `items.reviewed`가 0/166이다. 수집 범위를 좁히는
 쪽(`get_items.py`의 `ITEM_CATEGORIES` + `EXTRA_ITEMS`)이 먼저 걸러 주고 있어서 지금

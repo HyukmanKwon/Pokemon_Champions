@@ -53,6 +53,11 @@ _SIDE = {
                               "66 total"},
         "rank": {"type": "object",
                  "description": 'Stat stage changes. e.g. {"a": 2} is +2 Atk'},
+        "condition": {"type": "string", "description":
+                      "Status condition: burn, poison, toxic, paralysis, "
+                      "sleep, freeze. Burn halves physical attack; burn, "
+                      "poison and toxic also chip HP at the end of "
+                      "every turn"},
     },
     "required": ["name"],
 }
@@ -156,7 +161,11 @@ TOOLS = {
                        "OHKO' question goes through this. Do not multiply it "
                        "out yourself — the official formula rounds in "
                        "unusual places, and hand calculation flips "
-                       "guaranteed vs. rolled KO verdicts.",
+                       "guaranteed vs. rolled KO verdicts. It also settles "
+                       "end-of-turn HP: status chip, sandstorm and Leftovers. "
+                       "Never add those up yourself either — toxic grows by "
+                       "n/16 each turn and Leftovers is capped at full HP, so "
+                       "the verdict is not damage times N.",
         "properties": {
             "attacker": _SIDE, "defender": _SIDE,
             "move": {**_STR, "description": _MOVE_DESC},
@@ -167,7 +176,12 @@ TOOLS = {
             "is_critical": {"type": "boolean",
                             "description": "Whether the hit is a critical"},
             "is_doubles": {"type": "boolean",
-                           "description": "Whether this is a double battle"}},
+                           "description": "Whether this is a double battle"},
+            "toxic_turn": {"type": "integer", "description":
+                           "How many turns the defender has already been "
+                           "badly poisoned. Defaults to 1 (just applied). "
+                           "Only matters when the defender's condition "
+                           "is toxic"}},
         "required": ["attacker", "defender", "move"]},
 
     "power_index": {

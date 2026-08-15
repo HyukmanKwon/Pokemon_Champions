@@ -1,21 +1,10 @@
 """배틀 데이터 — championsbattledata.com 에서 받아 data/cache/usage/ 에 캐시한다.
 
-── 왜 이 이름인가 ──
-  "배틀 데이터" 는 게임 안 메뉴 이름이자 저 사이트 이름이다. 파일 이름이
-  값이 어디서 왔는지를 스스로 밝히게 둔다.
-
 ── 왜 이 층에 있나 ──
   assets.py 와 같은 자리다. 프로젝트 바깥에서 받아 캐시하는 일이고 DB 를
   보지 않는다. 한국어로 바꾸고 DB 와 맞추는 것은 services/usage.py 가 한다.
   여기서 DB 를 부르면 "네트워크가 안 될 때" 와 "DB 에 없을 때" 가 한 함수
   안에서 섞인다.
-
-── 왜 이 사이트인가 ──
-  포켓몬컴퍼니는 API 를 내지 않는다. 채용률의 원천은 게임 안 "배틀 데이터"
-  화면이고 공개된 기계 판독 경로가 없다. 이 사이트가 그 화면을 매일 옮겨
-  적어 JSON 으로 내놓는다. 즉 여기 값은 공식 데이터의 사본이지 원본이
-  아니다. 틀릴 수 있고 사이트가 멈추면 같이 멈춘다. 그래서 실패해도 묵은
-  캐시를 돌려주고, 예외 대신 None 을 준다.
 
 ── 이름 맞추기 ──
   이름 규칙이 우리와 다르다. 우리는 PokeAPI 슬러그(raichu-alola), 저쪽은
@@ -38,9 +27,13 @@
   서버라 아껴 쓰는 편이 맞다.
 """
 
+import csv
+import io
 import json
 import re
 import time
+import urllib.parse
+from datetime import datetime
 
 import requests
 
@@ -52,9 +45,16 @@ TTL_SECONDS = 12 * 60 * 60
 FORMATS = ("Singles", "Doubles")
 
 # 같은 것을 가리키는 다른 표기. 토큰을 이 표로 한 번 통과시킨 뒤 비교한다.
+#
+# 빈 문자열은 "이 낱말은 이름에 보태는 것이 없다" 는 뜻이다. 저쪽은 폼을
+# 사람이 읽는 문장처럼 적어서(Aegislash Shield Forme, Vivillon Fancy Pattern)
+# 우리 슬러그(aegislash-shield)와 낱말 수가 어긋난다. 그 꼬리말을 지운다.
 SYNONYM = {
     "alolan": "alola", "galarian": "galar", "hisuian": "hisui",
-    "paldean": "paldea", "breed": "", "form": "", "the": "",
+    "paldean": "paldea", "breed": "", "form": "", "forme": "", "the": "",
+    "variety": "", "pattern": "",
+    # 펌킨인 제일 큰 크기를 저쪽은 Jumbo, PokeAPI 는 super 라고 부른다.
+    "jumbo": "super",
 }
 
 # 메가 꼬리. 우리 이름에서 이걸 떼면 원종이 된다.
@@ -169,6 +169,143 @@ def fetch_battle(name, fmt="Singles"):
     key = re.sub(r"[^a-z0-9]", "", name.lower())
     return _cached(USAGE_DIR / f"{fmt}_{key}.json",
                    f"{BASE}/api/battle/{fmt}/{key}")
+
+
+# ─────────────────────────────────────────────────────────────
+# 지난 날짜 — CSV 로만 받힌다
+#
+# /api/battle/{fmt}/{key} 는 date 를 줘도 무시하고 늘 최신 하루치를 준다.
+# 없는 날짜를 물어도 마찬가지라 에러로도 안 걸린다. 지난 날짜는 색인이
+# 알려주는 원본 CSV 경로로 받는 수밖에 없다.
+#
+# 저쪽은 일자별 폴더를 16일치만 남긴다. 그보다 오래된 것은 색인에서 사라지고
+# 다시 받을 방법이 없어서, 받아둔 것을 DB 에 옮기는 것이 유일한 보관이다.
+# (scripts/etl/sync_usage.py -> usage_snapshots)
+#
+# 돌려주는 모양은 fetch_battle() 의 rows 와 같게 맞춘다. 같은 자료를 읽는
+# 코드가 받아온 경로에 따라 두 벌로 갈리지 않게 하려는 것이다.
+# ─────────────────────────────────────────────────────────────
+
+SP_COLUMNS = ("hp_points", "attack_points", "defense_points",
+              "sp_atk_points", "sp_def_points", "speed_points")
+
+
+def _int(text):
+    text = (text or "").strip()
+    return int(text) if text.lstrip("-").isdigit() else None
+
+
+def _percent(text):
+    """'99.4%' -> 99.4. 빈 칸(함께 쓰는 포켓몬)은 None."""
+    text = (text or "").strip().rstrip("%")
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def parse_csv(text):
+    """CSV 한 장을 fetch_battle() 의 rows 와 같은 모양으로. 아니면 None.
+
+    없는 날짜나 이름을 물으면 404 가 아니라 화면 HTML 이 200 으로 온다.
+    상태 코드로는 못 거르므로 내용을 본다.
+    """
+    if not text or text.lstrip().startswith("<"):
+        return None
+
+    rows = []
+    for r in csv.DictReader(io.StringIO(text)):
+        if not r.get("category"):
+            continue
+        # 날짜마다 칸이 조금씩 다르다. 25_07 에는 source_time_seconds 가
+        # 하나 더 붙어 있었다. 아는 칸만 집어서 그 차이를 여기서 흡수한다.
+        row = {
+            "category": r["category"],
+            "rank": _int(r.get("rank")),
+            "name": (r.get("name") or "").strip(),
+            "percentage_value": _percent(r.get("percentage")),
+            "stat_up": (r.get("stat_up") or "").strip(),
+            "stat_down": (r.get("stat_down") or "").strip(),
+        }
+        row.update({c: _int(r.get(c)) for c in SP_COLUMNS})
+        rows.append(row)
+    return rows or None
+
+
+def fetch_csv(path):
+    """색인이 준 CSV 경로 하나를 rows 로. 못 받으면 None.
+
+    경로에 공백이 들어간다 (.../Singles/Alolan Raichu.csv). 인코딩해야 한다.
+    캐시하지 않는다 — 지난 날짜를 두는 곳은 DB 다.
+    """
+    try:
+        res = requests.get(f"{BASE}/{urllib.parse.quote(path)}", timeout=15)
+        res.raise_for_status()
+    except requests.RequestException:
+        return None
+    return parse_csv(res.text)
+
+
+def to_date(folder):
+    """저쪽 폴더 이름 '04_08_2026' -> date. 모양이 다르면 None."""
+    try:
+        return datetime.strptime(folder, "%d_%m_%Y").date()
+    except (ValueError, TypeError):
+        return None
+
+
+def daily_dates(season=None):
+    """일자별 자료가 있는 날짜들. 최신이 뒤로 오게 정렬해서 돌려준다.
+
+    돌려주는 값은 (season, 폴더이름) 이다. 폴더 이름은 그대로 둔다 —
+    URL 을 만들 때 쓰는 것이 날짜가 아니라 이 문자열이기 때문이다.
+    """
+    index = fetch_index()
+    if not index:
+        return []
+
+    out = []
+    for folder in index.get("dailyDataFolders", []):
+        head, _, tail = folder.partition("/")
+        if season and head != season:
+            continue
+        if to_date(tail):
+            out.append((head, tail))
+    return sorted(out, key=lambda sd: to_date(sd[1]))
+
+
+def csv_entries(fmt="Singles", season=None, date=None):
+    """그 날짜에 받을 수 있는 CSV 목록. [{battle_name, season, date, path}]
+
+    date 를 안 주면 가장 최근 하루를 고른다. 경로를 우리가 조립하지 않고
+    색인이 적어둔 것을 그대로 쓴다 — 어떤 폼이 어느 파일에 들어 있는지는
+    저쪽 사정이라, 규칙으로 짐작하면 조용히 어긋난다.
+    """
+    index = fetch_index()
+    if not index:
+        return []
+
+    if date is None:
+        dates = daily_dates(season)
+        if not dates:
+            return []
+        season, date = dates[-1]
+
+    out = []
+    for entry in index.get("pokemon", []):
+        name = entry.get("battleName") or entry.get("name")
+        if not name:
+            continue
+        for csv_info in entry.get("battleDataCsvs") or []:
+            if (csv_info.get("date") == date
+                    and csv_info.get("format") == fmt
+                    and (season is None or csv_info.get("season") == season)):
+                out.append({"battle_name": name,
+                            "season": csv_info.get("season"),
+                            "date": date,
+                            "path": csv_info["path"]})
+                break
+    return out
 
 
 def clear():

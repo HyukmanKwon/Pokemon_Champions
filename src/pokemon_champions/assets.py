@@ -41,6 +41,10 @@ TYPE_IDS = {
     "dragon": 16, "dark": 17, "fairy": 18,
 }
 
+# 타입 배지는 두 폴더다. 내려받은 영문 원본이 재료이고, 화면이 보는 것은
+# 그 심볼을 살려 한국어로 다시 그린 쪽이다. (scripts/make_type_icons.py)
+# 한 폴더에 두면 다시 그릴 때 자기가 만든 것을 원본으로 삼는다.
+TYPES_EN_DIR = IMAGES_DIR / "types_en"
 TYPES_DIR = IMAGES_DIR / "types"
 POKEMON_DIR = IMAGES_DIR / "pokemon"
 POKEMON_ICON_DIR = IMAGES_DIR / "pokemon_icons"
@@ -74,12 +78,32 @@ def _ensure_cached(path: Path, url: str):
 # 받아오기 — 네트워크를 쓴다. 라우트와 일괄 다운로드 스크립트만 부른다.
 # ─────────────────────────────────────────────────────────────
 
-def ensure_type_icon(type_name):
+def ensure_type_source(type_name):
+    """영문 원본 배지. 한국어 배지를 그리는 재료다.
+
+    부르는 곳은 scripts/make_type_icons.py 하나뿐이다. 화면이 이걸 바로
+    쓰면 영문 배지가 뜬다.
+    """
     type_id = TYPE_IDS.get(type_name)
     if type_id is None:
         return None
-    return _ensure_cached(TYPES_DIR / f"{type_name}.png",
+    return _ensure_cached(TYPES_EN_DIR / f"{type_name}.png",
                           TYPE_ICON_URL.format(type_id=type_id))
+
+
+def type_icon(type_name):
+    """화면이 쓸 한국어 타입 배지. 아직 안 그렸으면 None.
+
+    ── 여기서 그리지 않는다 ──
+      다른 ensure_* 와 달리 없다고 만들어내지 않는다. 그리려면
+      pokemon_type_names 를 읽어야 하는데, 그 순간 이 모듈이 DB 를 알게
+      된다. 미리 한 번 그려두게 하고(scripts/make_type_icons.py), 없으면
+      라우트가 404 를 준다 — 화면은 그때 한국어 글자로 대신 보여준다.
+    """
+    if type_name not in TYPE_IDS:
+        return None
+    path = TYPES_DIR / f"{type_name}.png"
+    return path if path.exists() else None
 
 
 def ensure_pokemon_sprite(pokemon_id):

@@ -69,11 +69,12 @@ class Session:
 
 
 def load_rules(conn):
-    """상성표 324행 + 날씨 + 필드. 한 번 읽어 세션 내내 돌려쓴다."""
+    """상성표 324행 + 날씨 + 필드 + 상태이상. 한 번 읽어 세션 내내 돌려쓴다."""
     return Rules(
         chart=rules_repo.fetch_type_chart(conn),
         weathers=rules_repo.fetch_weathers(conn),
         terrains=rules_repo.fetch_terrains(conn),
+        conditions=rules_repo.fetch_status_conditions(conn),
     )
 
 
@@ -326,11 +327,6 @@ def find_item(s, name):
 # 계산
 # ─────────────────────────────────────────────────────────────
 
-def _build(s, spec, move_ko=None):
-    """도구 인자를 Pokemon 으로. 기본값 채우기는 조립 층이 한다."""
-    return battle.build_side(s.conn, spec, move_ko)
-
-
 def _side_view(s, p, en):
     """계산에 실제로 쓰인 한 쪽을 모델이 읽을 모양으로.
 
@@ -344,21 +340,26 @@ def _side_view(s, p, en):
 
 
 def calc_damage(s, attacker, defender, move, weather=None, terrain=None,
-                is_critical=False, is_doubles=False):
+                is_critical=False, is_doubles=False, toxic_turn=1):
     """데미지 난수 16개와 확정 N타 판정.
 
-    attacker/defender 는 {"name", "ability", "item", "nature", "sp", "rank"}.
-    name 만 필수다.
+    attacker/defender 는 {"name", "ability", "item", "nature", "sp", "rank",
+    "condition"}. name 만 필수다.
 
     ── 웹 계산기보다 받는 칸이 적다 ──
-      조립 층은 상태이상·남은 HP·접지·리플렉터·빛의장막도 받는다. 여기서
-      안 넘기는 이유는 스키마에 그 칸이 없어서다. 모델이 채울 수 있게
-      열어줄지는 따로 정할 일이라, 지금은 웹만 쓴다.
+      조립 층은 남은 HP·접지·리플렉터·빛의장막도 받는다. 여기서 안 넘기는
+      이유는 스키마에 그 칸이 없어서다. 모델이 채울 수 있게 열어줄지는
+      따로 정할 일이라, 지금은 웹만 쓴다.
+
+      상태이상만 열어 뒀다. "맹독 걸고 몇 턴이면 죽나" 는 사람이 실제로
+      묻는 질문인데, 맹독은 턴마다 n/16 으로 세져서 모델이 데미지 하나를
+      받아 곱셈으로 답할 수가 없다. 열지 않으면 틀린 답이 나온다.
     """
     try:
         shot = battle.one_hit(s.conn, s.rules, attacker, defender, move,
                               weather=weather, terrain=terrain,
-                              is_critical=is_critical, is_doubles=is_doubles)
+                              is_critical=is_critical, is_doubles=is_doubles,
+                              toxic_turn=toxic_turn)
     except ValueError as e:
         return {"error": str(e)}
 
@@ -378,42 +379,61 @@ def calc_damage(s, attacker, defender, move, weather=None, terrain=None,
                    "percent": f"{lo:.1f}~{hi:.1f}%", "rolls": dmg.rolls},
         # 판정은 키만 영어다. 값은 사람에게 그대로 보여줄 문장이라 한국어다.
         "verdict": shot.ko["text"],
+        # 턴 끝에 HP 가 움직였을 때만 붙인다. 안 붙이면 모델이 "확정 2턴"
+        # 을 보고 두 방이면 죽는다고 옮겨 적는다.
+        **_residual_view(shot.ko),
     }
+
+
+def _residual_view(ko):
+    """턴 끝 정산이 있었으면 턴별 한 줄을 붙인다. 없으면 아무것도 안 붙인다."""
+    if not ko["residual"]:
+        return {}
+    return {"residual": [
+        {"turn": i, "text": t["tick"].text, "net": t["tick"].net}
+        for i, t in enumerate(ko["turns"], 1) if t["tick"]
+    ]}
 
 
 def power_index(s, pokemon, moves):
     """결정력 — 공격 실능 × 위력 × 자속. 기술끼리 견주는 데 쓴다."""
     try:
-        p, en = _build(s, pokemon)
+        got = battle.power(s.conn, pokemon, moves)
     except ValueError as e:
         return {"error": str(e)}
 
+    # 웹은 없는 기술을 404 로 막지만 도구는 그 줄에만 적는다. 모델은 기술
+    # 이름을 기억에서 꺼내 오타를 내는데, 넷 중 하나 틀렸다고 전부 막으면
+    # 다시 물어보느라 한 바퀴를 더 쓴다.
     out = []
-    for name in moves:
-        en_move = _resolve(s, "moves", name)
-        if en_move is None:
-            out.append({"name": name, "ko_name": None, "error": "없는 기술"})
+    for sc in got.moves:
+        if sc.row is None:
+            out.append({"name": sc.asked, "ko_name": None,
+                        "error": "없는 기술"})
             continue
-        m = move_repo.fetch_detail(s.conn, en_move)
+        m = sc.row
         out.append({"name": m["name"], "ko_name": m["ko_name"],
                     "type": m["type"], "category": m["category"],
-                    "power": m["power"], "stab": m["type"] in p.types,
-                    "power_index": damage.power_index(p, m)})
-    out.sort(key=lambda x: -x.get("power_index", 0))
-    return {"pokemon": en, "ko_name": p.name,
+                    "power": m["power"], "stab": sc.stab,
+                    "power_index": sc.index})
+    p = got.pokemon
+    return {"pokemon": got.en, "ko_name": p.name,
             "atk": p.stats.a, "spa": p.stats.c, "moves": out}
 
 
 def bulk_index(s, pokemon):
-    """내구력 — 체력 × 방어, 체력 × 특수방어."""
+    """내구력 — 체력 × 방어 / 0.411, 체력 × 특수방어 / 0.411."""
     try:
-        p, en = _build(s, pokemon)
+        got = battle.bulk(s.conn, pokemon)
     except ValueError as e:
         return {"error": str(e)}
-    b = damage.bulk_index(p)
-    return {"pokemon": en, "ko_name": p.name, "hp": p.stats.h,
+    p = got.pokemon
+    return {"pokemon": got.en, "ko_name": p.name, "hp": p.stats.h,
             "def": p.stats.b, "spd": p.stats.d,
-            "physical_bulk": b["physical"], "special_bulk": b["special"]}
+            # 소수점 아래는 모델이 읽을 일이 없다. 비교용 값이라 반올림한다.
+            "physical_bulk": round(got.physical),
+            "special_bulk": round(got.special),
+            "divided_by": got.factor}
 
 
 # ─────────────────────────────────────────────────────────────

@@ -1,4 +1,11 @@
-"""데미지 계산 조립 — 스펙을 받아 계산에 올리고, 쓰인 것과 결과를 돌려준다.
+"""계산기 조립 — 스펙을 받아 계산에 올리고, 쓰인 것과 결과를 돌려준다.
+
+계산기가 셋이므로 진입점도 셋이다. 바깥은 이 셋 말고는 부르지 않는다.
+
+    power(conn, spec, moves)                    결정력  -> Power
+    bulk(conn, spec)                            내구력  -> Bulk
+    one_hit(conn, rules, atk, dfn, move, ...)   데미지  -> Shot
+
 
 ── 여기가 세 벌이던 자리다 ──
   웹 라우트도, LLM 도구도, check_damage 도 같은 순서를 각자 적고 있었다:
@@ -20,6 +27,7 @@
 
 from dataclasses import dataclass
 
+from ..config import BULK_FACTOR
 from ..db.repositories import move_repo, pokemon_repo
 from ..services import damage, team
 from ..services.damage import BattleContext
@@ -57,6 +65,44 @@ class Shot:
         return self.damage.percent(self.defender.stats.h)
 
 
+@dataclass
+class Scored:
+    """결정력을 잰 기술 하나. row 가 None 이면 그런 기술이 없다는 뜻이다.
+
+    없는 기술을 예외로 올리지 않는 이유는, 기술 넷을 한 번에 재는 자리라
+    하나가 오타여도 나머지 셋의 답은 나와야 하기 때문이다. 404 로 만들지
+    한 줄에 "없는 기술" 이라 적을지는 부르는 쪽이 정한다.
+    """
+
+    asked: str                  # 사용자가 적은 이름 그대로
+    row: dict = None            # moves 한 행
+    index: int = 0
+    stab: bool = False
+
+
+@dataclass
+class Power:
+    """결정력 — 기술별 화력. 높은 순으로 정렬돼 있다."""
+
+    pokemon: object             # Pokemon
+    en: str
+    moves: list                 # [Scored, ...]
+
+
+@dataclass
+class Bulk:
+    """내구력 — 물리·특수 각각. factor 는 나눈 상수다.
+
+    나눈 값을 안 밝히면 화면이 "HP × 방어" 라고 적고 다른 숫자를 보여준다.
+    """
+
+    pokemon: object             # Pokemon
+    en: str
+    physical: float
+    special: float
+    factor: float
+
+
 def move_row(conn, name):
     """기술 이름(한국어·영문 무엇이든) -> moves 한 행. 없으면 None."""
     en = naming.resolve(conn, "moves", name)
@@ -80,7 +126,7 @@ def build_side(conn, spec, move_ko=None):
     """
     en = naming.resolve(conn, "pokemons", spec["name"])
     if en is None:
-        raise ValueError(f"'{spec['name']}' 은(는) 포챔스 목록에 없습니다.")
+        raise ValueError(f"'{spec['name']}' 은(는) 포켓몬 목록에 없습니다.")
     ko = naming.ko(conn, "pokemons", en)
     if ko is None:
         raise ValueError(f"'{en}' 은(는) 한국어 이름이 아직 없어 "
@@ -110,9 +156,7 @@ def build_side(conn, spec, move_ko=None):
 def context(attacker, defender, **battle):
     """양쪽 스펙과 판 설정을 BattleContext 하나로.
 
-    랭크·상태이상·접지·남은 HP 는 스펙 안에 있고, 날씨·필드·급소·스크린·
-    더블은 판 전체의 것이라 따로 받는다. 이 갈래를 세 곳이 각자 엮고
-    있었고, 한 곳만 인자를 빠뜨려도 아무도 몰랐다.
+    랭크·상태이상·접지·남은 HP 는 스펙 안에 있고, 날씨·필드·급소·스크린·더블은 판 전체의 것이라 따로 받는다.
     """
     return BattleContext(
         weather=battle.get("weather") or None,
@@ -129,6 +173,10 @@ def context(attacker, defender, **battle):
         is_doubles=bool(battle.get("is_doubles")),
         attacker_hp=attacker.get("hp"),
         defender_hp=defender.get("hp"),
+        # 맹독이 몇 턴째인가. 판 전체의 것이 아니라 방어자에게 걸린
+        # 상태이지만, 지금 맹독을 재는 쪽은 방어자뿐이라 여기 둔다.
+        # 공격자 맹독까지 재게 되면 그때 양쪽으로 가른다.
+        toxic_turn=int(battle.get("toxic_turn") or 1),
     )
 
 
@@ -155,3 +203,34 @@ def one_hit(conn, rules, attacker, defender, move, max_turns=4, **battle):
         ko=damage.analyze_ko(atk, dfn, m, ctx, rules, max_turns=max_turns),
         effect=damage.type_multiplier(m["type"], dfn.types, rules.chart),
     )
+
+
+def power(conn, spec, moves):
+    """결정력을 잰다. 세울 수 없는 포켓몬이면 ValueError.
+    """
+    p, en = build_side(conn, spec)
+
+    scored = []
+    for asked in moves:
+        if not asked:
+            continue
+        row = move_row(conn, asked)
+        if row is None:
+            scored.append(Scored(asked=asked))
+            continue
+        scored.append(Scored(asked=asked, row=row,
+                             index=damage.power_index(p, row),
+                             stab=row["type"] in p.types))
+
+    # 없는 기술은 0 이라 자연히 뒤로 간다. 결정력이 0 인 변화기와 같은
+    # 자리인데, 둘 다 "화력이 없다" 이므로 갈라 놓을 이유가 없다.
+    scored.sort(key=lambda s: -s.index)
+    return Power(pokemon=p, en=en, moves=scored)
+
+
+def bulk(conn, spec):
+    """내구력을 잰다. 세울 수 없는 포켓몬이면 ValueError."""
+    p, en = build_side(conn, spec)
+    b = damage.bulk_index(p)
+    return Bulk(pokemon=p, en=en, physical=b["physical"],
+                special=b["special"], factor=BULK_FACTOR)

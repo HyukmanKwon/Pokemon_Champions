@@ -18,9 +18,13 @@
   <button data-tab="agent">도우미</button>
 </nav>
 
+<!-- 넓은 화면에서는 왼쪽이 덱 목록, 오른쪽이 포켓몬 3×2 다.
+     좁아지면 .team-layout 이 한 줄로 접히고 덱 목록이 위로 간다. -->
 <section class="panel" id="panel-team">
-  <div id="deckbar" class="deckbar"></div>
-  <div id="grid" class="grid"></div>
+  <div class="team-layout">
+    <aside id="deckbar" class="deckbar"></aside>
+    <div id="grid" class="grid"></div>
+  </div>
 </section>
 <section class="panel" id="panel-pokemon" hidden></section>
 <section class="panel" id="panel-move" hidden></section>

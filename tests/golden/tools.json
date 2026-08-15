@@ -1,12 +1,72 @@
 {
   "bulk_index({\"pokemon\": {\"name\": \"하마돈\"}})": {
     "def": 138,
+    "divided_by": 0.411,
     "hp": 183,
     "ko_name": "하마돈",
-    "physical_bulk": 25254,
+    "physical_bulk": 61445,
     "pokemon": "hippowdon",
     "spd": 92,
-    "special_bulk": 16836
+    "special_bulk": 40964
+  },
+  "calc_damage({\"attacker\": {\"name\": \"맘모꾸리\"}, \"defender\": {\"condition\": \"toxic\", \"item\": \"먹다남은음식\", \"name\": \"한카리아스\"}, \"move\": \"고드름떨구기\", \"toxic_turn\": 2})": {
+    "attacker": {
+      "ability": "oblivious",
+      "ability_ko_name": "둔감",
+      "atk": 150,
+      "item": null,
+      "item_ko_name": null,
+      "ko_name": "맘모꾸리",
+      "name": "mamoswine",
+      "nature": "serious",
+      "nature_ko_name": "성실",
+      "spa": 90
+    },
+    "damage": {
+      "max": 300,
+      "min": 252,
+      "percent": "137.7~163.9%",
+      "rolls": [
+        252,
+        256,
+        256,
+        264,
+        264,
+        268,
+        268,
+        276,
+        276,
+        280,
+        280,
+        288,
+        288,
+        292,
+        292,
+        300
+      ]
+    },
+    "defender": {
+      "ability": "sand-veil",
+      "ability_ko_name": "모래숨기",
+      "def": 115,
+      "hp": 183,
+      "item": "leftovers",
+      "item_ko_name": "먹다남은음식",
+      "ko_name": "한카리아스",
+      "name": "garchomp",
+      "nature": "serious",
+      "nature_ko_name": "성실",
+      "spd": 105
+    },
+    "move": {
+      "category": "physical",
+      "ko_name": "고드름떨구기",
+      "name": "icicle-crash",
+      "power": 85,
+      "type": "ice"
+    },
+    "type_effect": 4.0,
+    "verdict": "확정 1타"
   },
   "calc_damage({\"attacker\": {\"name\": \"맘모꾸리\"}, \"defender\": {\"name\": \"한카리아스\"}, \"move\": \"고드름떨구기\"})": {
     "attacker": {
@@ -127,7 +187,7 @@
     "verdict": "4타 이내로는 쓰러지지 않음"
   },
   "calc_damage({\"attacker\": {\"name\": \"없는포켓몬\"}, \"defender\": {\"name\": \"한카리아스\"}, \"move\": \"지진\"})": {
-    "error": "'없는포켓몬' 은(는) 포챔스 목록에 없습니다."
+    "error": "'없는포켓몬' 은(는) 포켓몬 목록에 없습니다."
   },
   "find_ability({\"name\": \"까칠한피부\"})": {
     "description": "공격을 받았을 때 자신에게 접촉한 상대를 까칠까칠한 피부로 상처를 입힌다.",

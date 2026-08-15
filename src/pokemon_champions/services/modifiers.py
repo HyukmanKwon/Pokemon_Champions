@@ -135,7 +135,14 @@ POWER_ABILITIES = {
 
 POWER_ITEMS = {
     "펀치글러브": (X1_1, _flag("is_punch")),
+    "힘의머리띠": (X1_1, _is(PHYSICAL)),
+    "박식안경":   (X1_1, _is(SPECIAL)),
 }
+# 여기 없는 것 중 자주 물어보는 것들:
+#   조임밴드   조이기 지속 데미지를 올린다. 기술 위력이 아니라 턴 끝 정산이라
+#              residual.py 쪽이고, 조이기 상태를 아직 안 들고 있다
+#   메트로놈   같은 기술을 연속으로 쓴 횟수를 세야 한다. 한 방을 재는
+#              이 계산기에는 그 횟수가 없다
 
 # 타입 강화 도구는 전부 1.2 라서 한 줄씩 적지 않고 여기 모은다.
 # 어느 도구가 어느 타입인지는 DB에 없다 — items.category 가
@@ -173,6 +180,27 @@ FINAL_ATTACKER_ITEMS = {
     "생명의구슬": (LIFE_ORB, _always),
     "달인의띠":   (X1_2, lambda s: s.type_eff > 1),
 }
+
+# ── 약점 반감 열매 ────────────────────────────────────────────
+# 그 타입의 "효과가 뛰어난" 기술을 맞을 때만 데미지가 반으로 준다. 한 번
+# 쓰면 없어지지만, 이 계산기는 한 방을 재는 곳이라 소모는 보지 않는다 —
+# 두 방째를 물어보고 싶으면 도구를 빼고 다시 재면 된다.
+#
+# 이름은 data/overrides/item_ko_names.json 에서 가져왔다. 사람이 확인한
+# 값이라 추측이 섞이지 않는다. 오타가 나도 예외가 아니라 "열매가 영영 안
+# 걸린 값" 이 나오므로 python -m scripts.check_modifiers 로 거른다.
+RESIST_BERRIES = {
+    "오카열매": "fire",       "꼬시개열매": "water",   "초나열매": "electric",
+    "린드열매": "grass",      "플카열매": "ice",       "로플열매": "fighting",
+    "으름열매": "poison",     "슈캐열매": "ground",    "바코열매": "flying",
+    "야파열매": "psychic",    "리체열매": "bug",       "루미열매": "rock",
+    "수불열매": "ghost",      "하반열매": "dragon",    "마코열매": "dark",
+    "바리비열매": "steel",    "로셀열매": "fairy",
+}
+
+# 카리열매만 규칙이 다르다. 노말은 약점이 될 수 없어서 "효과가 뛰어날 때"
+# 조건을 달면 영영 안 걸린다. 등배에서도 반감한다.
+CHILAN_BERRY = "카리열매"
 
 
 # ─────────────────────────────────────────────────────────────
@@ -266,6 +294,14 @@ def final_mods(sit):
             + _collect(FINAL_ATTACKER_ITEMS, sit.attacker.item, sit)
             + _collect(FINAL_DEFENDER_ABILITIES, sit.defender.ability, sit))
 
+    # 약점 반감 열매. 표가 (배수, 조건) 이 아니라 (이름 -> 타입) 이라
+    # _collect 를 못 쓴다 — TYPE_BOOST_ITEMS 와 같은 모양이다.
+    item = sit.defender.item
+    if RESIST_BERRIES.get(item) == _mtype(sit) and sit.type_eff > 1:
+        mods.append(X0_5)
+    elif item == CHILAN_BERRY and _mtype(sit) == "normal":
+        mods.append(X0_5)
+
     # 스크린. 급소에는 뚫린다 — 본가 규칙이다.
     # 더블은 0.5 가 아니라 2732/4096 (약 0.667) 이다.
     if not sit.ctx.is_critical:
@@ -302,4 +338,5 @@ def all_ability_keys():
 def all_item_keys():
     """검사 스크립트가 쓴다 — 표에 등장하는 도구 이름 전부."""
     return set().union(ATTACK_ITEMS, DEFENSE_ITEMS, POWER_ITEMS,
-                       TYPE_BOOST_ITEMS, FINAL_ATTACKER_ITEMS, IMMUNE_ITEMS)
+                       TYPE_BOOST_ITEMS, FINAL_ATTACKER_ITEMS, IMMUNE_ITEMS,
+                       RESIST_BERRIES, {CHILAN_BERRY})

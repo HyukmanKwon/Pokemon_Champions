@@ -67,6 +67,12 @@ CALLS = [
                      "move": "지진", "weather": "sandstorm"}),
     ("calc_damage", {"attacker": {"name": "없는포켓몬"},
                      "defender": {"name": "한카리아스"}, "move": "지진"}),
+    # 맹독 + 먹다남은음식. 모델이 곱셈으로는 답할 수 없는 판이다 —
+    # 독은 턴마다 세지고 회복은 만피에서 잘린다.
+    ("calc_damage", {"attacker": {"name": "맘모꾸리"},
+                     "defender": {"name": "한카리아스", "item": "먹다남은음식",
+                                  "condition": "toxic"},
+                     "move": "고드름떨구기", "toxic_turn": 2}),
 
     ("power_index", {"pokemon": {"name": "메타그로스", "nature": "고집"},
                      "moves": ["지진", "아이언헤드", "없는기술"]}),
