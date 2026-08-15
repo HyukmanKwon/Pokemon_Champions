@@ -15,7 +15,7 @@
 import pytest
 from dataclasses import replace
 
-from pokemon_champions.domain import Pokemon, Stats
+from pokemon_champions.domain import BattlePokemon, Stats
 from pokemon_champions.calc import damage, residual
 from pokemon_champions.calc.damage import (BattleContext, Rules,
                                                calc_damage, pokeround, staged)
@@ -79,9 +79,10 @@ def mon(name="공격", types=("fire",), stats=(175, 150, 100, 150, 100, 100),
     한쪽만 적으면 예외가 아니라 조용히 다른 값이 나왔다 — 화상 걸린 근성을
     재려면 burn 을 두 번 적어야 했던 것이 그 예다.
     """
-    return Pokemon(name=name, stats=Stats(*stats), ability=ability,
-                   item=item, condition=condition, types=types,
-                   rank=rank, hp=hp, grounded=grounded)
+    return BattlePokemon(name=name, stats=Stats(*stats), ability=ability,
+                         item=item, types=types,
+                         hp=hp, rank=rank, condition=condition,
+                         grounded=grounded)
 
 
 def move(name="화염방사", type="fire", category="special", power=90, **kw):

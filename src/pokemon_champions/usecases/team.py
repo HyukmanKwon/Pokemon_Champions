@@ -127,12 +127,15 @@ def validate_spec(conn, spec, allow_mega=False):
 # ─────────────────────────────────────────────────────────────
 
 def build_pokemon(conn, ko_name, sp_values, ko_nature,
-                  ability, item=None, moves=None, condition=None,
-                  rank=None, hp=None, grounded=True, allow_mega=False):
-    """DB를 읽어 Pokemon 하나를 만든다.
+                  ability, item=None, moves=None, allow_mega=False):
+    """DB를 읽어 엔트리 한 마리(Pokemon)를 만든다.
 
-    조회는 repositories 에, 계산은 services.stats 에 맡기고 여기서는
+    조회는 repositories 에, 계산은 calc/stats 에 맡기고 여기서는
     순서만 정한다.
+
+    배틀 중 상태(HP · 랭크 · 상태이상 · 접지)는 여기서 안 받는다. 엔트리에
+    그런 칸이 없기 때문이다 — 판에 올릴 때 BattlePokemon.of() 가 얹는다.
+    (usecases/battle.py 의 build_side)
     """
     ko_name = normalize(ko_name)
     validate_spec(conn, dict(ko_name=ko_name, ability=ability,
@@ -150,12 +153,8 @@ def build_pokemon(conn, ko_name, sp_values, ko_nature,
         ability=ability,
         item=normalize(item) if item else None,
         moves=[normalize(m) for m in (moves or [])],
-        condition=condition,
-        rank=rank or None,
         nature=normalize(ko_nature),
         types=tuple(t for t in (meta["type1"], meta["type2"]) if t),
-        hp=hp,
-        grounded=grounded,
     )
 
 

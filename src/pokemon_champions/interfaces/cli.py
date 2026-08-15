@@ -54,7 +54,9 @@ def format_pokemon(p):
         row,
         p.nature or "-",
         p.item or "없음",
-        p.condition or "정상",
+        # 상태이상 줄은 없다. 엔트리 포켓몬은 걸릴 수가 없어서 늘 "정상"
+        # 만 찍고 있었다. 판에 나간 한 마리는 BattlePokemon 이고, 그건
+        # 계산기가 다룬다.
         " / ".join(p.moves) if p.moves else "없음",
     ])
 

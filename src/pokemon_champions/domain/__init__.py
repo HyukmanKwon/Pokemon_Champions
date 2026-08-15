@@ -4,7 +4,7 @@
 PokeAPI에서 왔는지 JSON에서 왔는지 몰라야, 바깥이 바뀔 때 여기가 안 깨진다.
 """
 
-from .pokemon import Pokemon
+from .pokemon import BattlePokemon, Pokemon
 from .stats import STAT_LABELS, STAT_ORDER, Stats
 
-__all__ = ["Pokemon", "Stats", "STAT_ORDER", "STAT_LABELS"]
+__all__ = ["Pokemon", "BattlePokemon", "Stats", "STAT_ORDER", "STAT_LABELS"]

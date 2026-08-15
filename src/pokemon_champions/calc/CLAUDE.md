@@ -15,9 +15,12 @@ rather than adding the parameter.
 Take it as an argument. The caller in `usecases/` does the fetching.
 
 - Reference tables (type chart, weather, terrain, status) arrive as `rules: Rules`.
+- Everything here takes `BattlePokemon`, never the plain `Pokemon`.
+  A roster entry has no HP, stat stages, or status; passing one in used
+  to compute silently at full HP with no boosts. Now it raises.
 - Split battle state by **who it applies to**, never by anything else.
-  Per-pokemon (HP, stat stages, status, grounded) lives on the `Pokemon`.
-  Field-wide (weather, terrain, crit, screens, doubles) lives on `ctx`.
+  Per-pokemon (HP, stat stages, status, grounded) -> `BattlePokemon`.
+  Field-wide (weather, terrain, crit, screens, doubles) -> `ctx`.
   Never store the same fact in both — that bug existed and cost a
   silently-wrong result, not an exception.
 

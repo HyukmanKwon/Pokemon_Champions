@@ -103,7 +103,7 @@ Pokemon_Champions/
 │   │
 │   ├── domain/                 "포켓몬이란 무엇인가"만 안다
 │   │   ├── stats.py            Stats — 능력치 6칸
-│   │   └── pokemon.py          Pokemon
+│   │   └── pokemon.py          Pokemon(엔트리) · BattlePokemon(판 위)
 │   │
 │   ├── db/
 │   │   ├── connection.py       connect() — 커넥션을 여는 유일한 지점

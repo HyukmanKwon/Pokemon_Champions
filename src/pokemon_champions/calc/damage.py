@@ -36,7 +36,7 @@ import math
 from dataclasses import dataclass, field, replace
 
 from ..config import BULK_FACTOR, LEVEL_FACTOR, MOD_ONE, SPREAD_MULT
-from ..domain import Pokemon
+from ..domain import BattlePokemon
 from . import modifiers, residual
 
 # 여러 대상을 치는 기술. moves.target 이 이 값이면 더블에서 위력이 깎인다.
@@ -45,14 +45,14 @@ SPREAD_TARGETS = {"all-opponents", "all-other-pokemon", "all-pokemon"}
 
 @dataclass
 class BattleContext:
-    """판 전체에 걸리는 것. 한쪽에게만 걸리는 것은 Pokemon 이 들고 있다.
+    """판 전체에 걸리는 것. 한쪽에게만 걸리는 것은 BattlePokemon 이 들고 있다.
 
     가르는 기준이 "누구에게 걸리나" 하나다. 랭크·상태이상·남은 HP·접지는
-    한 마리의 사정이므로 Pokemon 에 있고, 날씨·필드·급소·스크린·더블은
+    한 마리의 사정이므로 BattlePokemon 에 있고, 날씨·필드·급소·스크린·더블은
     판의 사정이라 여기 있다.
 
     맹독 턴만 예외다 — 방어자에게 걸린 상태인데 여기 있다. 지금 맹독을
-    재는 쪽이 방어자뿐이라 그렇고, 공격자 맹독까지 재게 되면 Pokemon 으로
+    재는 쪽이 방어자뿐이라 그렇고, 공격자 맹독까지 재게 되면 BattlePokemon 으로
     옮긴다.
 
     전부 기본값이 있다. 아무것도 안 넘기면 평지·맑음이다.
@@ -90,12 +90,12 @@ class Rules:
 class Situation:
     """보정 표(modifiers.py)가 보는 판 전체. 표의 조건 함수가 이걸 받는다.
 
-    Pokemon 과 move 를 따로 넘기지 않고 하나로 묶는 이유는, 표에 조건을
+    BattlePokemon 과 move 를 따로 넘기지 않고 하나로 묶는 이유는, 표에 조건을
     추가할 때 필요한 값이 늘어나도 표만 고치면 되게 하려는 것이다.
     """
 
-    attacker: Pokemon
-    defender: Pokemon
+    attacker: BattlePokemon
+    defender: BattlePokemon
     move: dict
     ctx: BattleContext
     rules: Rules
@@ -274,7 +274,7 @@ def type_multiplier(move_type, defender_types, chart):
 def calc_damage(attacker, defender, move, ctx=None, rules=None):
     """데미지 난수 16개를 DamageRange 로 돌려준다.
 
-    attacker / defender  Pokemon (실능치와 타입이 이미 들어 있다)
+    attacker / defender  BattlePokemon (실능치·타입·배틀 상태가 들어 있다)
     move                 moves 테이블 한 행 (dict)
     ctx                  BattleContext. None 이면 기본 상태
     rules                Rules. 최소한 chart 는 있어야 한다
@@ -408,7 +408,7 @@ def analyze_ko(attacker, defender, move, ctx=None, rules=None, max_turns=4):
 
     for turn in range(1, max_turns + 1):
         # 멀티스케일처럼 남은 HP 를 보는 특성이 있어서 매 턴 갱신한다.
-        # HP 가 Pokemon 에 있으므로 방어자를 갈아끼운다 — 예전에는 ctx 를
+        # HP 가 BattlePokemon 에 있으므로 방어자를 갈아끼운다 — 예전에는 ctx 를
         # 갈아끼우고 _tick 에 HP 를 따로 넘겨서, 같은 값이 두 길로 갔다.
         hurt = replace(defender, hp=worst_hp)
         dmg = calc_damage(attacker, hurt, move, ctx, rules)
@@ -462,7 +462,7 @@ def analyze_ko(attacker, defender, move, ctx=None, rules=None, max_turns=4):
 def _tick(pokemon, ctx, rules, turn):
     """한 마리의 턴 종료 정산. 아무 일도 안 일어나면 None.
 
-    누구의 것인지는 넘기는 Pokemon 이 정한다 — 공격자 몫을 재고 싶어지면
+    누구의 것인지는 넘기는 BattlePokemon 이 정한다 — 공격자 몫을 재고 싶어지면
     공격자를 넘기면 된다. 예전에는 ctx 에서 defender_* 만 골라 넘겼는데,
     그때는 이 함수가 "방어자 전용" 이 되어 있었다.
     """

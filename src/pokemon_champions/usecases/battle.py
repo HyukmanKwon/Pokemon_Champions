@@ -32,6 +32,7 @@ from ..db.repositories import move_repo, pokemon_repo
 from ..calc import damage
 from . import team
 from ..calc.damage import BattleContext
+from ..domain import BattlePokemon
 from . import naming
 
 # 21종 중 유일한 무보정. 안 말했을 때 이걸로 잰다.
@@ -147,13 +148,18 @@ def build_side(conn, spec, move_ko=None):
         ability=ability,
         item=naming.to_ko(conn, "items", spec.get("item")),
         moves=[move_ko] if move_ko else None,
-        condition=spec.get("condition"),
-        rank=spec.get("rank"),
-        hp=spec.get("hp"),
-        grounded=spec.get("grounded", True),
         allow_mega=ALLOW_MEGA,
     )
-    return p, en
+    # 여기서 판에 올린다. 계산기가 받는 것은 전부 BattlePokemon 이라,
+    # 배틀 상태를 빠뜨리면 그 자리에서 걸린다 — 예전에는 엔트리를 그대로
+    # 넘겨도 조용히 만피·랭크 0 으로 계산됐다.
+    return BattlePokemon.of(
+        p,
+        hp=spec.get("hp"),
+        rank=spec.get("rank"),
+        condition=spec.get("condition"),
+        grounded=spec.get("grounded", True),
+    ), en
 
 
 def context(**battle):
