@@ -45,28 +45,27 @@ SPREAD_TARGETS = {"all-opponents", "all-other-pokemon", "all-pokemon"}
 
 @dataclass
 class BattleContext:
-    """한 번의 데미지 계산에 걸리는 판 상태.
+    """판 전체에 걸리는 것. 한쪽에게만 걸리는 것은 Pokemon 이 들고 있다.
 
-    전부 기본값이 있다. 아무것도 안 넘기면 평지·맑음·랭크 0 이다.
+    가르는 기준이 "누구에게 걸리나" 하나다. 랭크·상태이상·남은 HP·접지는
+    한 마리의 사정이므로 Pokemon 에 있고, 날씨·필드·급소·스크린·더블은
+    판의 사정이라 여기 있다.
+
+    맹독 턴만 예외다 — 방어자에게 걸린 상태인데 여기 있다. 지금 맹독을
+    재는 쪽이 방어자뿐이라 그렇고, 공격자 맹독까지 재게 되면 Pokemon 으로
+    옮긴다.
+
+    전부 기본값이 있다. 아무것도 안 넘기면 평지·맑음이다.
     """
 
     weather: str = None          # weathers.name — "sun" "rain" "sandstorm" "snow"
     terrain: str = None          # terrains.name — "electric" "grassy" ...
-    attacker_rank: dict = field(default_factory=dict)   # {"a": 2, "s": -1}
-    defender_rank: dict = field(default_factory=dict)
-    attacker_condition: str = None   # status_conditions.name — "burn" "paralysis"
-    defender_condition: str = None
     is_critical: bool = False
     reflect: bool = False        # 리플렉터 (물리 반감)
     light_screen: bool = False   # 빛의장막 (특수 반감)
-    attacker_grounded: bool = True   # 필드 효과는 접지된 쪽에만 걸린다
-    defender_grounded: bool = True
     # 더블인가. 광역기 0.75 보정과 스크린 배수(0.5 대신 0.667)가 갈린다.
     # 포챔스는 싱글·더블 랭크가 따로 있어서 고정할 수 없다.
     is_doubles: bool = False
-    # 남은 HP. None 이면 만피로 본다. 멀티스케일·궁지 특성이 이걸 본다.
-    attacker_hp: int = None
-    defender_hp: int = None
     # 맹독이 몇 턴째인가. 데미지가 n/16 으로 늘어나므로 1 부터 시작하는지
     # 이미 세 턴 지났는지가 확정타를 가른다. 맹독이 아니면 안 쓰인다.
     toxic_turn: int = 1
@@ -120,13 +119,11 @@ class Situation:
 
     @property
     def attacker_hp(self):
-        return (self.ctx.attacker_hp if self.ctx.attacker_hp is not None
-                else self.attacker.stats.h)
+        return self.attacker.hp_now()
 
     @property
     def defender_hp(self):
-        return (self.ctx.defender_hp if self.ctx.defender_hp is not None
-                else self.defender.stats.h)
+        return self.defender.hp_now()
 
 
 @dataclass
@@ -309,8 +306,8 @@ def calc_damage(attacker, defender, move, ctx=None, rules=None):
     atk_key = "a" if move["category"] == "physical" else "c"
     def_key = "b" if move["category"] == "physical" else "d"
 
-    a_stage = ctx.attacker_rank.get(atk_key, 0)
-    d_stage = ctx.defender_rank.get(def_key, 0)
+    a_stage = attacker.rank_of(atk_key)
+    d_stage = defender.rank_of(def_key)
     # 급소는 "자신에게 불리한" 랭크만 무시한다. 공격이 오른 것은 그대로
     # 쓰고 내려간 것은 없던 걸로, 상대 방어는 그 반대.
     if ctx.is_critical:
@@ -351,7 +348,7 @@ def calc_damage(attacker, defender, move, ctx=None, rules=None):
     stab = modifiers.stab_mod(sit, is_stab)
     final = chain(modifiers.final_mods(sit))
     # 화상은 물리에만, 근성 특성이면 안 걸린다 (근성은 공격을 올린다)
-    burned = (ctx.attacker_condition == "burn"
+    burned = (attacker.condition == "burn"
               and move["category"] == "physical"
               and attacker.ability != "근성")
 
@@ -405,14 +402,16 @@ def analyze_ko(attacker, defender, move, ctx=None, rules=None, max_turns=4):
     turns = []
     # 최소 난수만 맞았을 때와 최대 난수만 맞았을 때를 따로 굴린다.
     # 하나로 굴리면 "중간 난수 기준" 이라는 아무 의미 없는 값이 나온다.
-    worst_hp = best_hp = ctx.defender_hp if ctx.defender_hp is not None else max_hp
+    worst_hp = best_hp = defender.hp_now()
     guaranteed = possible = None
     moved = False               # 정산이 한 번이라도 HP 를 움직였는가
 
     for turn in range(1, max_turns + 1):
         # 멀티스케일처럼 남은 HP 를 보는 특성이 있어서 매 턴 갱신한다.
-        turn_ctx = replace(ctx, defender_hp=worst_hp)
-        dmg = calc_damage(attacker, defender, move, turn_ctx, rules)
+        # HP 가 Pokemon 에 있으므로 방어자를 갈아끼운다 — 예전에는 ctx 를
+        # 갈아끼우고 _tick 에 HP 를 따로 넘겨서, 같은 값이 두 길로 갔다.
+        hurt = replace(defender, hp=worst_hp)
+        dmg = calc_damage(attacker, hurt, move, ctx, rules)
 
         best_hp -= dmg.max          # 운이 가장 좋았을 때
         worst_hp -= dmg.min         # 운이 가장 나빴을 때
@@ -420,8 +419,9 @@ def analyze_ko(attacker, defender, move, ctx=None, rules=None, max_turns=4):
         # 턴 끝 정산. 기술로 이미 쓰러졌으면 그 턴은 정산이 없다.
         # 두 갈래를 따로 굴리는 이유는 회복이 남은 HP 에서 잘리기
         # 때문이다 — 만피에 가까운 쪽은 먹다남은음식이 덜 들어간다.
-        tick = _tick(defender, worst_hp, ctx, rules, turn) if worst_hp > 0 else None
-        best_tick = _tick(defender, best_hp, ctx, rules, turn) if best_hp > 0 else None
+        tick = _tick(hurt, ctx, rules, turn) if worst_hp > 0 else None
+        best_tick = (_tick(replace(defender, hp=best_hp), ctx, rules, turn)
+                     if best_hp > 0 else None)
 
         turns.append({"damage": dmg, "hp_before": worst_hp + dmg.min,
                       "tick": tick})
@@ -459,19 +459,19 @@ def analyze_ko(attacker, defender, move, ctx=None, rules=None, max_turns=4):
     }
 
 
-def _tick(defender, hp, ctx, rules, turn):
-    """방어자의 턴 종료 정산. 아무 일도 안 일어나면 None.
+def _tick(pokemon, ctx, rules, turn):
+    """한 마리의 턴 종료 정산. 아무 일도 안 일어나면 None.
 
-    BattleContext 는 두 쪽을 다 들고 있으므로 방어자 몫만 골라 넘긴다.
-    residual 은 어느 쪽인지 모르는 편이 낫다 — 공격자 몫을 재고 싶어지면
-    같은 함수에 attacker_* 를 넘기면 된다.
+    누구의 것인지는 넘기는 Pokemon 이 정한다 — 공격자 몫을 재고 싶어지면
+    공격자를 넘기면 된다. 예전에는 ctx 에서 defender_* 만 골라 넘겼는데,
+    그때는 이 함수가 "방어자 전용" 이 되어 있었다.
     """
     tick = residual.end_of_turn(
-        defender, hp,
-        condition=ctx.defender_condition,
+        pokemon, pokemon.hp_now(),
+        condition=pokemon.condition,
         weather=ctx.weather,
         terrain=ctx.terrain,
-        grounded=ctx.defender_grounded,
+        grounded=pokemon.grounded,
         rules=rules,
         # 맹독은 판이 시작하고 몇 턴째인가로 센다. 이 계산의 1턴째가
         # 맹독의 1턴째라는 보장이 없어서 ctx 의 시작값에 더한다.

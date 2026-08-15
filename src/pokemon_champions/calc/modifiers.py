@@ -277,10 +277,10 @@ def power_mods(sit):
     t = sit.terrain_rule
     if t:
         if (t.get("boost_type") == _mtype(sit) and t.get("boost_mult")
-                and sit.ctx.attacker_grounded):
+                and sit.attacker.grounded):
             mods.append(round(t["boost_mult"] * MOD_ONE))
         if (t.get("weaken_type") == _mtype(sit) and t.get("weaken_mult")
-                and sit.ctx.defender_grounded):
+                and sit.defender.grounded):
             mods.append(round(t["weaken_mult"] * MOD_ONE))
     return mods
 

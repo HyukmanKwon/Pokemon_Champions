@@ -128,7 +128,7 @@ def validate_spec(conn, spec, allow_mega=False):
 
 def build_pokemon(conn, ko_name, sp_values, ko_nature,
                   ability, item=None, moves=None, condition=None,
-                  rank=None, allow_mega=False):
+                  rank=None, hp=None, grounded=True, allow_mega=False):
     """DB를 읽어 Pokemon 하나를 만든다.
 
     조회는 repositories 에, 계산은 services.stats 에 맡기고 여기서는
@@ -154,6 +154,8 @@ def build_pokemon(conn, ko_name, sp_values, ko_nature,
         rank=rank or None,
         nature=normalize(ko_nature),
         types=tuple(t for t in (meta["type1"], meta["type2"]) if t),
+        hp=hp,
+        grounded=grounded,
     )
 
 

@@ -15,10 +15,11 @@ rather than adding the parameter.
 Take it as an argument. The caller in `usecases/` does the fetching.
 
 - Reference tables (type chart, weather, terrain, status) arrive as `rules: Rules`.
-- Things that change mid-battle (weather, terrain, stat stages, HP, status)
-  arrive as `ctx: BattleContext` — one object, not separate parameters.
-  N-hit analysis works by calling the same function with a changed `ctx`,
-  so the state has to be one bundle.
+- Split battle state by **who it applies to**, never by anything else.
+  Per-pokemon (HP, stat stages, status, grounded) lives on the `Pokemon`.
+  Field-wide (weather, terrain, crit, screens, doubles) lives on `ctx`.
+  Never store the same fact in both — that bug existed and cost a
+  silently-wrong result, not an exception.
 
 ## Adding a mechanic
 

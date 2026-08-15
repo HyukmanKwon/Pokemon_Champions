@@ -213,17 +213,20 @@ def damage(shot, attacker_asked, defender_asked):
         # 실제로 계산에 들어간 판 상황을 그대로 돌려준다. 화면이 보낸 것을
         # 화면이 다시 그리면 "보냈다고 믿는 것" 을 보게 되어, 서버가 못 받은
         # 경우와 구별이 안 된다.
+        #
+        # 랭크와 HP 는 이제 Pokemon 에 있고 나머지는 ctx 에 있다. 화면은
+        # "무엇으로 쟀나" 를 한 덩어리로 읽으므로 칸 이름은 그대로 둔다.
         "context": {
             "weather": ctx.weather,
             "terrain": ctx.terrain,
-            "attacker_rank": ctx.attacker_rank,
-            "defender_rank": ctx.defender_rank,
+            "attacker_rank": shot.attacker.rank or {},
+            "defender_rank": shot.defender.rank or {},
             "is_critical": ctx.is_critical,
             "reflect": ctx.reflect,
             "light_screen": ctx.light_screen,
             "is_doubles": ctx.is_doubles,
-            "attacker_hp": ctx.attacker_hp,
-            "defender_hp": ctx.defender_hp,
+            "attacker_hp": shot.attacker.hp,
+            "defender_hp": shot.defender.hp,
         },
         "damage": {
             "min": dmg.min,

@@ -149,34 +149,30 @@ def build_side(conn, spec, move_ko=None):
         moves=[move_ko] if move_ko else None,
         condition=spec.get("condition"),
         rank=spec.get("rank"),
+        hp=spec.get("hp"),
+        grounded=spec.get("grounded", True),
         allow_mega=ALLOW_MEGA,
     )
     return p, en
 
 
-def context(attacker, defender, **battle):
-    """양쪽 스펙과 판 설정을 BattleContext 하나로.
+def context(**battle):
+    """판 설정을 BattleContext 하나로.
 
-    랭크·상태이상·접지·남은 HP 는 스펙 안에 있고, 날씨·필드·급소·스크린·더블은 판 전체의 것이라 따로 받는다.
+    한쪽에게 걸리는 것(랭크·상태이상·접지·남은 HP)은 여기 없다. 그건
+    build_side 가 Pokemon 에 실어 준다 — 예전에는 같은 스펙을 두 군데로
+    나눠 적었고, 그래서 화상 하나를 재는 데 burn 을 두 번 적어야 했다.
     """
     return BattleContext(
         weather=battle.get("weather") or None,
         terrain=battle.get("terrain") or None,
-        attacker_rank=attacker.get("rank") or {},
-        defender_rank=defender.get("rank") or {},
-        attacker_condition=attacker.get("condition") or None,
-        defender_condition=defender.get("condition") or None,
         is_critical=bool(battle.get("is_critical")),
         reflect=bool(battle.get("reflect")),
         light_screen=bool(battle.get("light_screen")),
-        attacker_grounded=attacker.get("grounded", True),
-        defender_grounded=defender.get("grounded", True),
         is_doubles=bool(battle.get("is_doubles")),
-        attacker_hp=attacker.get("hp"),
-        defender_hp=defender.get("hp"),
-        # 맹독이 몇 턴째인가. 판 전체의 것이 아니라 방어자에게 걸린
-        # 상태이지만, 지금 맹독을 재는 쪽은 방어자뿐이라 여기 둔다.
-        # 공격자 맹독까지 재게 되면 그때 양쪽으로 가른다.
+        # 맹독이 몇 턴째인가. 방어자에게 걸린 상태이지만 지금 맹독을 재는
+        # 쪽이 방어자뿐이라 판 쪽에 둔다. 공격자 맹독까지 재게 되면
+        # 그때 Pokemon 으로 옮긴다.
         toxic_turn=int(battle.get("toxic_turn") or 1),
     )
 
@@ -194,7 +190,7 @@ def one_hit(conn, rules, attacker, defender, move, max_turns=4, **battle):
 
     atk, atk_en = build_side(conn, attacker, m["ko_name"] or m["name"])
     dfn, dfn_en = build_side(conn, defender)
-    ctx = context(attacker, defender, **battle)
+    ctx = context(**battle)
 
     return Shot(
         attacker=atk, attacker_en=atk_en,

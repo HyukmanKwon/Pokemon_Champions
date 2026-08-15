@@ -13,6 +13,7 @@
 """
 
 import pytest
+from dataclasses import replace
 
 from pokemon_champions.domain import Pokemon, Stats
 from pokemon_champions.calc import damage, residual
@@ -70,9 +71,17 @@ RULES = Rules(
 
 
 def mon(name="공격", types=("fire",), stats=(175, 150, 100, 150, 100, 100),
-        ability=None, item=None, condition=None):
+        ability=None, item=None, condition=None, rank=None, hp=None,
+        grounded=True):
+    """한 마리에게 걸린 것은 전부 여기로 넘긴다.
+
+    예전에는 랭크·상태이상·HP·접지를 BattleContext 에도 같이 적어야 했다.
+    한쪽만 적으면 예외가 아니라 조용히 다른 값이 나왔다 — 화상 걸린 근성을
+    재려면 burn 을 두 번 적어야 했던 것이 그 예다.
+    """
     return Pokemon(name=name, stats=Stats(*stats), ability=ability,
-                   item=item, condition=condition, types=types)
+                   item=item, condition=condition, types=types,
+                   rank=rank, hp=hp, grounded=grounded)
 
 
 def move(name="화염방사", type="fire", category="special", power=90, **kw):
@@ -197,20 +206,20 @@ def test_급소는_데미지를_올린다():
 
 
 def test_급소는_상대의_방어_상승을_무시한다():
-    up = BattleContext(defender_rank={"d": 2})
-    assert (dmg(ctx=BattleContext(defender_rank={"d": 2}, is_critical=True)).max
-            > dmg(ctx=up).max)
+    guarded = mon("방어", ("normal",), rank={"d": 2})
+    crit = BattleContext(is_critical=True)
+    assert dmg(defender=guarded, ctx=crit).max > dmg(defender=guarded).max
 
 
 def test_급소는_자신의_공격_상승은_그대로_쓴다():
-    plain = dmg(ctx=BattleContext(is_critical=True))
-    boosted = dmg(ctx=BattleContext(attacker_rank={"c": 2}, is_critical=True))
-    assert boosted.max > plain.max
+    crit = BattleContext(is_critical=True)
+    boosted = dmg(mon(rank={"c": 2}), ctx=crit)
+    assert boosted.max > dmg(ctx=crit).max
 
 
 def test_랭크_상승은_데미지를_올리고_하락은_내린다():
-    assert dmg(ctx=BattleContext(attacker_rank={"c": 2})).max > dmg().max
-    assert dmg(ctx=BattleContext(attacker_rank={"c": -2})).max < dmg().max
+    assert dmg(mon(rank={"c": 2})).max > dmg().max
+    assert dmg(mon(rank={"c": -2})).max < dmg().max
 
 
 def test_날씨는_기술_타입에_따라_오르내린다():
@@ -231,19 +240,19 @@ def test_눈은_얼음_타입의_물리방어를_올린다():
 
 
 def test_화상은_물리만_반감하고_특수는_그대로다():
-    burn = BattleContext(attacker_condition="burn")
+    burned = mon(condition="burn")
     physical = move("몸통박치기", "normal", "physical", 90)
-    assert dmg(m=physical, ctx=burn).max < dmg(m=physical).max
-    assert dmg(ctx=burn).max == dmg().max
+    assert dmg(burned, m=physical).max < dmg(m=physical).max
+    assert dmg(burned).max == dmg().max
 
 
 def test_근성은_화상_반감을_받지_않는다():
-    burn = BattleContext(attacker_condition="burn")
+    # burn 을 한 번만 적는다. 예전에는 Pokemon 과 BattleContext 양쪽에
+    # 적어야 했고, 한쪽을 빠뜨리면 조용히 다른 것을 재고 있었다.
     physical = move("몸통박치기", "normal", "physical", 90)
     guts = mon(ability="근성", condition="burn")
     plain = mon(condition="burn")
-    assert dmg(guts, m=physical, ctx=burn).max > dmg(plain, m=physical,
-                                                    ctx=burn).max
+    assert dmg(guts, m=physical).max > dmg(plain, m=physical).max
 
 
 def test_스크린은_같은_분류만_막고_급소에는_뚫린다():
@@ -334,28 +343,25 @@ def test_필터류는_약점일_때만_깎는다():
 
 def test_멀티스케일은_만피일_때만_걸린다():
     wall = mon("방어", ("normal",), ability="멀티스케일")
-    full = dmg(defender=wall).max
-    hurt = dmg(defender=wall, ctx=BattleContext(defender_hp=1)).max
-    assert full < hurt
+    hurt = mon("방어", ("normal",), ability="멀티스케일", hp=1)
+    assert dmg(defender=wall).max < dmg(defender=hurt).max
 
 
 def test_궁지_특성은_HP_3분의1_이하에서만_걸린다():
-    blaze = mon(ability="맹화")
-    full = BattleContext(attacker_hp=blaze.stats.h)
-    low = BattleContext(attacker_hp=blaze.stats.h // 3)
-    assert dmg(blaze, ctx=low).max > dmg(blaze, ctx=full).max
+    full = mon(ability="맹화")
+    low = mon(ability="맹화", hp=full.stats.h // 3)
+    assert dmg(low).max > dmg(full).max
     # 다른 타입 기술에는 안 걸린다
     water = move("파도타기", "water", "special", 90)
-    assert dmg(blaze, m=water, ctx=low).max == dmg(blaze, m=water,
-                                                  ctx=full).max
+    assert dmg(low, m=water).max == dmg(full, m=water).max
 
 
 def test_필드는_접지된_쪽에만_걸린다():
     elec = move("10만볼트", "electric", "special", 90)
-    on = BattleContext(terrain="electric")
-    off = BattleContext(terrain="electric", attacker_grounded=False)
-    assert dmg(m=elec, ctx=on).max > dmg(m=elec).max
-    assert dmg(m=elec, ctx=off).max == dmg(m=elec).max
+    field = BattleContext(terrain="electric")
+    flying = mon(grounded=False)
+    assert dmg(m=elec, ctx=field).max > dmg(m=elec).max
+    assert dmg(flying, m=elec, ctx=field).max == dmg(flying, m=elec).max
 
 
 def test_테크니션은_위력_60_이하만_올린다():
@@ -556,7 +562,7 @@ def test_독이_확정_3타를_확정_2타로_바꾼다():
     m = move(power=60)
     plain = damage.analyze_ko(mon(), target, m, rules=RULES)
     poisoned = damage.analyze_ko(
-        mon(), target, m, BattleContext(defender_condition="poison"), RULES)
+        mon(), replace(target, condition="poison"), m, rules=RULES)
 
     assert plain["guaranteed"] == 3
     assert poisoned["guaranteed"] == 2
@@ -567,18 +573,19 @@ def test_독이_확정_3타를_확정_2타로_바꾼다():
 
 def test_지속_데미지가_섞이면_타가_아니라_턴이다():
     ko = damage.analyze_ko(
-        mon(), wall(123), move(power=60),
-        BattleContext(defender_condition="poison"), RULES)
+        mon(), replace(wall(123), condition="poison"), move(power=60),
+        rules=RULES)
     assert ko["text"] == "확정 2턴"
 
 
 def test_맹독은_무효인_기술_상대로도_결국_쓰러뜨린다():
     # 지진은 비행에게 안 통한다. 그래도 맹독은 턴마다 쌓인다.
-    flyer = mon("방어", ("flying",), stats=(160, 100, 100, 100, 100, 100))
+    flyer = mon("방어", ("flying",), stats=(160, 100, 100, 100, 100, 100),
+                condition="toxic")
     ko = damage.analyze_ko(
         mon(types=("ground",)), flyer,
         move("지진", "ground", "physical", 100),
-        BattleContext(defender_condition="toxic"), RULES, max_turns=10)
+        rules=RULES, max_turns=10)
     # 1/16 + 2/16 + ... 로 쌓여 6턴째 누계가 21/16 > 1 이다
     assert ko["guaranteed"] == 6
     assert ko["text"] == "확정 6턴"
@@ -599,19 +606,17 @@ def test_먹다남은음식은_확정타를_뒤로_민다():
 def test_맹독_시작_턴을_앞당기면_더_빨리_쓰러진다():
     target = wall(300)
     m = move(power=60)
-    fresh = damage.analyze_ko(
-        mon(), target, m, BattleContext(defender_condition="toxic"), RULES)
-    stale = damage.analyze_ko(
-        mon(), target, m,
-        BattleContext(defender_condition="toxic", toxic_turn=5), RULES)
+    poisoned = replace(target, condition="toxic")
+    fresh = damage.analyze_ko(mon(), poisoned, m, rules=RULES)
+    stale = damage.analyze_ko(mon(), poisoned, m,
+                              BattleContext(toxic_turn=5), RULES)
     assert stale["guaranteed"] <= fresh["guaranteed"]
 
 
 def test_턴마다_무엇이_얼마나_움직였는지_남는다():
     ko = damage.analyze_ko(
-        mon(), wall(240), move(power=20),
-        BattleContext(defender_condition="poison", weather="sandstorm"),
-        RULES, max_turns=3)
+        mon(), replace(wall(240), condition="poison"), move(power=20),
+        BattleContext(weather="sandstorm"), RULES, max_turns=3)
     first = ko["turns"][0]["tick"]
     assert [name for name, _ in first.entries] == ["모래바람", "독"]
     assert first.text == "모래바람 -15, 독 -30"

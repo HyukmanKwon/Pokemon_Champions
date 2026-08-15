@@ -12,8 +12,9 @@
 >    쉽고 넷째부터 겹친다. 아래 §4 에 왜 그런지 적어 둔다.
 >
 > 다만 그 문서가 짚은 두 가지는 옳았고 이 설계가 받아 안았다 —
-> 순수 계산기를 한 이름으로 묶는 것(`calc/`), 그리고 배틀 중 포켓몬을
-> 별도 타입으로 두는 것(`BattlePokemon`).
+> 순수 계산기를 한 이름으로 묶는 것(`calc/`), 그리고 배틀 중 상태를
+> 포켓몬 쪽에 모으는 것. 뒤엣것은 새 클래스가 아니라 `Pokemon` 을
+> 채우는 쪽으로 풀었다 — §5 참고.
 
 ---
 
@@ -64,7 +65,7 @@ Pokemon_Champions/
     ├── assets.py                스프라이트 캐시
     │
     ├── domain/              ▸ "포켓몬이란 무엇인가"
-    │   ├── pokemon.py           Pokemon · BattlePokemon
+    │   ├── pokemon.py           Pokemon (배틀 중 상태까지 들고 있다)
     │   └── stats.py             Stats
     │
     ├── db/                  ▸ SQL 이 존재해도 되는 유일한 곳
@@ -264,7 +265,7 @@ scripts/CLAUDE.md                  src/ 는 여기를 import 하지 않는다
 | 2b | `CLAUDE.md` 7개 | 신규 | — | |
 | 3 | `interfaces/api/views.py` (833 -> 300줄대) | **이동만** | `golden/api.json` | |
 | 4 | `agent/views.py` (598 -> 350줄대) | **이동만** | `golden/tools.json` | |
-| 5 | `BattlePokemon` | 로직 | 새 테스트 | |
+| 5 | 배틀 중 상태를 `Pokemon` 으로 | 로직 | golden 불변 | 완료 |
 
 2~4 단계가 전부 "이동만" 인 것이 핵심이다. 골든 파일 둘이 응답을 통째로
 박아두고 있어서, 옮기다 칸 이름 하나를 잘못 적으면 그 자리에서 실패한다.
