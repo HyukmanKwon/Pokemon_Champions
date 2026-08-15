@@ -31,8 +31,9 @@ from ...config import IMAGES_DIR
 from ...agent import runner
 from ...agent import tools as agent_tools
 from ...db import connect, connection
-from ...db.repositories import (ability_repo, item_repo, move_repo,
-                                nature_repo, pokemon_repo, rules_repo)
+from ...db.repositories import (ability_repo, item_repo, mega_repo,
+                                move_repo, nature_repo, pokemon_repo,
+                                rules_repo)
 from ...usecases import team
 from ...calc.damage import Rules
 from ...text import normalize
@@ -369,21 +370,8 @@ def get_pokemon_options(ko_name: str):
     # 메가폼이면 지닐 도구가 정해져 있다. 메가스톤이 없으면 그 폼 자체가
     # 성립하지 않으므로, 고를 여지가 없는 것을 고르게 두지 않는다.
     # (계산기 전용이다 — 엔트리에는 메가폼을 올릴 수 없다)
-    forced_item = None
-    if meta["is_mega"]:
-        cur = conn.cursor()
-        cur.execute(
-            """
-            SELECT i.ko_name
-            FROM mega_evolutions me
-            JOIN pokemons p   ON p.name = me.mega_name
-            LEFT JOIN items i ON i.name = me.item_name
-            WHERE p.ko_name = %s
-            """,
-            (normalize(ko_name),),
-        )
-        row = cur.fetchone()
-        forced_item = row[0] if row else None
+    forced_item = (mega_repo.fetch_required_item(conn, ko_name)
+                   if meta["is_mega"] else None)
 
     return {
         "selectable_abilities": pokemon_repo.fetch_abilities(conn, ko_name),

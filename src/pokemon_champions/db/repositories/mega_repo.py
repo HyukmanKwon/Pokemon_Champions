@@ -79,3 +79,25 @@ def fetch_stones(conn, base_ko_name):
     )
     return [{"mega_ko_name": r[0], "item_ko_name": r[1], "variant": r[2]}
             for r in cur.fetchall()]
+
+
+def fetch_required_item(conn, mega_ko_name):
+    """이 메가폼이 성립하려면 지녀야 하는 도구의 한국어 이름. 없으면 None.
+
+    fetch_stones 와 방향이 반대다. 저쪽은 "원종이 메가하려면 무슨 스톤이
+    필요한가" 이고, 여기는 "이미 메가폼인데 무슨 스톤을 든 것인가" 다.
+    계산기가 메가폼을 직접 세울 때 도구 칸을 고를 여지 없이 채우는 데 쓴다.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT i.ko_name
+        FROM mega_evolutions me
+        JOIN pokemons p   ON p.name = me.mega_name
+        LEFT JOIN items i ON i.name = me.item_name
+        WHERE p.ko_name = %s
+        """,
+        (normalize(mega_ko_name),),
+    )
+    row = cur.fetchone()
+    return row[0] if row else None
