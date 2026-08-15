@@ -86,7 +86,7 @@ Pokemon_Champions/
     │   └── usage_source.py      채용률 원본 받아오기 + 캐시
     │
     ├── agent/               ▸ LLM 도우미. 모델은 도구만 고르고 계산은 안 한다
-    │   ├── tools.py             도구 13개
+    │   ├── tools.py             도구 15개
     │   ├── schemas.py           도구 스키마
     │   ├── views.py             결과를 모델이 읽을 모양으로
     │   └── runner.py            Ollama 루프
@@ -145,7 +145,7 @@ def one_hit(conn, rules, attacker, defender, move, ...)           # conn 있음 
 그래서 폴더를 보는 순간 "이걸 어떻게 테스트하지?" 의 답이 이미 나와 있다.
 
 지금은 `services/` 를 열면 `damage.py`(DB 불필요)와 `team.py`(DB 필요)가 나란히
-있어서 매번 파일을 열어봐야 안다. 테스트 103개 중 92개가 DB 없이 도는데
+있어서 매번 파일을 열어봐야 안다. 테스트 103개 중 93개가 DB 없이 도는데
 그 사실이 폴더에 안 보인다.
 
 ### AI 와 일할 때는 규칙이 폴더에 있어야 한다

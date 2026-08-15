@@ -99,7 +99,7 @@ Pokemon_Champions/
 │   ├── battledata.py           배틀 데이터 받아오기 + 캐시
 │   │
 │   ├── agent/                  LLM 도우미. 모델은 도구만 고르고 계산은 안 한다
-│   │   ├── tools.py            도구 13개 + 스키마 (repositories/usecases 호출)
+│   │   ├── tools.py            도구 15개 + 스키마 (repositories/usecases 호출)
 │   │   └── runner.py           Ollama 도구 호출 루프
 │   │
 │   ├── domain/                 "포켓몬이란 무엇인가"만 안다
@@ -337,7 +337,7 @@ Python은 "현재 실행 위치"를 기준으로 모듈을 찾는다. 파일이 
 순서를 이렇게 잡으면 나중 설계를 지금 추측할 필요가 없다.
 
 **그 예상대로 됐다.** `agent/`는 계산기가 순수 함수로 자리잡은 뒤에 만들었고, 도구
-13개 중 계산을 하는 것은 하나도 없다. `calc_damage` · `power_index` · `bulk_index`는
+15개 중 계산을 하는 것은 하나도 없다. `calc_damage` · `power_index` · `bulk_index`는
 `calc/damage.py`의 같은 이름 함수를 인자만 바꿔 부르고, 조회 도구는
 `db/repositories/`를 그대로 부른다. `tools.py`가 하는 일은 이름을 찾아 주고(한국어
 이름 → DB 행) 결과를 한국어로 돌려주는 것뿐이다.
@@ -384,7 +384,7 @@ n/16 으로 세지므로 곱셈으로는 영영 안 나온다.
 
 검증 케이스는 `tests/test_damage.py`에 56개 있다.
 
-**4. agent** — 위가 순수 함수로 완성된 뒤에 만들었다. 도구 13개 중 계산을 하는 것은
+**4. agent** — 위가 순수 함수로 완성된 뒤에 만들었다. 도구 15개 중 계산을 하는 것은
 없다(§4 참고).
 
 ### 다음 순서
