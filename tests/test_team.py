@@ -13,7 +13,7 @@
 
 import pytest
 
-from pokemon_champions.services import team
+from pokemon_champions.usecases import team
 
 CONN = object()          # 가짜 조회는 conn 을 보지 않는다
 

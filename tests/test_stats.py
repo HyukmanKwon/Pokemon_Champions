@@ -1,7 +1,7 @@
 """실능치 계산 테스트.
 
 ── DB 없이 돈다 ──
-  services/stats.py 에서 SQL 을 걷어냈기 때문에 가능하다. 종족값과 성격
+  calc/stats.py 에서 SQL 을 걷어냈기 때문에 가능하다. 종족값과 성격
   보정을 인자로 넘기면 되니까, PostgreSQL 이 떠 있지 않아도, 데이터가
   들어 있지 않아도 검증된다.
 
@@ -12,7 +12,7 @@ import pytest
 
 from pokemon_champions.config import MAX_SP, MAX_SP_PER_STAT
 from pokemon_champions.domain import Stats
-from pokemon_champions.services.stats import calc_stats, make_sp
+from pokemon_champions.calc.stats import calc_stats, make_sp
 
 
 # ─────────────────────────────────────────────────────────────

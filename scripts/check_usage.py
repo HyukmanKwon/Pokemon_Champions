@@ -20,7 +20,7 @@ import sys
 from pokemon_champions import battledata
 from pokemon_champions.db import connect
 from pokemon_champions.db.repositories import pokemon_repo
-from pokemon_champions.services import usage
+from pokemon_champions.usecases import usage
 
 
 def main():

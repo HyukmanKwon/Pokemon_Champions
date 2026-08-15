@@ -15,7 +15,7 @@
 ── 공식은 9세대 본가와 같다 ──
   포챔스는 레벨 50 고정 · 개체값 31 고정 · SP 라는 자체 규칙을 쓰지만,
   그건 "실능치를 어떻게 만드는가" 의 규칙이고 데미지 공식 자체는 9세대
-  그대로다. 실능치는 services/stats.py 가 이미 포챔스 규칙으로 만들어
+  그대로다. 실능치는 calc/stats.py 가 이미 포챔스 규칙으로 만들어
   주므로, 여기서는 그 숫자를 받아 공식에 넣기만 한다.
 
 ── 왜 4096 고정소수점인가 ──
@@ -83,7 +83,7 @@ class Rules:
     weathers: dict = field(default_factory=dict)
     terrains: dict = field(default_factory=dict)
     # 화상의 공격 반감은 여기 없이도 되지만(damage.py 가 직접 본다), 턴 끝
-    # 지속 데미지는 분수가 표에 있어야 한다. services/residual.py 가 본다.
+    # 지속 데미지는 분수가 표에 있어야 한다. calc/residual.py 가 본다.
     conditions: dict = field(default_factory=dict)
 
 
@@ -384,7 +384,7 @@ def analyze_ko(attacker, defender, move, ctx=None, rules=None, max_turns=4):
       턴이 끝나면 독이 깎고 모래바람이 깎고 먹다남은음식이 채운다. 그
       정산을 빼면 맹독 깔고 버티는 판을 이 계산기로 물어볼 수 없다.
       맹독은 특히 턴마다 세지므로 "한 방 × N" 으로는 영영 안 나온다.
-      계산은 services/residual.py 가 하고, 여기서는 턴 사이에 끼워 넣는
+      계산은 calc/residual.py 가 하고, 여기서는 턴 사이에 끼워 넣는
       순서만 정한다 — 기술이 먼저, 정산이 나중이다.
 
     돌려주는 값

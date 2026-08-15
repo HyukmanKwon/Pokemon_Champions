@@ -27,7 +27,7 @@ import sys
 
 from pokemon_champions.db import connection
 from pokemon_champions.db.repositories import rules_repo
-from pokemon_champions.services.damage import Rules
+from pokemon_champions.calc.damage import Rules
 from pokemon_champions.usecases import battle, roster
 
 # 대조용 기준 케이스. 자속·상성·도구·특성이 골고루 걸리도록 골랐다 —

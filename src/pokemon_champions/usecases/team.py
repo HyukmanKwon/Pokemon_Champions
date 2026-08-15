@@ -22,7 +22,7 @@ from ..db.repositories import (item_repo, mega_repo, move_repo, nature_repo,
                                pokemon_repo)
 from ..domain import Pokemon
 from ..text import normalize
-from .stats import calc_stats, make_sp
+from ..calc.stats import calc_stats, make_sp
 
 # 여섯 마리 전부 validate_spec 을 통과하는 조합이다. 예시라고 대충 적으면
 # 처음 실행하는 사람이 화면을 열자마자 검증 오류를 보게 된다.

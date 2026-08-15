@@ -1,7 +1,7 @@
 """데미지 계산 테스트.
 
 ── 왜 DB 가 없어도 도는가 ──
-  services/damage.py 는 조회된 값만 인자로 받는다. 그래서 여기서는
+  calc/damage.py 는 조회된 값만 인자로 받는다. 그래서 여기서는
   포켓몬도 기술도 상성표도 손으로 만든다. DB 가 없어도, DB 내용이
   바뀌어도 이 테스트는 같은 값을 지켜야 한다.
 
@@ -15,8 +15,8 @@
 import pytest
 
 from pokemon_champions.domain import Pokemon, Stats
-from pokemon_champions.services import damage, residual
-from pokemon_champions.services.damage import (BattleContext, Rules,
+from pokemon_champions.calc import damage, residual
+from pokemon_champions.calc.damage import (BattleContext, Rules,
                                                calc_damage, pokeround, staged)
 
 # ─────────────────────────────────────────────────────────────
@@ -466,7 +466,7 @@ def test_rules_없이_부르면_친절하게_막는다():
 
 
 # ─────────────────────────────────────────────────────────────
-# 턴 끝 정산 (services/residual.py)
+# 턴 끝 정산 (calc/residual.py)
 #
 # 여기도 DB 를 안 본다. 분수는 위 RULES 의 conditions·weathers·terrains 에
 # 손으로 적어 뒀다.

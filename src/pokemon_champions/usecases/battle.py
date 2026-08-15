@@ -29,8 +29,9 @@ from dataclasses import dataclass
 
 from ..config import BULK_FACTOR
 from ..db.repositories import move_repo, pokemon_repo
-from ..services import damage, team
-from ..services.damage import BattleContext
+from ..calc import damage
+from . import team
+from ..calc.damage import BattleContext
 from . import naming
 
 # 21종 중 유일한 무보정. 안 말했을 때 이걸로 잰다.

@@ -25,9 +25,9 @@ from ...db import connect, connection
 from ...db.repositories import (ability_repo, item_repo, move_repo,
                                 nature_repo, pokemon_repo, rules_repo)
 from ...domain import STAT_LABELS, STAT_ORDER
-from ...services import team
-from ...services.damage import Rules
-from ...services.stats import calc_stats, make_sp
+from ...usecases import team
+from ...calc.damage import Rules
+from ...calc.stats import calc_stats, make_sp
 from ...text import normalize
 from ...usecases import battle, naming, roster
 
@@ -609,7 +609,7 @@ def patch_team(index: int, edit: SlotEdit, deck: Optional[str] = None):
 # ─────────────────────────────────────────────────────────────
 # 데미지 계산기
 #
-# services/damage.py 는 DB 를 안 본다. 여기서 조회해서 숫자만 넘긴다.
+# calc/damage.py 는 DB 를 안 본다. 여기서 조회해서 숫자만 넘긴다.
 # 그 경계 덕에 CLI(scripts/check_damage.py)와 이 라우트가 같은 함수를
 # 쓰고, 값이 갈라지지 않는다.
 # ─────────────────────────────────────────────────────────────

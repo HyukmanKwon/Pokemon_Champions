@@ -351,7 +351,7 @@ python -m scripts.etl.annotator.items    # 8769
 **이게 빠지면 재구축 한 번에 판정이 전부 날아간다.**
 
 엔트리 화면은 `items.usable` 을 두 곳에서 쓴다 — 도구 선택 목록
-(`item_repo.fetch_usable`)과 입력 검증(`services/team.py` 의 `validate_spec`)이다.
+(`item_repo.fetch_usable`)과 입력 검증(`usecases/team.py` 의 `validate_spec`)이다.
 메가스톤은 선택 목록에서만 빠진다. 92개를 통째로 올리면 쓸 수 있는 한두 개가
 묻히기 때문이고, 그 포켓몬 것만 따로 보여준다. 검증은 통과시킨다 — 남의 스톤을
 지니는 것은 잘못이 아니라 그냥 메가진화가 안 되는 것뿐이다.

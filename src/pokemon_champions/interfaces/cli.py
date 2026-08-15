@@ -13,7 +13,7 @@ import unicodedata
 
 from ..db import connect
 from ..domain import STAT_LABELS, STAT_ORDER
-from ..services import team
+from ..usecases import team
 from ..usecases import roster
 from ..text import normalize
 

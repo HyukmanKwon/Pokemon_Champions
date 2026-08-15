@@ -38,7 +38,7 @@ import time
 from pokemon_champions import battledata
 from pokemon_champions.db import connect
 from pokemon_champions.db.repositories import pokemon_repo, usage_repo
-from pokemon_champions.services import usage
+from pokemon_champions.usecases import usage
 
 from .get_items import COLUMNS as ITEM_COLUMNS
 from .get_items import fetch_item, parse_item

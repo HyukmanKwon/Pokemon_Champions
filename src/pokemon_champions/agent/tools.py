@@ -31,8 +31,9 @@ from dataclasses import dataclass
 from ..db.repositories import (ability_repo, item_repo, move_repo,
                                pokemon_repo, rules_repo)
 from ..domain import STAT_ORDER
-from ..services import damage, team, usage
-from ..services.damage import Rules
+from ..calc import damage
+from ..usecases import team, usage
+from ..calc.damage import Rules
 from ..text import normalize
 from ..usecases import battle, naming, roster
 from . import schemas

@@ -2,7 +2,7 @@
 
 ── 왜 이 층에 있나 ──
   assets.py 와 같은 자리다. 프로젝트 바깥에서 받아 캐시하는 일이고 DB 를
-  보지 않는다. 한국어로 바꾸고 DB 와 맞추는 것은 services/usage.py 가 한다.
+  보지 않는다. 한국어로 바꾸고 DB 와 맞추는 것은 usecases/usage.py 가 한다.
   여기서 DB 를 부르면 "네트워크가 안 될 때" 와 "DB 에 없을 때" 가 한 함수
   안에서 섞인다.
 
@@ -64,7 +64,7 @@ MEGA_RE = re.compile(r"-mega(-[xy])?$")
 def tokens(name):
     """이름을 비교용 토큰 집합으로. 순서와 표기 차이를 지운다.
 
-    services/usage.py 도 쓴다 — 함께 쓰는 포켓몬 목록이 저쪽 표기로 오므로
+    usecases/usage.py 도 쓴다 — 함께 쓰는 포켓몬 목록이 저쪽 표기로 오므로
     우리 이름과 맞출 때 같은 기준이 필요하다.
     """
     parts = re.split(r"[^a-z0-9]+", name.lower())

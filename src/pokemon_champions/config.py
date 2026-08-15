@@ -70,12 +70,12 @@ LEVEL_FACTOR = 22
 SPREAD_MULT = 0.75
 
 # 본가는 실수 곱셈을 쓰지 않는다. 모든 보정을 4096 = 1.0 으로 두고
-# 정수로 곱한다. (services/damage.py 첫 주석 참고)
+# 정수로 곱한다. (calc/damage.py 첫 주석 참고)
 MOD_ONE = 4096
 
 # 내구력 지수를 나누는 값. 레벨 50 데미지 공식에서 실능치를 뺀 나머지를
 # 접은 상수라, HP × 방어 를 이걸로 나누면 "위력 100 등배 기술을 몇 번
-# 견디는가" 에 비례하는 양이 된다. (services/damage.py 의 bulk_index 참고)
+# 견디는가" 에 비례하는 양이 된다. (calc/damage.py 의 bulk_index 참고)
 #
 # 레벨이 고정이 아닌 포맷을 지원하게 되면 LEVEL_FACTOR 와 함께 본다.
 BULK_FACTOR = 0.411

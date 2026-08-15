@@ -18,7 +18,7 @@
 
 from ..db.repositories import (ability_repo, item_repo, lookup_repo, move_repo,
                                pokemon_repo, rules_repo)
-from ..services import usage
+from . import usage
 from ..text import normalize
 
 _LISTS = {

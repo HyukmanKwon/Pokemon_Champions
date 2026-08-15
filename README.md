@@ -99,7 +99,7 @@ Pokemon_Champions/
 │   ├── battledata.py           배틀 데이터 받아오기 + 캐시
 │   │
 │   ├── agent/                  LLM 도우미. 모델은 도구만 고르고 계산은 안 한다
-│   │   ├── tools.py            도구 13개 + 스키마 (repositories/services 호출)
+│   │   ├── tools.py            도구 13개 + 스키마 (repositories/usecases 호출)
 │   │   └── runner.py           Ollama 도구 호출 루프
 │   │
 │   ├── domain/                 "포켓몬이란 무엇인가"만 안다
@@ -119,19 +119,19 @@ Pokemon_Champions/
 │   │       ├── lookup_repo.py      영문 -> 한국어 대응표
 │   │       └── _rows.py            커서 -> dict
 │   │
-│   ├── services/               비즈니스 로직
-│   │   ├── stats.py            [순수] make_sp, calc_stats
-│   │   ├── damage.py           [순수] calc_damage, analyze_ko,
-│   │   │                              power_index, bulk_index
-│   │   ├── modifiers.py        [순수] 특성·도구 보정을 4096 정수로
-│   │   ├── residual.py         [순수] 턴 끝 지속 데미지·회복
-│   │   ├── team.py             [조립] 스펙 검증·빌드 (저장은 roster)
-│   │   └── usage.py            [조립] 채용률을 DB 의 한국어와 잇기
+│   ├── calc/                   순수 계산기 — conn 을 안 받는다
+│   │   ├── stats.py            make_sp, calc_stats
+│   │   ├── damage.py           calc_damage, analyze_ko,
+│   │   │                       power_index, bulk_index
+│   │   ├── modifiers.py        특성·도구 보정을 4096 정수로
+│   │   └── residual.py         턴 끝 지속 데미지·회복
 │   │
-│   ├── usecases/               조립 층 — DB 조회 + 기본값 + 계산 호출
-│   │   ├── naming.py           한↔영 이름 해석
+│   ├── usecases/               조립 층 — 밖(DB·파일·네트워크)을 만진다
 │   │   ├── battle.py           계산기 진입점 셋 — power · bulk · one_hit
-│   │   └── roster.py           덱 여러 벌 (최대 MAX_DECKS)
+│   │   ├── team.py             스펙 검증·빌드 (저장은 roster)
+│   │   ├── roster.py           덱 여러 벌 (최대 MAX_DECKS)
+│   │   ├── naming.py           한↔영 이름 해석
+│   │   └── usage.py            채용률을 DB 의 한국어와 잇기
 │   │
 │   └── interfaces/             print/input/HTTP는 여기서만
 │       ├── cli.py
@@ -182,17 +182,18 @@ Pokemon_Champions/
 ### 규칙 1 — 의존 방향은 한쪽으로만 흐른다
 
 ```
-interfaces  ──▶  services  ──▶  db.repositories  ──▶  db.connection
+interfaces  ──▶  usecases  ──▶  db.repositories  ──▶  db.connection
                     │
+                    ├──▶  calc    (conn 을 안 받는다)
                     ▼
                  domain  (프로젝트 내 무엇도 import 하지 않는다)
 ```
 
-역방향 import는 없다. `services`가 `interfaces`를 부르는 순간 둘 중 어느 것도 혼자
+역방향 import는 없다. `usecases`가 `interfaces`를 부르는 순간 둘 중 어느 것도 혼자
 테스트할 수 없고 혼자 재사용할 수도 없다. 사실상 한 파일이 된다.
 
 더 실질적인 이유가 있다. 이 프로젝트는 개인 배포용 앱과 웹 서비스를 **둘 다** 목표로
-한다. 단방향이면 `services/`를 그대로 두고 `interfaces/` 아래에 하나 더 만들면 끝난다.
+한다. 단방향이면 `calc/` 와 `usecases/`를 그대로 두고 `interfaces/` 아래에 하나 더 만들면 끝난다.
 양방향이면 웹을 붙이는 순간 계산 로직까지 다시 써야 한다. 지금의 분리가 나중에 절약할
 작업의 정확한 크기다.
 
@@ -209,13 +210,23 @@ interfaces  ──▶  services  ──▶  db.repositories  ──▶  db.conne
 
 ### 규칙 3 — 계산은 순수 함수로 쓴다
 
+이 규칙은 문서가 아니라 **폴더 이름**에 있다. `conn` 을 받으면 `usecases/`,
+안 받으면 `calc/` 다. 판정이 시그니처만 보면 끝난다.
+
 ```python
-# services/stats.py — conn이 없다
+# calc/stats.py — conn이 없다
 def calc_stats(base, sp, nature) -> Stats
 
-# services/damage.py — 조회 결과를 인자로 받는다
-def calc_damage(attacker, defender, move, ctx=None, chart=None) -> DamageRange
+# calc/damage.py — 조회 결과를 인자로 받는다
+def calc_damage(attacker, defender, move, ctx=None, rules=None) -> DamageRange
+
+# usecases/battle.py — conn을 받아 위를 부른다
+def one_hit(conn, rules, attacker, defender, move, ...) -> Shot
 ```
+
+예전에는 이 둘이 `services/` 안에 섞여 있었고, 어디에 넣을지 정하는 규칙이
+없어서 `conn` 을 받는 `team.py` 와 `conn` 이 없는 `damage.py` 가 나란히 놓였다.
+그러면 파일을 열기 전에는 DB 가 필요한지 알 수 없다. 지금은 폴더가 답한다.
 
 같은 입력이면 항상 같은 출력. DB도 안 읽고 파일도 안 쓴다. 이유가 셋이다.
 
@@ -322,12 +333,12 @@ Python은 "현재 실행 위치"를 기준으로 모듈을 찾는다. 파일이 
 상태에서 미리 만든 구조는 십중팔구 틀린다.
 
 더 중요한 건, **계산기를 순수 함수로 제대로 만들면 agent 계층이 거의 저절로 결정된다는
-점**이었다. 툴 목록은 services의 공개 함수 목록이 되고, 툴 스키마는 시그니처가 된다.
+점**이었다. 툴 목록은 calc·usecases 의 공개 함수 목록이 되고, 툴 스키마는 시그니처가 된다.
 순서를 이렇게 잡으면 나중 설계를 지금 추측할 필요가 없다.
 
 **그 예상대로 됐다.** `agent/`는 계산기가 순수 함수로 자리잡은 뒤에 만들었고, 도구
 13개 중 계산을 하는 것은 하나도 없다. `calc_damage` · `power_index` · `bulk_index`는
-`services/damage.py`의 같은 이름 함수를 인자만 바꿔 부르고, 조회 도구는
+`calc/damage.py`의 같은 이름 함수를 인자만 바꿔 부르고, 조회 도구는
 `db/repositories/`를 그대로 부른다. `tools.py`가 하는 일은 이름을 찾아 주고(한국어
 이름 → DB 행) 결과를 한국어로 돌려주는 것뿐이다.
 
@@ -342,22 +353,22 @@ Python은 "현재 실행 위치"를 기준으로 모듈을 찾는다. 파일이 
 원래 여기 적어 둔 1 · 2 · 3 은 전부 끝났다. 순서를 지킨 것이 실제로 값을 했으므로
 무엇이 어떻게 자리잡았는지만 남긴다.
 
-**1. 입력 검증** — `services/team.py`의 `validate_spec()` 하나로 모았다. 특성은
+**1. 입력 검증** — `usecases/team.py`의 `validate_spec()` 하나로 모았다. 특성은
 `pokemon_repo.fetch_abilities`, 기술은 `move_repo.fetch_learnable`, 도구는
 `item_repo.fetch_usable`을 본다. CLI와 웹이 서로 다른 경로로 들어오는데(웹은
-`build_pokemon`을 거치지 않는다) 검증을 services에 둔 덕에 둘 다 같은 함수를
+`build_pokemon`을 거치지 않는다) 검증을 usecases 에 둔 덕에 둘 다 같은 함수를
 부른다.
 
-**2. 도감** — `services/dex.py`는 만들지 않았다. 도감은 조회와 필터뿐이라 끼워 넣을
+**2. 도감** — `usecases/dex.py`는 만들지 않았다. 도감은 조회와 필터뿐이라 끼워 넣을
 로직이 없어서, `db/repositories/`의 `fetch_list` · `fetch_detail`을 `app.py`가 바로
-부른다. services 를 한 겹 두면 인자를 옮겨 적기만 하는 파일이 된다.
+부른다. usecases 를 한 겹 두면 인자를 옮겨 적기만 하는 파일이 된다.
 
-**3. 계산기** — `services/damage.py`에 `calc_damage` · `analyze_ko`와, 상대가 없어도
+**3. 계산기** — `calc/damage.py`에 `calc_damage` · `analyze_ko`와, 상대가 없어도
 나오는 단일 지표인 `power_index` · `bulk_index`가 있다. 보정은 `modifiers.py`가
 4096 정수로 다룬다. 날씨 · 필드 · 랭크 · 상태이상은 예상대로 `BattleContext` 한
 덩어리로 묶였고, 참조표는 `Rules`로 받는다.
 
-**5. 턴 끝 정산** — `services/residual.py`. 독 · 맹독 · 화상 · 모래바람 ·
+**5. 턴 끝 정산** — `calc/residual.py`. 독 · 맹독 · 화상 · 모래바람 ·
 그래스필드 · 먹다남은음식 · 매직가드 · 포이즌힐이 턴이 끝날 때 HP 를 얼마나
 움직이는가를 낸다. `analyze_ko`가 턴 사이에 끼워 부르므로, 확정타 판정이
 "한 방 × N"이 아니게 됐다. 이게 필요한 이유는 맹독 하나로 충분하다 — 턴마다
@@ -378,10 +389,10 @@ n/16 으로 세지므로 곱셈으로는 영영 안 나온다.
 
 ### 다음 순서
 
-**상대 엔트리** — `services/__init__.py` 의 메모 그대로다. 상대 스펙은 대부분
+**상대 엔트리** — `usecases/__init__.py` 의 메모 그대로다. 상대 스펙은 대부분
 모르므로 **확정값과 추정값을 구분해서** 들고 있어야 하고(최속·최둔 가정 등),
 대전마다 새로 만들어지고 버려지므로 파일에 저장할 이유가 없다. `team.py`를
-복사하지 말고, 공통이 정말 생겼을 때 `services/roster.py` 같은 곳으로 뽑아낸다.
+복사하지 말고, 공통이 정말 생겼을 때 공통 부분을 뽑아낸다.
 
 **계산기 진입점** — `usecases/battle.py` 의 `power` · `bulk` · `one_hit` 셋이
 전부다. 웹도 도구도 CLI 도 이 셋만 부른다. 예전에는 데미지만 조립 층을 거치고
@@ -422,8 +433,8 @@ n/16 으로 세지므로 곱셈으로는 영영 안 나온다.
 새 코드를 넣기 전에 스스로에게 묻는다.
 
 - 이 SQL이 `db/repositories/` 밖에 있는가? → 옮긴다
-- 이 함수가 conn 없이 돌 수 있는데 conn을 받는가? → 인자로 바꾼다
-- 이 `print()`가 `services/` 안에 있는가? → 값을 돌려주고 출력은 위에서 한다
+- 이 함수가 conn 없이 돌 수 있는데 conn을 받는가? → 인자로 바꾸고 `calc/` 로
+- 이 `print()`가 `calc/` 나 `usecases/` 안에 있는가? → 값을 돌려주고 출력은 위에서 한다
 
 ---
 
@@ -446,6 +457,15 @@ n/16 으로 세지므로 곱셈으로는 영영 안 나온다.
 | `core/database/*.py` | `scripts/etl/*.py` | `main.py` → `build.py` |
 | `core/database/{sql,overrides,cache}/` | `data/{sql,overrides,cache}/` | |
 | — | `pyproject.toml`, `tests/`, `.env.example` | 신규 |
+
+그 뒤 `services/` 가 둘로 갈렸다. 순수 계산과 조립이 한 폴더에 섞여 있어서
+파일을 열기 전에는 DB 가 필요한지 알 수 없었다.
+
+| 이전 | 현재 | 비고 |
+|---|---|---|
+| `services/{damage,modifiers,residual,stats}.py` | `calc/` | conn 을 안 받는 것 |
+| `services/{team,usage}.py` | `usecases/` | conn 을 받는 것 |
+| `services/__init__.py` | `calc/` · `usecases/` 의 것으로 | 메모를 둘로 나눔 |
 
 **ETL 실행 방법이 바뀌었다.** 평평한 `import db`가 전부 패키지 상대 import로 바뀌었기
 때문에, 프로젝트 루트에서 `-m`으로 돌린다.

@@ -24,7 +24,7 @@ import os
 import uuid
 
 from ..config import DECKS_PATH, MAX_DECKS, TEAM_PATH, TEAM_SIZE
-from ..services import team
+from . import team
 
 # 처음 열었을 때 보게 될 덱 이름. 마이그레이션에도 이 이름을 쓴다.
 FIRST_DECK_NAME = "내 엔트리"

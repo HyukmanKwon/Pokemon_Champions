@@ -15,7 +15,7 @@
 import sys
 
 from pokemon_champions.db import connection
-from pokemon_champions.services import modifiers, residual
+from pokemon_champions.calc import modifiers, residual
 
 
 def _known(conn, table):
