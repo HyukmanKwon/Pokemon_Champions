@@ -26,7 +26,7 @@ usage 로 맞춰 두고, 받아오는 쪽만 _source 를 붙여 가른다.
 import re
 
 from . import usage_source
-from ..db.repositories import lookup_repo
+from ..db.repositories import lookup_repo, nature_repo, usage_repo
 
 CATEGORY_KEY = {
     "move": "moves",
@@ -227,3 +227,92 @@ def usage_of(conn, en_name, ko_name=None, fmt="Singles", top=8):
                           "items 항목의 메가스톤 비율로 보세요.")
     result.update(out)
     return result
+
+
+# 성격 보정 칸 이름을 DB 의 한 글자로. pokemon_natures.up/down 이
+# a·b·c·d·s 라서 STAT_KEY 의 결과(atk·spe …)를 한 번 더 옮겨야 한다.
+# HP 는 성격이 안 건드리므로 여기 없다.
+NATURE_STAT = {"atk": "a", "def": "b", "spa": "c", "spd": "d", "spe": "s"}
+
+
+def popular_spec(conn, en_name, fmt="Singles"):
+    """DB 에 쌓인 가장 최근 채용률에서 "가장 많이 쓰인 한 벌" 을 만든다.
+
+    돌려주는 것은 battle.build_side 가 받는 스펙과 같은 모양이다.
+
+        {"ability": "까칠한피부", "item": "기합의띠", "nature": "발랄",
+         "sp": [2, 32, 0, 0, 0, 32], "moves": [...],
+         "usage": {"date": ..., "percent": {...}}}
+
+    자료가 없으면 빈 dict. 그때는 부르는 쪽이 예전대로 무보정을 쓴다 —
+    채용률이 없다고 계산을 못 하게 만들면 새로 나온 폼을 아예 못 잰다.
+
+    ── 왜 사이트가 아니라 DB 인가 ──
+      usage_of() 는 저쪽에 물어 오늘 값을 받는다. 이쪽은 우리가 쌓아둔
+      것에서 읽는다. 계산기 기본값은 매번 네트워크를 타면 안 된다 —
+      한 번 계산에 여섯 마리를 세우면 여섯 번 나간다.
+
+    ── 못 찾은 이름은 버린다 ──
+      우리 표에 없는 도구·기술이 1위일 수 있다. 그대로 스펙에 넣으면
+      validate_spec 이 막아서 계산 자체가 실패한다. 채우지 못한 칸은
+      비워 두고, 무엇을 못 채웠는지는 usage.unmatched 에 남긴다.
+    """
+    got = usage_repo.fetch_top_build(conn, en_name, fmt)
+    if not got:
+        return {}
+
+    maps = _ko_maps(conn)
+    spec, percent, unmatched = {}, {}, []
+
+    def ko_of(cat, en):
+        return maps.get(cat, {}).get(slugify(en or ""))
+
+    # 카테고리 -> 스펙의 어느 칸에 담나
+    SINGLE = {"held_item": "item", "ability": "ability"}
+
+    for r in got:
+        cat, en, pct = r["category"], r["name"], r["percent"]
+
+        if cat == "stat_points":
+            spec["sp"] = [r[col] or 0 for col, _ in SP_COLUMNS]
+            percent["sp"] = pct
+
+        elif cat == "stat_alignment":
+            # DB 의 stat_up/stat_down 은 이미 우리 키다(spe · spa).
+            # sync_usage.to_row 가 넣을 때 STAT_KEY 로 옮겨 두었으므로
+            # 여기서 또 옮기면 None 이 되어 전부 성실로 떨어진다.
+            up = NATURE_STAT.get(r["stat_up"])
+            down = NATURE_STAT.get(r["stat_down"])
+            ko = nature_repo.fetch_by_mods(conn, up, down)
+            if ko is None:
+                unmatched.append(("nature", en))
+            else:
+                spec["nature"] = ko
+                percent["nature"] = pct
+
+        elif cat in SINGLE:
+            key = SINGLE[cat]
+            ko = ko_of(cat, en)
+            if ko is None:
+                unmatched.append((key, en))
+            else:
+                spec[key] = ko
+                percent[key] = pct
+
+        elif cat == "move":
+            ko = ko_of(cat, en)
+            if ko is None:
+                unmatched.append(("move", en))
+            else:
+                spec.setdefault("moves", []).append(ko)
+                percent.setdefault("moves", []).append(pct)
+
+    if spec:
+        spec["usage"] = {
+            "date": got[0]["snapshot_date"].isoformat(),
+            "season": got[0]["season"],
+            "format": fmt,
+            "percent": percent,
+            "unmatched": unmatched,
+        }
+    return spec

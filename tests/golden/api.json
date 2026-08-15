@@ -3,22 +3,22 @@
     "body": {
       "bulk": {
         "factor": 0.411,
-        "physical": 61445.255474452555,
-        "special": 40963.50364963504
+        "physical": 97822.38442822386,
+        "special": 49172.7493917275
       },
       "side": {
         "ability": "모래날림",
         "condition": null,
-        "item": null,
+        "item": "자뭉열매",
         "name": "하마돈",
-        "nature": "성실",
+        "nature": "장난꾸러기",
         "rank": {},
         "stats": {
           "a": 132,
-          "b": 138,
-          "c": 88,
-          "d": 92,
-          "h": 183,
+          "b": 187,
+          "c": 79,
+          "d": 94,
+          "h": 215,
           "s": 67
         },
         "types": [
@@ -26,7 +26,25 @@
             "icon": "/sprite/type/ground",
             "name": "ground"
           }
-        ]
+        ],
+        "usage": {
+          "date": "2026-08-04",
+          "format": "Singles",
+          "percent": {
+            "ability": 99.7,
+            "item": 64.5,
+            "moves": [
+              98.0,
+              94.0,
+              75.6,
+              58.9
+            ],
+            "nature": 70.4,
+            "sp": 20.4
+          },
+          "season": "M4",
+          "unmatched": []
+        }
       }
     },
     "status": 200
@@ -36,17 +54,17 @@
       "attacker": {
         "ability": "둔감",
         "condition": null,
-        "item": null,
+        "item": "기합의띠",
         "name": "맘모꾸리",
-        "nature": "성실",
+        "nature": "고집",
         "rank": {},
         "stats": {
-          "a": 150,
+          "a": 200,
           "b": 100,
-          "c": 90,
+          "c": 81,
           "d": 80,
-          "h": 185,
-          "s": 100
+          "h": 187,
+          "s": 132
         },
         "types": [
           {
@@ -57,7 +75,25 @@
             "icon": "/sprite/type/ground",
             "name": "ground"
           }
-        ]
+        ],
+        "usage": {
+          "date": "2026-08-04",
+          "format": "Singles",
+          "percent": {
+            "ability": 60.2,
+            "item": 79.7,
+            "moves": [
+              99.0,
+              94.9,
+              47.4,
+              35.9
+            ],
+            "nature": 73.5,
+            "sp": 47.4
+          },
+          "season": "M4",
+          "unmatched": []
+        }
       },
       "context": {
         "attacker_hp": null,
@@ -72,44 +108,44 @@
         "weather": null
       },
       "damage": {
-        "defender_hp": 183,
-        "max": 300,
-        "min": 252,
-        "percent_max": 163.9344262295082,
-        "percent_min": 137.70491803278688,
+        "defender_hp": 185,
+        "max": 400,
+        "min": 336,
+        "percent_max": 216.21621621621622,
+        "percent_min": 181.62162162162164,
         "rolls": [
-          252,
-          256,
-          256,
-          264,
-          264,
-          268,
-          268,
-          276,
-          276,
-          280,
-          280,
-          288,
-          288,
-          292,
-          292,
-          300
+          336,
+          340,
+          348,
+          348,
+          352,
+          360,
+          360,
+          364,
+          372,
+          372,
+          376,
+          384,
+          384,
+          388,
+          396,
+          400
         ]
       },
       "defender": {
         "ability": "모래숨기",
         "condition": null,
-        "item": null,
+        "item": "기합의띠",
         "name": "한카리아스",
-        "nature": "성실",
+        "nature": "명랑",
         "rank": {},
         "stats": {
-          "a": 150,
+          "a": 182,
           "b": 115,
-          "c": 100,
+          "c": 90,
           "d": 105,
-          "h": 183,
-          "s": 122
+          "h": 185,
+          "s": 169
         },
         "types": [
           {
@@ -120,7 +156,25 @@
             "icon": "/sprite/type/ground",
             "name": "ground"
           }
-        ]
+        ],
+        "usage": {
+          "date": "2026-08-04",
+          "format": "Singles",
+          "percent": {
+            "ability": 98.9,
+            "item": 40.5,
+            "moves": [
+              99.3,
+              47.1,
+              41.5,
+              35.0
+            ],
+            "nature": 54.1,
+            "sp": 52.8
+          },
+          "season": "M4",
+          "unmatched": []
+        }
       },
       "ko": {
         "guaranteed": 1,
@@ -129,9 +183,9 @@
         "text": "확정 1타",
         "turns": [
           {
-            "damage_max": 300,
-            "damage_min": 252,
-            "hp_before": 183,
+            "damage_max": 400,
+            "damage_min": 336,
+            "hp_before": 185,
             "tick": null
           }
         ]
@@ -153,17 +207,17 @@
       "attacker": {
         "ability": "둔감",
         "condition": null,
-        "item": null,
+        "item": "기합의띠",
         "name": "맘모꾸리",
-        "nature": "성실",
+        "nature": "고집",
         "rank": {},
         "stats": {
-          "a": 150,
+          "a": 200,
           "b": 100,
-          "c": 90,
+          "c": 81,
           "d": 80,
-          "h": 185,
-          "s": 100
+          "h": 187,
+          "s": 132
         },
         "types": [
           {
@@ -174,7 +228,25 @@
             "icon": "/sprite/type/ground",
             "name": "ground"
           }
-        ]
+        ],
+        "usage": {
+          "date": "2026-08-04",
+          "format": "Singles",
+          "percent": {
+            "ability": 60.2,
+            "item": 79.7,
+            "moves": [
+              99.0,
+              94.9,
+              47.4,
+              35.9
+            ],
+            "nature": 73.5,
+            "sp": 47.4
+          },
+          "season": "M4",
+          "unmatched": []
+        }
       },
       "context": {
         "attacker_hp": null,
@@ -189,28 +261,28 @@
         "weather": null
       },
       "damage": {
-        "defender_hp": 183,
-        "max": 300,
-        "min": 252,
-        "percent_max": 163.9344262295082,
-        "percent_min": 137.70491803278688,
+        "defender_hp": 185,
+        "max": 400,
+        "min": 336,
+        "percent_max": 216.21621621621622,
+        "percent_min": 181.62162162162164,
         "rolls": [
-          252,
-          256,
-          256,
-          264,
-          264,
-          268,
-          268,
-          276,
-          276,
-          280,
-          280,
-          288,
-          288,
-          292,
-          292,
-          300
+          336,
+          340,
+          348,
+          348,
+          352,
+          360,
+          360,
+          364,
+          372,
+          372,
+          376,
+          384,
+          384,
+          388,
+          396,
+          400
         ]
       },
       "defender": {
@@ -218,15 +290,15 @@
         "condition": "toxic",
         "item": "먹다남은음식",
         "name": "한카리아스",
-        "nature": "성실",
+        "nature": "명랑",
         "rank": {},
         "stats": {
-          "a": 150,
+          "a": 182,
           "b": 115,
-          "c": 100,
+          "c": 90,
           "d": 105,
-          "h": 183,
-          "s": 122
+          "h": 185,
+          "s": 169
         },
         "types": [
           {
@@ -237,7 +309,25 @@
             "icon": "/sprite/type/ground",
             "name": "ground"
           }
-        ]
+        ],
+        "usage": {
+          "date": "2026-08-04",
+          "format": "Singles",
+          "percent": {
+            "ability": 98.9,
+            "item": 40.5,
+            "moves": [
+              99.3,
+              47.1,
+              41.5,
+              35.0
+            ],
+            "nature": 54.1,
+            "sp": 52.8
+          },
+          "season": "M4",
+          "unmatched": []
+        }
       },
       "ko": {
         "guaranteed": 1,
@@ -246,9 +336,9 @@
         "text": "확정 1타",
         "turns": [
           {
-            "damage_max": 300,
-            "damage_min": 252,
-            "hp_before": 183,
+            "damage_max": 400,
+            "damage_min": 336,
+            "hp_before": 185,
             "tick": null
           }
         ]
@@ -299,7 +389,8 @@
             "icon": "/sprite/type/dark",
             "name": "dark"
           }
-        ]
+        ],
+        "usage": null
       },
       "context": {
         "attacker_hp": null,
@@ -316,11 +407,11 @@
         "weather": "sandstorm"
       },
       "damage": {
-        "defender_hp": 183,
+        "defender_hp": 185,
         "max": 87,
         "min": 74,
-        "percent_max": 47.540983606557376,
-        "percent_min": 40.43715846994536,
+        "percent_max": 47.02702702702703,
+        "percent_min": 40.0,
         "rolls": [
           74,
           75,
@@ -343,17 +434,17 @@
       "defender": {
         "ability": "모래숨기",
         "condition": "burn",
-        "item": null,
+        "item": "기합의띠",
         "name": "한카리아스",
-        "nature": "성실",
+        "nature": "명랑",
         "rank": {},
         "stats": {
-          "a": 150,
+          "a": 182,
           "b": 115,
-          "c": 100,
+          "c": 90,
           "d": 105,
-          "h": 183,
-          "s": 122
+          "h": 185,
+          "s": 169
         },
         "types": [
           {
@@ -364,7 +455,25 @@
             "icon": "/sprite/type/ground",
             "name": "ground"
           }
-        ]
+        ],
+        "usage": {
+          "date": "2026-08-04",
+          "format": "Singles",
+          "percent": {
+            "ability": 98.9,
+            "item": 40.5,
+            "moves": [
+              99.3,
+              47.1,
+              41.5,
+              35.0
+            ],
+            "nature": 54.1,
+            "sp": 52.8
+          },
+          "season": "M4",
+          "unmatched": []
+        }
       },
       "ko": {
         "guaranteed": 2,
@@ -413,7 +522,7 @@
         {
           "category": "physical",
           "icon": "/sprite/type/steel",
-          "index": 20400,
+          "index": 24600,
           "name": "아이언헤드",
           "power": 80,
           "stab": true,
@@ -422,7 +531,7 @@
         {
           "category": "physical",
           "icon": "/sprite/type/ground",
-          "index": 17000,
+          "index": 20500,
           "name": "지진",
           "power": 100,
           "stab": false,
@@ -432,17 +541,17 @@
       "side": {
         "ability": "클리어바디",
         "condition": null,
-        "item": null,
+        "item": "메타그로스나이트",
         "name": "메타그로스",
         "nature": "고집",
         "rank": {},
         "stats": {
-          "a": 170,
+          "a": 205,
           "b": 150,
           "c": 103,
           "d": 110,
-          "h": 155,
-          "s": 90
+          "h": 157,
+          "s": 122
         },
         "types": [
           {
@@ -453,7 +562,25 @@
             "icon": "/sprite/type/psychic",
             "name": "psychic"
           }
-        ]
+        ],
+        "usage": {
+          "date": "2026-08-04",
+          "format": "Singles",
+          "percent": {
+            "ability": 99.0,
+            "item": 97.9,
+            "moves": [
+              93.3,
+              93.0,
+              46.1,
+              45.8
+            ],
+            "nature": 44.8,
+            "sp": 28.5
+          },
+          "season": "M4",
+          "unmatched": []
+        }
       }
     },
     "status": 200

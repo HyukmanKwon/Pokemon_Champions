@@ -9,6 +9,8 @@
   만들지 않고 그 자리의 행을 갈아끼운다.
 """
 
+from ._rows import rows
+
 ROW_COLUMNS = [
     "snapshot_id", "category", "rank", "name", "percent",
     "stat_up", "stat_down",
@@ -89,3 +91,45 @@ def counts(conn):
         "       (SELECT min(snapshot_date) FROM usage_snapshots),"
         "       (SELECT max(snapshot_date) FROM usage_snapshots)")
     return cur.fetchone()
+
+
+def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
+    """그 포켓몬의 가장 최근 스냅샷에서 카테고리별 1위. 없으면 빈 리스트.
+
+    기술만 여러 줄이다(기본 4개). 나머지는 1위 한 줄뿐이라 rank = 1 로
+    거른다 — 2위 이하를 여기서 주면 부르는 쪽이 다시 골라야 한다.
+
+    ── 왜 최신 하루만 보나 ──
+      여러 날을 평균 내면 "아무도 안 쓰는 조합" 이 나온다. 도구 1위가
+      기합의띠인 날과 구애머리띠인 날을 섞으면 그 중간이 되는데, 실제로
+      그렇게 쓰는 사람은 없다. 하루치 1위는 적어도 그날 실제로 가장
+      많이 쓰인 값이다.
+
+      추세를 보고 싶으면 그건 다른 질문이고 다른 함수다.
+
+    돌려주는 것은 저쪽 표기 그대로(Focus Sash)다. 한국어로 옮기는 것은
+    usecases/usage.py 가 한다 — repositories 는 이름을 안 만진다.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """
+        WITH latest AS (
+            SELECT id FROM usage_snapshots
+            WHERE pokemon_name = %s AND format = %s
+            ORDER BY snapshot_date DESC, id DESC
+            LIMIT 1
+        )
+        SELECT r.category, r.rank, r.name, r.percent,
+               r.stat_up, r.stat_down,
+               r.hp_points, r.attack_points, r.defense_points,
+               r.sp_atk_points, r.sp_def_points, r.speed_points,
+               s.snapshot_date, s.season
+        FROM usage_rows r
+        JOIN latest l ON l.id = r.snapshot_id
+        JOIN usage_snapshots s ON s.id = r.snapshot_id
+        WHERE (r.category = 'move' AND r.rank <= %s) OR r.rank = 1
+        ORDER BY r.category, r.rank
+        """,
+        (pokemon_name, fmt, moves),
+    )
+    return rows(cur)

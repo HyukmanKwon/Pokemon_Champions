@@ -1,62 +1,84 @@
 {
   "bulk_index({\"pokemon\": {\"name\": \"하마돈\"}})": {
-    "def": 138,
+    "def": 187,
     "divided_by": 0.411,
-    "hp": 183,
+    "filled_from_usage": {
+      "date": "2026-08-04",
+      "fields": [
+        "ability",
+        "item",
+        "moves",
+        "nature",
+        "sp"
+      ],
+      "format": "Singles"
+    },
+    "hp": 215,
     "ko_name": "하마돈",
-    "physical_bulk": 61445,
+    "physical_bulk": 97822,
     "pokemon": "hippowdon",
-    "spd": 92,
-    "special_bulk": 40964
+    "spd": 94,
+    "special_bulk": 49173
   },
   "calc_damage({\"attacker\": {\"name\": \"맘모꾸리\"}, \"defender\": {\"condition\": \"toxic\", \"item\": \"먹다남은음식\", \"name\": \"한카리아스\"}, \"move\": \"고드름떨구기\", \"toxic_turn\": 2})": {
     "attacker": {
-      "ability": "oblivious",
-      "ability_ko_name": "둔감",
-      "atk": 150,
-      "item": null,
-      "item_ko_name": null,
+      "ability": "thick-fat",
+      "ability_ko_name": "두꺼운지방",
+      "atk": 200,
+      "item": "focus-sash",
+      "item_ko_name": "기합의띠",
       "ko_name": "맘모꾸리",
       "name": "mamoswine",
-      "nature": "serious",
-      "nature_ko_name": "성실",
-      "spa": 90
+      "nature": "adamant",
+      "nature_ko_name": "고집",
+      "spa": 81
     },
     "damage": {
-      "max": 300,
-      "min": 252,
-      "percent": "137.7~163.9%",
+      "max": 400,
+      "min": 336,
+      "percent": "181.6~216.2%",
       "rolls": [
-        252,
-        256,
-        256,
-        264,
-        264,
-        268,
-        268,
-        276,
-        276,
-        280,
-        280,
-        288,
-        288,
-        292,
-        292,
-        300
+        336,
+        340,
+        348,
+        348,
+        352,
+        360,
+        360,
+        364,
+        372,
+        372,
+        376,
+        384,
+        384,
+        388,
+        396,
+        400
       ]
     },
     "defender": {
-      "ability": "sand-veil",
-      "ability_ko_name": "모래숨기",
+      "ability": "rough-skin",
+      "ability_ko_name": "까칠한피부",
       "def": 115,
-      "hp": 183,
+      "hp": 185,
       "item": "leftovers",
       "item_ko_name": "먹다남은음식",
       "ko_name": "한카리아스",
       "name": "garchomp",
-      "nature": "serious",
-      "nature_ko_name": "성실",
+      "nature": "jolly",
+      "nature_ko_name": "명랑",
       "spd": 105
+    },
+    "filled_from_usage": {
+      "date": "2026-08-04",
+      "fields": [
+        "ability",
+        "item",
+        "moves",
+        "nature",
+        "sp"
+      ],
+      "format": "Singles"
     },
     "move": {
       "category": "physical",
@@ -70,52 +92,63 @@
   },
   "calc_damage({\"attacker\": {\"name\": \"맘모꾸리\"}, \"defender\": {\"name\": \"한카리아스\"}, \"move\": \"고드름떨구기\"})": {
     "attacker": {
-      "ability": "oblivious",
-      "ability_ko_name": "둔감",
-      "atk": 150,
-      "item": null,
-      "item_ko_name": null,
+      "ability": "thick-fat",
+      "ability_ko_name": "두꺼운지방",
+      "atk": 200,
+      "item": "focus-sash",
+      "item_ko_name": "기합의띠",
       "ko_name": "맘모꾸리",
       "name": "mamoswine",
-      "nature": "serious",
-      "nature_ko_name": "성실",
-      "spa": 90
+      "nature": "adamant",
+      "nature_ko_name": "고집",
+      "spa": 81
     },
     "damage": {
-      "max": 300,
-      "min": 252,
-      "percent": "137.7~163.9%",
+      "max": 400,
+      "min": 336,
+      "percent": "181.6~216.2%",
       "rolls": [
-        252,
-        256,
-        256,
-        264,
-        264,
-        268,
-        268,
-        276,
-        276,
-        280,
-        280,
-        288,
-        288,
-        292,
-        292,
-        300
+        336,
+        340,
+        348,
+        348,
+        352,
+        360,
+        360,
+        364,
+        372,
+        372,
+        376,
+        384,
+        384,
+        388,
+        396,
+        400
       ]
     },
     "defender": {
-      "ability": "sand-veil",
-      "ability_ko_name": "모래숨기",
+      "ability": "rough-skin",
+      "ability_ko_name": "까칠한피부",
       "def": 115,
-      "hp": 183,
-      "item": null,
-      "item_ko_name": null,
+      "hp": 185,
+      "item": "focus-sash",
+      "item_ko_name": "기합의띠",
       "ko_name": "한카리아스",
       "name": "garchomp",
-      "nature": "serious",
-      "nature_ko_name": "성실",
+      "nature": "jolly",
+      "nature_ko_name": "명랑",
       "spd": 105
+    },
+    "filled_from_usage": {
+      "date": "2026-08-04",
+      "fields": [
+        "ability",
+        "item",
+        "moves",
+        "nature",
+        "sp"
+      ],
+      "format": "Singles"
     },
     "move": {
       "category": "physical",
@@ -143,7 +176,7 @@
     "damage": {
       "max": 45,
       "min": 38,
-      "percent": "20.8~24.6%",
+      "percent": "20.5~24.3%",
       "rolls": [
         38,
         38,
@@ -164,17 +197,28 @@
       ]
     },
     "defender": {
-      "ability": "sand-veil",
-      "ability_ko_name": "모래숨기",
+      "ability": "rough-skin",
+      "ability_ko_name": "까칠한피부",
       "def": 115,
-      "hp": 183,
-      "item": null,
-      "item_ko_name": null,
+      "hp": 185,
+      "item": "focus-sash",
+      "item_ko_name": "기합의띠",
       "ko_name": "한카리아스",
       "name": "garchomp",
-      "nature": "serious",
-      "nature_ko_name": "성실",
+      "nature": "jolly",
+      "nature_ko_name": "명랑",
       "spd": 105
+    },
+    "filled_from_usage": {
+      "date": "2026-08-04",
+      "fields": [
+        "ability",
+        "item",
+        "moves",
+        "nature",
+        "sp"
+      ],
+      "format": "Singles"
     },
     "move": {
       "category": "physical",
@@ -1137,7 +1181,18 @@
     ]
   },
   "power_index({\"moves\": [\"지진\", \"아이언헤드\", \"없는기술\"], \"pokemon\": {\"name\": \"메타그로스\", \"nature\": \"고집\"}})": {
-    "atk": 170,
+    "atk": 205,
+    "filled_from_usage": {
+      "date": "2026-08-04",
+      "fields": [
+        "ability",
+        "item",
+        "moves",
+        "nature",
+        "sp"
+      ],
+      "format": "Singles"
+    },
     "ko_name": "메타그로스",
     "moves": [
       {
@@ -1145,7 +1200,7 @@
         "ko_name": "아이언헤드",
         "name": "iron-head",
         "power": 80,
-        "power_index": 20400,
+        "power_index": 24600,
         "stab": true,
         "type": "steel"
       },
@@ -1154,7 +1209,7 @@
         "ko_name": "지진",
         "name": "earthquake",
         "power": 100,
-        "power_index": 17000,
+        "power_index": 20500,
         "stab": false,
         "type": "ground"
       },

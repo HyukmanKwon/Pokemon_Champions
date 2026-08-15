@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from ..config import BULK_FACTOR
 from ..db.repositories import move_repo, pokemon_repo
 from ..calc import damage
-from . import team
+from . import team, usage
 from ..calc.damage import BattleContext
 from ..domain import BattlePokemon
 from . import naming
@@ -61,6 +61,11 @@ class Shot:
     damage: object              # DamageRange
     ko: dict                    # analyze_ko 결과
     effect: float               # 타입 상성 배수
+    # 안 말한 칸을 채용률로 채웠으면 그 출처. 안 채웠으면 None.
+    # 화면이 "이 값은 내가 정한 것" 과 "남들이 많이 쓰는 것" 을 갈라
+    # 보여줄 수 있어야 한다.
+    attacker_usage: dict = None
+    defender_usage: dict = None
 
     def percent(self):
         """방어자 최대 HP 대비 (최소, 최대) %."""
@@ -86,9 +91,10 @@ class Scored:
 class Power:
     """결정력 — 기술별 화력. 높은 순으로 정렬돼 있다."""
 
-    pokemon: object             # Pokemon
+    pokemon: object             # BattlePokemon
     en: str
     moves: list                 # [Scored, ...]
+    usage: dict = None          # 채용률로 채웠으면 그 출처
 
 
 @dataclass
@@ -98,11 +104,12 @@ class Bulk:
     나눈 값을 안 밝히면 화면이 "HP × 방어" 라고 적고 다른 숫자를 보여준다.
     """
 
-    pokemon: object             # Pokemon
+    pokemon: object             # BattlePokemon
     en: str
     physical: float
     special: float
     factor: float
+    usage: dict = None          # 채용률로 채웠으면 그 출처
 
 
 def move_row(conn, name):
@@ -112,13 +119,28 @@ def move_row(conn, name):
 
 
 def build_side(conn, spec, move_ko=None):
-    """느슨한 스펙을 Pokemon 으로. 돌려주는 값은 (Pokemon, 영문 이름).
+    """느슨한 스펙을 BattlePokemon 으로. 돌려주는 값은 (그것, 영문 이름).
 
-    스펙은 name 만 필수다. 나머지는 무보정으로 채운다:
-    SP 0 · 성실 · 1번 특성 · 도구 없음.
+    스펙은 name 만 필수다.
 
         {"name", "ability", "item", "nature", "sp", "rank",
-         "condition", "hp", "grounded"}
+         "condition", "hp", "grounded", "use_usage"}
+
+    ── 안 말한 칸은 채용률로 채운다 ──
+      DB 에 쌓아둔 가장 최근 스냅샷의 1위를 쓴다(usage.popular_spec).
+      "한카리아스가 메타그로스 지진을 버티나" 를 물을 때 사람이 떠올리는
+      한카리아스는 SP 0 짜리가 아니라 남들이 실제로 쓰는 그 한카리아스다.
+      무보정으로 재면 숫자는 나오지만 그 숫자를 쓸 데가 없다.
+
+      채용률 자료가 없으면(새 폼 · 표본 부족) 예전대로 무보정으로 간다 —
+      SP 0 · 성실 · 1번 특성 · 도구 없음. 자료가 없다고 계산을 막으면
+      새로 나온 폼을 아예 못 잰다.
+
+      use_usage=False 를 주면 무보정으로 되돌린다. 순수한 종족값 비교를
+      할 때 쓴다.
+
+      무엇으로 쟀는지는 결과에 실려 나간다(Shot.usage). 채용률에서 온
+      값인지 사람이 지정한 값인지 화면이 구분해서 보여줄 수 있어야 한다.
 
     ── 왜 다시 한국어로 되돌리나 ──
       바깥과는 영문으로도 주고받지만, team.build_pokemon 과 그 아래 조회는
@@ -134,32 +156,49 @@ def build_side(conn, spec, move_ko=None):
         raise ValueError(f"'{en}' 은(는) 한국어 이름이 아직 없어 "
                          "계산에 올릴 수 없습니다.")
 
+    # 사람이 지정한 것이 언제나 이긴다. 채용률은 빈 칸만 메운다.
+    popular = (usage.popular_spec(conn, en)
+               if spec.get("use_usage", True) else {})
+
     ability = naming.to_ko(conn, "abilities", spec.get("ability"))
     if not ability:
-        # 특성을 안 말했으면 1번 특성. 무엇으로 쟀는지는 결과에 실려 나간다.
+        ability = popular.get("ability")
+    if not ability:
+        # 채용률에도 없으면 1번 특성.
         cands = pokemon_repo.fetch_abilities(conn, ko)
         ability = cands[0] if cands else None
 
+    # 빈 칸이면 채운다 — 하나뿐인 규칙이다. "일부러 도구를 안 지녔다" 를
+    # 나타내려면 use_usage=False 로 전체를 끈다. 칸마다 따로 끄는 길을
+    # 열면 부르는 쪽이 여섯 개의 규칙을 외워야 한다.
+    item = naming.to_ko(conn, "items", spec.get("item"))
+    if item is None:
+        item = popular.get("item")
+
+    nature = naming.to_ko(conn, "pokemon_natures", spec.get("nature"))
+    if not nature:
+        nature = popular.get("nature") or NEUTRAL_NATURE
+
     p = team.build_pokemon(
         conn, ko_name=ko,
-        sp_values=spec.get("sp") or [0] * 6,
-        ko_nature=(naming.to_ko(conn, "pokemon_natures", spec.get("nature"))
-                   or NEUTRAL_NATURE),
+        sp_values=spec.get("sp") or popular.get("sp") or [0] * 6,
+        ko_nature=nature,
         ability=ability,
-        item=naming.to_ko(conn, "items", spec.get("item")),
+        item=item,
         moves=[move_ko] if move_ko else None,
         allow_mega=ALLOW_MEGA,
     )
     # 여기서 판에 올린다. 계산기가 받는 것은 전부 BattlePokemon 이라,
     # 배틀 상태를 빠뜨리면 그 자리에서 걸린다 — 예전에는 엔트리를 그대로
     # 넘겨도 조용히 만피·랭크 0 으로 계산됐다.
-    return BattlePokemon.of(
+    side = BattlePokemon.of(
         p,
         hp=spec.get("hp"),
         rank=spec.get("rank"),
         condition=spec.get("condition"),
         grounded=spec.get("grounded", True),
-    ), en
+    )
+    return side, en, popular.get("usage")
 
 
 def context(**battle):
@@ -194,8 +233,9 @@ def one_hit(conn, rules, attacker, defender, move, max_turns=4, **battle):
     if m is None:
         raise ValueError(f"'{move}' 이라는 기술이 없습니다.")
 
-    atk, atk_en = build_side(conn, attacker, m["ko_name"] or m["name"])
-    dfn, dfn_en = build_side(conn, defender)
+    atk, atk_en, atk_used = build_side(conn, attacker,
+                                       m["ko_name"] or m["name"])
+    dfn, dfn_en, dfn_used = build_side(conn, defender)
     ctx = context(**battle)
 
     return Shot(
@@ -205,13 +245,14 @@ def one_hit(conn, rules, attacker, defender, move, max_turns=4, **battle):
         damage=damage.calc_damage(atk, dfn, m, ctx, rules),
         ko=damage.analyze_ko(atk, dfn, m, ctx, rules, max_turns=max_turns),
         effect=damage.type_multiplier(m["type"], dfn.types, rules.chart),
+        attacker_usage=atk_used, defender_usage=dfn_used,
     )
 
 
 def power(conn, spec, moves):
     """결정력을 잰다. 세울 수 없는 포켓몬이면 ValueError.
     """
-    p, en = build_side(conn, spec)
+    p, en, used = build_side(conn, spec)
 
     scored = []
     for asked in moves:
@@ -228,12 +269,12 @@ def power(conn, spec, moves):
     # 없는 기술은 0 이라 자연히 뒤로 간다. 결정력이 0 인 변화기와 같은
     # 자리인데, 둘 다 "화력이 없다" 이므로 갈라 놓을 이유가 없다.
     scored.sort(key=lambda s: -s.index)
-    return Power(pokemon=p, en=en, moves=scored)
+    return Power(pokemon=p, en=en, moves=scored, usage=used)
 
 
 def bulk(conn, spec):
     """내구력을 잰다. 세울 수 없는 포켓몬이면 ValueError."""
-    p, en = build_side(conn, spec)
+    p, en, used = build_side(conn, spec)
     b = damage.bulk_index(p)
     return Bulk(pokemon=p, en=en, physical=b["physical"],
-                special=b["special"], factor=BULK_FACTOR)
+                special=b["special"], factor=BULK_FACTOR, usage=used)

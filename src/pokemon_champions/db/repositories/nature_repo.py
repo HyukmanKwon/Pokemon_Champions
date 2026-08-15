@@ -35,3 +35,24 @@ def fetch_all(conn):
     )
     return [{"ko_name": r[0], "up": r[1], "down": r[2]}
             for r in cur.fetchall()]
+
+
+def fetch_by_mods(conn, up, down):
+    """올라가는 칸과 내려가는 칸으로 성격 한국어 이름을 찾는다. 없으면 None.
+
+    fetch_modifiers 와 방향이 반대다. 저쪽은 이름 -> 보정이고 여기는
+    보정 -> 이름이다. 채용률이 "Jolly (Speed↑ Sp.Atk↓)" 처럼 보정만
+    알려줄 때 쓴다 — 저쪽 영문 성격 이름을 우리 표에 맞추는 것보다
+    보정으로 찾는 편이 확실하다. 보정은 게임 규칙이라 표기가 안 흔들린다.
+
+    둘 다 None 이면 무보정 성격(성실)이다.
+    """
+    cur = conn.cursor()
+    if up is None or down is None:
+        cur.execute("SELECT ko_name FROM pokemon_natures "
+                    "WHERE up IS NULL AND down IS NULL")
+    else:
+        cur.execute("SELECT ko_name FROM pokemon_natures "
+                    "WHERE up = %s AND down = %s", (up, down))
+    row = cur.fetchone()
+    return row[0] if row else None

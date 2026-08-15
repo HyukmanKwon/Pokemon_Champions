@@ -454,18 +454,24 @@ def patch_team(index: int, edit: SlotEdit, deck: Optional[str] = None):
 
 # 무보정 성격·SP 기본값·메가 허용은 usecases/battle.py 가 한 벌로 들고 있다.
 # 여기서 다시 적으면 도구 쪽과 갈린다 — 실제로 갈렸던 자리다.
-NEUTRAL_NATURE = battle.NEUTRAL_NATURE
 
 
 class CalcSide(BaseModel):
-    """계산에 올릴 한쪽. ko_name 과 ability 만 필수다."""
+    """계산에 올릴 한쪽. ko_name 만 필수다.
+
+    안 보낸 칸은 조립 층이 채용률에서 채운다 — 그날 가장 많이 쓰인 특성·
+    도구·성격·SP 다. 무엇으로 쟀는지는 응답의 side.usage 에 실려 나간다.
+    채용률 자료가 없는 폼이면 예전대로 무보정(성실 · SP 0 · 1번 특성)이다.
+
+    use_usage=false 를 주면 채우지 않는다. 순수한 종족값 비교용이다.
+    """
 
     ko_name: str
-    ability: str
+    ability: Optional[str] = None
     item: Optional[str] = None
-    ko_nature: str = NEUTRAL_NATURE
-    # 안 보내면 조립 층이 무보정(0 여섯 칸)으로 채운다
+    ko_nature: Optional[str] = None
     sp_values: Optional[List[int]] = None
+    use_usage: bool = True
     # {"a": 2, "s": -1} — 안 적힌 능력치는 0
     rank: Dict[str, int] = Field(default_factory=dict)
     condition: Optional[str] = None
@@ -500,7 +506,7 @@ def _spec(side: CalcSide):
     return {"name": side.ko_name, "ability": side.ability, "item": side.item,
             "nature": side.ko_nature, "sp": side.sp_values, "rank": side.rank,
             "condition": side.condition, "hp": side.hp,
-            "grounded": side.grounded}
+            "grounded": side.grounded, "use_usage": side.use_usage}
 
 
 @app.get("/api/calc/rules")

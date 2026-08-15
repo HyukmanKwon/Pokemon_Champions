@@ -151,13 +151,17 @@ def calc_rules(rules):
 # 계산기
 # ─────────────────────────────────────────────────────────────
 
-def side(pokemon, asked):
+def side(pokemon, asked, usage=None):
     """계산에 실제로 쓰인 한 쪽. 무엇으로 쟀는지를 같이 돌려준다.
 
-    asked 는 화면이 보낸 CalcSide 다. 랭크와 상태이상은 Pokemon 이 아니라
-    요청에 실려 오므로 그쪽에서 가져온다.
+    asked 는 화면이 보낸 CalcSide 다. 랭크와 상태이상은 BattlePokemon 이
+    아니라 요청에 실려 오므로 그쪽에서 가져온다.
+
+    usage 가 있으면 안 말한 칸을 채용률로 채웠다는 뜻이다. 화면이 "내가
+    정한 값" 과 "남들이 많이 쓰는 값" 을 갈라 보여줄 수 있게 그대로 싣는다.
     """
     return {
+        "usage": usage,
         "name": pokemon.name,
         "types": type_badges(*pokemon.types),
         "stats": {k: pokemon.stats[k] for k in STAT_ORDER},
@@ -172,7 +176,7 @@ def side(pokemon, asked):
 def power(got, asked):
     """결정력 — 기술별 지표."""
     return {
-        "side": side(got.pokemon, asked),
+        "side": side(got.pokemon, asked, got.usage),
         "moves": [{"name": s.row["ko_name"] or s.row["name"],
                    "type": s.row["type"],
                    "icon": assets.url_type_icon(s.row["type"]),
@@ -187,7 +191,7 @@ def power(got, asked):
 def bulk(got, asked):
     """내구력. 나눈 상수까지 주는 것은 화면이 계산식을 그대로 보여주기 때문이다."""
     return {
-        "side": side(got.pokemon, asked),
+        "side": side(got.pokemon, asked, got.usage),
         "bulk": {"physical": got.physical, "special": got.special,
                  "factor": got.factor},
     }
@@ -199,8 +203,8 @@ def damage(shot, attacker_asked, defender_asked):
     lo, hi = shot.percent()
 
     return {
-        "attacker": side(shot.attacker, attacker_asked),
-        "defender": side(shot.defender, defender_asked),
+        "attacker": side(shot.attacker, attacker_asked, shot.attacker_usage),
+        "defender": side(shot.defender, defender_asked, shot.defender_usage),
         "move": {
             "name": move["ko_name"] or move["name"],
             "type": move["type"],

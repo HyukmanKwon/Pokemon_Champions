@@ -200,7 +200,24 @@ def damage(shot, attacker_side, defender_side):
         # 판정은 키만 영어다. 값은 사람에게 그대로 보여줄 문장이라 한국어다.
         "verdict": shot.ko["text"],
         **residual(shot.ko),
+        **usage_note(shot.attacker_usage or shot.defender_usage),
     }
+
+
+def usage_note(usage):
+    """채용률로 채운 칸이 있으면 한 줄로. 없으면 빈 dict.
+
+    percent 를 그대로 주지 않고 날짜와 채운 칸만 준다. 모델에게는 "언제
+    자료로 무엇을 채웠나" 면 충분하고, 칸마다 %를 실으면 답마다 길어진다.
+    자세한 채용률은 usage_stats 도구가 따로 있다.
+    """
+    if not usage:
+        return {}
+    return {"filled_from_usage": {
+        "date": usage["date"],
+        "format": usage["format"],
+        "fields": sorted(usage["percent"]),
+    }}
 
 
 def power(got):
@@ -220,7 +237,8 @@ def power(got):
 
     p = got.pokemon
     return {"pokemon": got.en, "ko_name": p.name,
-            "atk": p.stats.a, "spa": p.stats.c, "moves": moves}
+            "atk": p.stats.a, "spa": p.stats.c, "moves": moves,
+            **usage_note(got.usage)}
 
 
 def bulk(got):
@@ -230,7 +248,8 @@ def bulk(got):
             # 소수점 아래는 모델이 읽을 일이 없다. 비교용 값이라 반올림한다.
             "physical_bulk": round(got.physical),
             "special_bulk": round(got.special),
-            "divided_by": got.factor}
+            "divided_by": got.factor,
+            **usage_note(got.usage)}
 
 
 # ─────────────────────────────────────────────────────────────
