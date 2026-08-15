@@ -13,12 +13,8 @@
 
 ── 키가 틀리면 조용히 틀린다 ──
   표의 키는 한국어 이름이다. Pokemon 객체가 한국어로 들고 다니기 때문인데,
-  오타가 나면 예외가 아니라 "보정이 안 걸린 값"이 나온다. 그래서 검사
-  스크립트를 같이 둔다. 표를 고치면 반드시 돌린다.
-
-      python -m scripts.check_modifiers
-
-  DB의 abilities.ko_name / items.ko_name 에 없는 키를 전부 찾아준다.
+  오타가 나면 예외가 아니라 "보정이 안 걸린 값"이 나온다. 표를 고쳤으면
+  scripts/check_damage.py 로 알려진 값과 대조해서 확인한다.
 
 ── 어떻게 늘리나 ──
   아래 표에 (이름, 배수, 조건) 을 한 줄 더한다. 조건은 Situation 하나를
@@ -188,7 +184,7 @@ FINAL_ATTACKER_ITEMS = {
 #
 # 이름은 data/overrides/item_ko_names.json 에서 가져왔다. 사람이 확인한
 # 값이라 추측이 섞이지 않는다. 오타가 나도 예외가 아니라 "열매가 영영 안
-# 걸린 값" 이 나오므로 python -m scripts.check_modifiers 로 거른다.
+# 걸린 값" 이 나온다.
 RESIST_BERRIES = {
     "오카열매": "fire",       "꼬시개열매": "water",   "초나열매": "electric",
     "린드열매": "grass",      "플카열매": "ice",       "로플열매": "fighting",

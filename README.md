@@ -68,7 +68,6 @@ Pokemon_Champions/
 ├── scripts/                    손으로 돌리는 것. 런타임 아님
 │   ├── chat.py                 LLM 도우미와 대화
 │   ├── check_damage.py         계산 결과를 알려진 값과 대조
-│   ├── check_modifiers.py      보정 표를 대조
 │   ├── make_type_icons.py      타입 배지를 한국어로 다시 그린다
 │   ├── check_usage.py          채용률을 대조
 │   ├── fetch_assets.py         스프라이트 내려받기
@@ -376,8 +375,7 @@ n/16 으로 세지므로 곱셈으로는 영영 안 나온다.
 
   분수는 코드가 아니라 DB(`status_conditions` · `weathers` · `terrains`)에 있고
   `Rules.conditions`로 받는다. 특성·도구 이름만 `residual.py`에 한국어로
-  적혀 있어서, `modifiers.py`와 같이 `python -m scripts.check_modifiers`가
-  오타를 걸러 준다.
+  적혀 있다.
 
   지속 데미지가 섞이면 판정 문구가 "확정 2타"가 아니라 "확정 2턴"이 된다.
   두 방이 아니라 두 턴이라는 뜻이다 — 세 번째 방을 안 넣어도 죽는다.
