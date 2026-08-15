@@ -13,8 +13,8 @@ items 테이블용 06_items.sql 을 생성한다.
 
 from . import overrides
 from . import schema
-from .parse_utils import (collect, get_json, mogrify_rows, pick_korean,
-                         pick_english_effect, pick_korean_flavor, render)
+from .parse_utils import (collect, endpoint, get_json, korean,
+                          pick_english_effect, sql_of, to_values)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/item"
 KO_OVERRIDE_KEY = "item_ko_names"
@@ -120,21 +120,13 @@ def collect_item_names():
     return sorted(names)
 
 
-def fetch_item(name):
-    """PokeAPI에서 도구 하나의 원본 JSON을 받아온다. 실패 시 None."""
-    return get_json(f"{POKEAPI_BASE}/{name}")
+fetch_item = endpoint(POKEAPI_BASE)
 
 
 def parse_item(data):
     # 신규 메가스톤 등 PokeAPI 에 한국어가 없는 도구가 많다. annotator 로
-    # 손본 이름·설명을 덮어씌운다.
-    #   python -m scripts.etl.annotator.ko_names items
-    ko = {
-        "ko_name": pick_korean(data["names"]),
-        "description": pick_korean_flavor(data["flavor_text_entries"],
-                                          key="text"),
-    }
-    overrides.apply(KO_OVERRIDE_KEY, data["name"], ko)
+    # 손본 이름·설명을 덮어씌운다. 도구만 본문 키가 "text" 다.
+    ko = korean(data, KO_OVERRIDE_KEY, flavor_key="text")
 
     # 지닐 수 있는 도구인지의 판정. 이 적용이 없으면
     # python -m scripts.etl.build 한 번에 손으로 찍은 것이 전부 날아간다.
@@ -161,11 +153,10 @@ def build(conn):
     items = collect_item_names()
     print(f"\n수집 대상 도구 수: {len(items)}\n")
 
-    values = collect(items, fetch_item, parse_item, COLUMNS)
+    rows = collect(items, fetch_item, parse_item)
 
     judged = len(overrides.load(USABLE_OVERRIDE_KEY)["values"])
     print(f"지닐 수 없다고 확인된 도구: {judged}개 "
           f"(annotator/items.py 로 확인합니다)")
-    return render(DDL, TABLE, COLUMNS,
-                  mogrify_rows(cur, values, len(COLUMNS)))
+    return sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
 

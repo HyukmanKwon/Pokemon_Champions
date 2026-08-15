@@ -19,7 +19,7 @@ pokemons 와 items 를 읽어서 만들기 때문에 03·06 단계 뒤에 와야
 
 from . import schema
 from .get_pokemons import MANUAL_BASE, split_mega
-from .parse_utils import render, mogrify_rows
+from .parse_utils import sql_of
 
 FILENAME = "10_mega_evolutions.sql"
 TABLE = "mega_evolutions"
@@ -117,6 +117,5 @@ def build(conn):
     print(f"\n연결 {len(values)}행")
     print(f"베이스 없음: {len(no_base)}개 - {no_base}")
     print(f"스톤 못 찾음: {len(no_stone)}개 - {no_stone}")
-    return render(DDL, TABLE, COLUMNS,
-                  mogrify_rows(cur, values, len(COLUMNS)))
+    return sql_of(cur, DDL, TABLE, COLUMNS, values)
 

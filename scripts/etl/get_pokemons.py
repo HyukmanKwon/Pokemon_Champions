@@ -7,11 +7,9 @@ can_mega / is_mega 는 API가 주는 값이 아니라 pokemon_M_B 안에서 계�
 """
 import re
 
-import requests
-
 from . import schema
 from . import translation
-from .parse_utils import render, mogrify_rows
+from .parse_utils import collect, endpoint, sql_of, to_values
 
 pokemon_M_B = [
     # ===== 1세대 (기본 29, 폼 26) =====
@@ -146,12 +144,8 @@ def mega_bases(names):
     """목록 안에서 메가폼을 가진 베이스 이름의 집합."""
     return {b for b in map(base_of, names) if b is not None}
 
-def fetch_pokemon(name):  #포켓몬 이름을 받아 url을 생성후, API를 받아옴
-    url = f"{POKEAPI_BASE}/{name}"
-    resp = requests.get(url, timeout=10)
-    if resp.status_code != 200: #이름 못 찾음
-        return None
-    return resp.json()
+fetch_pokemon = endpoint(POKEAPI_BASE)
+
 
 def species_id(data):
     """폼 응답에서 원종(species) 번호를 뽑는다.
@@ -162,12 +156,17 @@ def species_id(data):
     return int(data["species"]["url"].rstrip("/").rsplit("/", 1)[1])
 
 
-def parse_pokemon(data, bases=()):        #필요한 정보를 parsing해서 반환
-    stats = {s["stat"]["name"]: s["base_stat"] for s in data["stats"]}          # key : values
+def parse_pokemon(data, bases=()):
+    """포켓몬 한 마리의 응답에서 pokemons 한 행을 뽑는다.
+
+    bases 는 '메가폼을 가진 베이스 이름들'. can_mega 를 켜는 데만 쓴다.
+    """
+    stats = {s["stat"]["name"]: s["base_stat"] for s in data["stats"]}
     types = {t["slot"]: t["type"]["name"] for t in data["types"]}
     abilities = {a["slot"]: a["ability"]["name"] for a in data["abilities"]}
 
-    base_ko = translation.fetch_korean_name(data)          # 한국어 기본 이름
+    # 폼 이름은 API 가 한국어로 주지 않는다. 원종 이름을 받아서 조립한다.
+    base_ko = translation.fetch_korean_name(data)
     ko_name = translation.build_korean_name(data, base_ko)
 
     return {
@@ -179,7 +178,7 @@ def parse_pokemon(data, bases=()):        #필요한 정보를 parsing해서 반
         "ko_name": ko_name,
         "type1": types.get(1),
         "type2": types.get(2),
-        "ability1": abilities.get(1),   #key가 1인 값을 가져온다.
+        "ability1": abilities.get(1),
         "ability2": abilities.get(2),
         "ability3": abilities.get(3),
         "height": data["height"] / 10,   # 17 → 1.7 (m)
@@ -198,23 +197,13 @@ def build(conn):
     """03_pokemons.sql 전문을 만들어 돌려준다. (pokemon_M_B 개수만큼 API 호출)"""
     cur = conn.cursor()
     bases = mega_bases(pokemon_M_B)        # 메가폼을 가진 베이스 이름들
-    failed = []
-    values = []                            # 완성된 행들을 여기 모음
-    for n in pokemon_M_B:
-        data = fetch_pokemon(n)
-        if data is None:
-            failed.append(n)
-            print(f"{n} - failed")
-            continue
-        p = parse_pokemon(data, bases)
-        values.append(tuple(p[c] for c in COLUMNS))
-        print(f"{p['name']} - collected")
-    print(f"\n성공: {len(values)}개")
-    print(f"\n실패: {len(failed)}개 - {failed}")
+
+    # bases 를 닫아 넘긴다. collect 는 parse 에 응답 하나만 주기 때문이다.
+    rows = collect(pokemon_M_B, fetch_pokemon,
+                   lambda data: parse_pokemon(data, bases))
 
     # 베이스가 목록에 없는 메가폼은 mega_evolutions(10단계)에서 빠진다
     orphans = sorted(bases - set(pokemon_M_B))
     if orphans:
         print(f"베이스가 목록에 없는 메가: {len(orphans)}개 - {orphans}")
-    return render(DDL, TABLE, COLUMNS,
-                  mogrify_rows(cur, values, len(COLUMNS)))
+    return sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))

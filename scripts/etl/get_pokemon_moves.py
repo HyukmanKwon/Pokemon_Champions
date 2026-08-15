@@ -11,7 +11,7 @@ pokemon_moves 연결 테이블용 07_pokemon_moves.sql 을 생성한다.
 """
 
 from . import schema
-from .parse_utils import get_json, render, mogrify_rows
+from .parse_utils import endpoint, sql_of
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/pokemon"
 
@@ -21,9 +21,9 @@ COLUMNS = ["pokemon_name", "move_name"]
 DDL = schema.POKEMON_MOVES
 
 
-def fetch_pokemon(name):
-    """PokeAPI에서 포켓몬 하나의 원본 JSON을 받아온다. 실패 시 None."""
-    return get_json(f"{POKEAPI_BASE}/{name}")
+# collect() 를 쓰지 않는다. 이름 하나가 행 수십 개가 되고 ko_name 도 없어서,
+# 끼워 넣으면 collect 에 이 생성기 전용 분기가 둘 생긴다. (parse_utils 참고)
+fetch_pokemon = endpoint(POKEAPI_BASE)
 
 
 def build(conn):
@@ -60,6 +60,5 @@ def build(conn):
         print(f"{name} - {len(valid)}개")
 
     print(f"\n연결 {len(values)}행 / 실패: {len(failed)}개 - {failed}")
-    return render(DDL, TABLE, COLUMNS,
-                  mogrify_rows(cur, values, len(COLUMNS)))
+    return sql_of(cur, DDL, TABLE, COLUMNS, values)
 

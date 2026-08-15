@@ -9,10 +9,9 @@ abilities 테이블용 05_abilities.sql 을 생성한다.
     build.py 는 생성과 실행을 번갈아 하므로 순서가 저절로 맞는다.
 """
 
-from . import overrides
 from . import schema
-from .parse_utils import (collect, get_json, mogrify_rows, pick_korean,
-                         pick_english_effect, pick_korean_flavor, render)
+from .parse_utils import (collect, endpoint, korean, pick_english_effect,
+                          sql_of, to_values)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/ability"
 KO_OVERRIDE_KEY = "ability_ko_names"
@@ -23,21 +22,14 @@ COLUMNS = ["id", "name", "ko_name", "description", "effect"]
 DDL = schema.ABILITIES
 
 
-def fetch_ability(name):
-    """PokeAPI에서 특성 하나의 원본 JSON을 받아온다. 실패 시 None."""
-    return get_json(f"{POKEAPI_BASE}/{name}")
+fetch_ability = endpoint(POKEAPI_BASE)
 
 
 def parse_ability(data):
     # PokeAPI 에 한국어가 없는 신규 특성이 있고, flavor text 도 옛 표현이거나
     # 잘려 있는 경우가 있다. annotator 로 손본 값을 덮어씌워서 재구축해도
     # 사라지지 않게 한다.
-    #   python -m scripts.etl.annotator.ko_names abilities
-    ko = {
-        "ko_name": pick_korean(data["names"]),
-        "description": pick_korean_flavor(data["flavor_text_entries"]),
-    }
-    overrides.apply(KO_OVERRIDE_KEY, data["name"], ko)
+    ko = korean(data, KO_OVERRIDE_KEY)
 
     return {
         "id": data["id"],
@@ -70,7 +62,6 @@ def build(conn):
     abilities = select_ability_names(cur)
     print(f"DB 특성 수: {len(abilities)}")
 
-    values = collect(abilities, fetch_ability, parse_ability, COLUMNS)
-    return render(DDL, TABLE, COLUMNS,
-                  mogrify_rows(cur, values, len(COLUMNS)))
+    rows = collect(abilities, fetch_ability, parse_ability)
+    return sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
 

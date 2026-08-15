@@ -24,8 +24,6 @@ git 에 커밋되므로 누가 언제 무엇을 고쳤는지 남는다.
 
 import json
 
-from pokemon_champions.db import connect
-
 from . import paths
 
 OVERRIDE_DIR = paths.OVERRIDE_DIR

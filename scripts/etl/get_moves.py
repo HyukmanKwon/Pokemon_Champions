@@ -1,8 +1,8 @@
 from . import move_flags
 from . import overrides
 from . import schema
-from .parse_utils import (get_json, pick_korean, pick_korean_flavor,
-                         pick_english_effect, render, mogrify_rows)
+from .parse_utils import (collect, endpoint, korean, pick_english_effect,
+                          sql_of, to_values)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/move"
 
@@ -157,9 +157,7 @@ if _readded:
     )
 
 
-def fetch_move(name):
-    """PokeAPI에서 기술 하나의 원본 JSON을 받아온다. 실패 시 None."""
-    return get_json(f"{POKEAPI_BASE}/{name}")
+fetch_move = endpoint(POKEAPI_BASE)
 
 
 def parse_move(data):
@@ -176,12 +174,7 @@ def parse_move(data):
     reviewed = overrides.apply(OVERRIDE_KEY, data["name"], flags)
 
     # 한국어 이름·설명도 override 를 태운다. PokeAPI 값이 옛 번역인 경우가 있다.
-    #   python -m scripts.etl.annotator.ko_names moves
-    ko = {
-        "ko_name": pick_korean(data["names"]),
-        "description": pick_korean_flavor(data["flavor_text_entries"]),
-    }
-    overrides.apply(KO_OVERRIDE_KEY, data["name"], ko)
+    ko = korean(data, KO_OVERRIDE_KEY)
 
     return {
         "id": data["id"],
@@ -208,7 +201,11 @@ def parse_move(data):
 
         **flags,
         "reviewed": reviewed,
-        "_source": source,                       # COLUMNS 에 없다. 통계용
+
+        # 밑줄로 시작하는 둘은 COLUMNS 에 없다. moves 행에는 안 들어가지만
+        # 같은 응답에서만 나오는 값이라 여기서 같이 들고 나간다.
+        "_source": source,                       # 플래그 출처. 통계용
+        "_stat_changes": parse_stat_changes(data),   # move_stat_changes 행들
 
         "description": ko["description"],
         "effect": pick_english_effect(data["effect_entries"]),
@@ -237,38 +234,24 @@ def build(conn):
     둘 다 같은 응답에서 나오므로 API를 두 번 부르지 않는다.
     """
     cur = conn.cursor()
-    failed = []
-    values = []
-    stat_values = []
-    guessed = []            # CSV 에 없어서 추측으로 채운 기술
-    for name in moves_M_B:
-        data = fetch_move(name)
-        if data is None:
-            failed.append(name)
-            print(f"{name} - failed")
-            continue
-        m = parse_move(data)
-        values.append(tuple(m[c] for c in COLUMNS))
-        stat_values.extend(parse_stat_changes(data))
-        if m["_source"] == "guess":
-            guessed.append(name)
-        print(f"{m['name']} -> {m['ko_name']}")
+    rows = collect(moves_M_B, fetch_move, parse_move)
 
-    print(f"\n수집 {len(values)}개 / 실패: {len(failed)}개 - {failed}")
+    stat_values = [sc for r in rows for sc in r["_stat_changes"]]
+    guessed = [r["name"] for r in rows if r["_source"] == "guess"]
+
     print(f"능력 변화 {len(stat_values)}행")
-    print(f"플래그: CSV {len(values) - len(guessed)}개 / 추측 {len(guessed)}개")
+    print(f"플래그: CSV {len(rows) - len(guessed)}개 / 추측 {len(guessed)}개")
     if guessed:
         print(f"  추측으로 채운 기술: {', '.join(guessed)}")
     print("  바람·베기·압박은 CSV 에 없어 전부 추측입니다."
           " annotator/moves.py 로 확인하세요.")
 
-    sql = render(DDL, TABLE, COLUMNS,
-                 mogrify_rows(cur, values, len(COLUMNS)))
+    sql = sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
 
     # 변화가 하나도 없으면 INSERT 없이 테이블만 만든다 (VALUES; 는 문법 오류)
     if stat_values:
-        sql += "\n" + render(STAT_DDL, STAT_TABLE, STAT_COLUMNS,
-                             mogrify_rows(cur, stat_values, len(STAT_COLUMNS)))
+        sql += "\n" + sql_of(cur, STAT_DDL, STAT_TABLE,
+                             STAT_COLUMNS, stat_values)
     else:
         sql += "\n" + STAT_DDL
     return sql

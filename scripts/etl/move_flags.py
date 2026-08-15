@@ -44,8 +44,6 @@ import csv
 
 import requests
 
-from pokemon_champions.db import connect
-
 from . import paths
 
 FLAGS = [

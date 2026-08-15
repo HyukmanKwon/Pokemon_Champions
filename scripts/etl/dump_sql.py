@@ -44,7 +44,7 @@ from pokemon_champions.db import connect
 from . import paths
 from . import schema
 from .build import STEPS
-from .parse_utils import render, mogrify_rows
+from .parse_utils import sql_of
 
 
 def primary_key(cur, table):
@@ -81,8 +81,7 @@ def table_sql(cur, ddl, table, columns):
     # 행이 없으면 INSERT 를 붙이지 않는다. VALUES; 는 문법 오류다.
     if not values:
         return ddl, 0
-    rows = mogrify_rows(cur, values, len(columns))
-    return render(ddl, table, columns, rows), len(values)
+    return sql_of(cur, ddl, table, columns, values), len(values)
 
 
 def db_columns(cur, table):
