@@ -36,12 +36,7 @@ from ..usecases import team, usage
 from ..calc.damage import Rules
 from ..text import normalize
 from ..usecases import battle, naming, roster
-from . import schemas
-
-# domain 의 능력치 글자를 모델이 읽을 이름으로. 종족값·실능 dict 의 키가
-# 전부 이 여섯이다. 순서는 STAT_ORDER 가 정한다.
-STAT_KEYS = {"h": "hp", "a": "atk", "b": "def",
-             "c": "spa", "d": "spd", "s": "spe"}
+from . import schemas, views
 
 @dataclass
 class Session:
@@ -123,9 +118,27 @@ def _named(s, table, value, key="name"):
     return {key: en or value, ko_key: _ko(s, table, en)}
 
 
-def _stats(source):
-    """능력치 6칸을 모델이 읽을 키로. Stats 도 dict 행도 같이 받는다."""
-    return {STAT_KEYS[k]: source[k] for k in STAT_ORDER}
+# 아홉 자리가 "찾는다 -> 없으면 에러 dict" 를 똑같이 되풀이하고 있었다.
+# 문구가 갈리면 모델은 같은 실패를 다른 사건으로 읽으므로 한 곳에 둔다.
+_NOT_FOUND = {
+    "pokemons": "은(는) 포켓몬 목록에 없습니다.",
+    "moves": "이라는 기술이 없습니다.",
+    "abilities": "이라는 특성이 없습니다.",
+    "items": "이라는 도구가 없습니다.",
+}
+
+
+def _need(s, table, name):
+    """이름을 영문으로. 못 찾으면 (None, 에러dict) 를 돌려준다.
+
+    두 칸으로 주는 이유는 부르는 쪽이 곧바로 return 할 수 있어야 하기
+    때문이다. 예외로 올리면 도구마다 try 가 붙고, 도구는 예외가 아니라
+    {"error": ...} 를 돌려주기로 돼 있다.
+    """
+    en = _resolve(s, table, name)
+    if en is not None:
+        return en, None
+    return None, {"error": f"'{name}' {_NOT_FOUND[table]}"}
 
 
 # ─────────────────────────────────────────────────────────────
@@ -134,25 +147,10 @@ def _stats(source):
 
 def find_pokemon(s, name):
     """한 마리의 종족값·타입·특성·메가 관계."""
-    en = _resolve(s, "pokemons", name)
-    if en is None:
-        return {"error": f"'{name}' 은(는) 포켓몬 목록에 없습니다."}
-    row = pokemon_repo.fetch_detail(s.conn, en)
-    return {
-        "name": row["name"], "ko_name": row["ko_name"],
-        "pokemon_id": row["pokemon_id"],
-        "types": [t for t in (row["type1"], row["type2"]) if t],
-        "base_stats": _stats(row),
-        "bst": sum(row[k] for k in STAT_ORDER),
-        "abilities": [{"name": a["name"], "ko_name": a["ko_name"],
-                       "is_hidden": a["is_hidden"],
-                       "description": a["description"]}
-                      for a in row["abilities"]],
-        "height_m": row["height"], "weight_kg": row["weight"],
-        "can_mega": row["can_mega"], "is_mega": row["is_mega"],
-        "mega_forms": [{"name": f["mega_name"], "ko_name": f["mega_ko_name"]}
-                       for f in row["mega_forms"]],
-    }
+    en, err = _need(s, "pokemons", name)
+    if err:
+        return err
+    return views.pokemon_detail(pokemon_repo.fetch_detail(s.conn, en))
 
 
 # 정렬 기준. 모델이 주는 값이라 실능 키와 같은 이름을 쓴다 — 여기만
@@ -186,16 +184,7 @@ def search_pokemon(s, type=None, min_total=None, order_by=None, limit=8):
     elif order_by == "bst":
         rows.sort(key=lambda r: -sum(r[k] for k in STAT_ORDER))
 
-    def one(r):
-        out = {"name": r["name"], "ko_name": r["ko_name"],
-               "types": [t for t in (r["type1"], r["type2"]) if t],
-               "bst": sum(r[k] for k in STAT_ORDER)}
-        if key:
-            out[order_by] = r[key]
-        return out
-
-    return {"total": len(rows), "shown": min(limit, len(rows)),
-            "results": [one(r) for r in rows[:limit]]}
+    return views.search_results(rows, limit, order_by, key)
 
 
 def type_matchup(s, pokemon):
@@ -214,9 +203,9 @@ def type_matchup(s, pokemon):
     배수별로 묶어서 돌려준다. 열여덟 줄을 나열하면 그 자체가 길고,
     모델이 다시 정렬해야 한다.
     """
-    en = _resolve(s, "pokemons", pokemon)
-    if en is None:
-        return {"error": f"'{pokemon}' 은(는) 포켓몬 목록에 없습니다."}
+    en, err = _need(s, "pokemons", pokemon)
+    if err:
+        return err
 
     chart = s.rules.chart
     types = _types_of(s, en)
@@ -224,17 +213,9 @@ def type_matchup(s, pokemon):
     for atk in sorted({t for (t, _) in chart}):
         mult = damage.type_multiplier(atk, types, chart)
         # 4.0 을 "4" 로. 소수점 없는 정수는 그대로 적어야 읽기 쉽다.
-        key = f"{mult:g}"
-        grouped.setdefault(key, []).append(atk)
+        grouped.setdefault(f"{mult:g}", []).append(atk)
 
-    return {
-        "pokemon": en, "ko_name": _ko(s, "pokemons", en),
-        "types": list(types),
-        # 키가 곧 배수다. "이 타입으로 치면 몇 배" 를 뜻한다.
-        "damage_taken": {k: grouped[k]
-                         for k in ("4", "2", "1", "0.5", "0.25", "0")
-                         if k in grouped},
-    }
+    return views.type_matchup(en, _ko(s, "pokemons", en), types, grouped)
 
 
 def type_effectiveness(s, attack_type, defender):
@@ -243,26 +224,21 @@ def type_effectiveness(s, attack_type, defender):
     타입을 이미 정해놓고 확인만 할 때 쓴다. "뭐에 약해?" 처럼 열어놓고
     묻는 질문에는 type_matchup 이 맞다.
     """
-    en = _resolve(s, "pokemons", defender)
-    if en is None:
-        return {"error": f"'{defender}' 은(는) 포켓몬 목록에 없습니다."}
+    en, err = _need(s, "pokemons", defender)
+    if err:
+        return err
     at = normalize(attack_type)
     types = _types_of(s, en)
-    return {"attack_type": at,
-            "defender": en, "defender_ko_name": _ko(s, "pokemons", en),
-            "defender_types": list(types),
-            "multiplier": damage.type_multiplier(at, types, s.rules.chart)}
+    return views.type_effectiveness(
+        at, en, _ko(s, "pokemons", en), types,
+        damage.type_multiplier(at, types, s.rules.chart))
 
 
 def find_move(s, name):
-    en = _resolve(s, "moves", name)
-    if en is None:
-        return {"error": f"'{name}' 이라는 기술이 없습니다."}
-    m = move_repo.fetch_detail(s.conn, en)
-    return {"name": m["name"], "ko_name": m["ko_name"], "type": m["type"],
-            "category": m["category"], "power": m["power"],
-            "accuracy": m["accuracy"], "pp": m["pp"],
-            "priority": m["priority"], "description": m["description"]}
+    en, err = _need(s, "moves", name)
+    if err:
+        return err
+    return views.move_detail(move_repo.fetch_detail(s.conn, en))
 
 
 def moves_of(s, pokemon, type=None, category=None, min_power=None, limit=40):
@@ -280,9 +256,9 @@ def moves_of(s, pokemon, type=None, category=None, min_power=None, limit=40):
     위력을 같이 싣는다. 그게 없으면 "제일 센 거" 를 묻는 순간 기술마다
     find_move 를 다시 부르게 된다.
     """
-    en = _resolve(s, "pokemons", pokemon)
-    if en is None:
-        return {"error": f"'{pokemon}' 은(는) 포켓몬 목록에 없습니다."}
+    en, err = _need(s, "pokemons", pokemon)
+    if err:
+        return err
 
     rows = pokemon_repo.fetch_detail(s.conn, en)["moves"]
     if type:
@@ -295,33 +271,21 @@ def moves_of(s, pokemon, type=None, category=None, min_power=None, limit=40):
         rows = [m for m in rows if (m["power"] or 0) >= min_power]
     rows.sort(key=lambda m: -(m["power"] or 0))
 
-    return {"pokemon": en, "ko_name": _ko(s, "pokemons", en),
-            "total": len(rows), "shown": min(limit, len(rows)),
-            "moves": [{"name": m["name"], "ko_name": m["ko_name"],
-                       "type": m["type"], "category": m["category"],
-                       "power": m["power"]}
-                      for m in rows[:limit]]}
+    return views.moves_of(en, _ko(s, "pokemons", en), rows, limit)
 
 
 def find_ability(s, name):
-    en = _resolve(s, "abilities", name)
-    if en is None:
-        return {"error": f"'{name}' 이라는 특성이 없습니다."}
-    a = ability_repo.fetch_detail(s.conn, en)
-    return {"name": a["name"], "ko_name": a["ko_name"],
-            "description": a["description"], "effect_en": a["effect"],
-            "pokemon": [{"name": p["name"], "ko_name": p["ko_name"]}
-                        for p in a["pokemons"]]}
+    en, err = _need(s, "abilities", name)
+    if err:
+        return err
+    return views.ability_detail(ability_repo.fetch_detail(s.conn, en))
 
 
 def find_item(s, name):
-    en = _resolve(s, "items", name)
-    if en is None:
-        return {"error": f"'{name}' 이라는 도구가 없습니다."}
-    i = item_repo.fetch_detail(s.conn, en)
-    return {"name": i["name"], "ko_name": i["ko_name"],
-            "category": i["category"], "description": i["description"],
-            "usable": i["usable"]}
+    en, err = _need(s, "items", name)
+    if err:
+        return err
+    return views.item_detail(item_repo.fetch_detail(s.conn, en))
 
 
 # ─────────────────────────────────────────────────────────────
@@ -364,36 +328,9 @@ def calc_damage(s, attacker, defender, move, weather=None, terrain=None,
     except ValueError as e:
         return {"error": str(e)}
 
-    m, dmg = shot.move, shot.damage
-    lo, hi = shot.percent()
-
-    return {
-        "attacker": {**_side_view(s, shot.attacker, shot.attacker_en),
-                     "atk": shot.attacker.stats.a, "spa": shot.attacker.stats.c},
-        "defender": {**_side_view(s, shot.defender, shot.defender_en),
-                     "hp": shot.defender.stats.h, "def": shot.defender.stats.b,
-                     "spd": shot.defender.stats.d},
-        "move": {"name": m["name"], "ko_name": m["ko_name"], "type": m["type"],
-                 "category": m["category"], "power": m["power"]},
-        "type_effect": shot.effect,
-        "damage": {"min": dmg.min, "max": dmg.max,
-                   "percent": f"{lo:.1f}~{hi:.1f}%", "rolls": dmg.rolls},
-        # 판정은 키만 영어다. 값은 사람에게 그대로 보여줄 문장이라 한국어다.
-        "verdict": shot.ko["text"],
-        # 턴 끝에 HP 가 움직였을 때만 붙인다. 안 붙이면 모델이 "확정 2턴"
-        # 을 보고 두 방이면 죽는다고 옮겨 적는다.
-        **_residual_view(shot.ko),
-    }
-
-
-def _residual_view(ko):
-    """턴 끝 정산이 있었으면 턴별 한 줄을 붙인다. 없으면 아무것도 안 붙인다."""
-    if not ko["residual"]:
-        return {}
-    return {"residual": [
-        {"turn": i, "text": t["tick"].text, "net": t["tick"].net}
-        for i, t in enumerate(ko["turns"], 1) if t["tick"]
-    ]}
+    return views.damage(shot,
+                        _side_view(s, shot.attacker, shot.attacker_en),
+                        _side_view(s, shot.defender, shot.defender_en))
 
 
 def power_index(s, pokemon, moves):
@@ -403,23 +340,7 @@ def power_index(s, pokemon, moves):
     except ValueError as e:
         return {"error": str(e)}
 
-    # 웹은 없는 기술을 404 로 막지만 도구는 그 줄에만 적는다. 모델은 기술
-    # 이름을 기억에서 꺼내 오타를 내는데, 넷 중 하나 틀렸다고 전부 막으면
-    # 다시 물어보느라 한 바퀴를 더 쓴다.
-    out = []
-    for sc in got.moves:
-        if sc.row is None:
-            out.append({"name": sc.asked, "ko_name": None,
-                        "error": "없는 기술"})
-            continue
-        m = sc.row
-        out.append({"name": m["name"], "ko_name": m["ko_name"],
-                    "type": m["type"], "category": m["category"],
-                    "power": m["power"], "stab": sc.stab,
-                    "power_index": sc.index})
-    p = got.pokemon
-    return {"pokemon": got.en, "ko_name": p.name,
-            "atk": p.stats.a, "spa": p.stats.c, "moves": out}
+    return views.power(got)
 
 
 def bulk_index(s, pokemon):
@@ -428,13 +349,7 @@ def bulk_index(s, pokemon):
         got = battle.bulk(s.conn, pokemon)
     except ValueError as e:
         return {"error": str(e)}
-    p = got.pokemon
-    return {"pokemon": got.en, "ko_name": p.name, "hp": p.stats.h,
-            "def": p.stats.b, "spd": p.stats.d,
-            # 소수점 아래는 모델이 읽을 일이 없다. 비교용 값이라 반올림한다.
-            "physical_bulk": round(got.physical),
-            "special_bulk": round(got.special),
-            "divided_by": got.factor}
+    return views.bulk(got)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -484,7 +399,7 @@ def my_team(s, deck=None):
             **_named(s, "abilities", p.ability, "ability"),
             **_named(s, "items", p.item, "item"),
             **_named(s, "pokemon_natures", p.nature, "nature"),
-            "stats": _stats(p.stats),
+            "stats": views.stats(p.stats),
             "moves": [_named(s, "moves", mv) for mv in (p.moves or [])],
         })
     return {"team": out}
@@ -492,11 +407,7 @@ def my_team(s, deck=None):
 
 def list_decks(s):
     """저장해둔 덱 목록과 지금 보고 있는 덱."""
-    book = roster.summary()
-    active = next((d for d in book["decks"] if d["id"] == book["active"]), None)
-    return {"active": active["name"] if active else None,
-            "decks": [{"name": d["name"], "members": d["members"]}
-                      for d in book["decks"]]}
+    return views.decks(roster.summary())
 
 
 def team_weaknesses(s, deck=None):
@@ -535,16 +446,16 @@ def team_weaknesses(s, deck=None):
         }
     # 위험한 순서로. 2배 이상 맞는 머릿수가 많은 타입이 곧 팀의 구멍이다.
     order = sorted(types, key=lambda t: -len(table[t]["weak_to"]))
-    return {"team": [{"name": n, "ko_name": _ko(s, "pokemons", n)}
-                     for n, _ in members],
-            "by_type": {t: table[t] for t in order}}
+    return views.team_weaknesses(
+        members, table, order,
+        {n: _ko(s, "pokemons", n) for n, _ in members})
 
 
 def usage_stats(s, pokemon, format="Singles"):
     """랭크배틀 채용률 — 기술·도구·특성·성격·SP·함께 쓰는 포켓몬."""
-    en = _resolve(s, "pokemons", pokemon)
-    if en is None:
-        return {"error": f"'{pokemon}' 은(는) 포켓몬 목록에 없습니다."}
+    en, err = _need(s, "pokemons", pokemon)
+    if err:
+        return err
     return usage.usage_of(s.conn, en, ko_name=_ko(s, "pokemons", en),
                           fmt=format if format in ("Singles", "Doubles")
                           else "Singles")
