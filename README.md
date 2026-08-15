@@ -70,6 +70,8 @@ Pokemon_Champions/
 │   ├── check_damage.py         계산 결과를 알려진 값과 대조
 │   ├── make_type_icons.py      타입 배지를 한국어로 다시 그린다
 │   ├── check_usage.py          채용률을 대조
+│   ├── daily_usage.sh          채용률 수집 (launchd 가 부른다)
+│   ├── com.hyukman.pokemon-usage.plist   launchd 설정
 │   ├── fetch_assets.py         스프라이트 내려받기
 │   │
 │   └── etl/                    PokeAPI -> SQL -> DB

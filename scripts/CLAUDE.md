@@ -27,6 +27,12 @@ files. Do not run it to "fix" a database.
 change that alters DB contents, run `dump_sql.py` and commit the result, or
 installs will not match your database.
 
+`sync_usage.py` is the exception: usage snapshots accumulate daily and are
+**not** part of `data/sql/`. `daily_usage.sh` runs it under launchd.
+Always use `--backfill`, never "today only" — the source keeps 16 days and
+a missed day is gone for good. Already-fetched dates are skipped, so
+running it daily costs nothing.
+
 ## schema.py is the single source of DDL
 
 Never write `CREATE TABLE` anywhere else, and never reverse-engineer DDL from

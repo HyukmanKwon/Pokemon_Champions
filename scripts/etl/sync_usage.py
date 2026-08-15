@@ -5,6 +5,7 @@
     python -m scripts.etl.sync_usage --date 30_07_2026
     python -m scripts.etl.sync_usage --format Doubles
     python -m scripts.etl.sync_usage --fill-missing   처음 보는 기술·도구를 채운다
+    python -m scripts.etl.sync_usage --backfill       안 받은 날짜를 전부 (자동 실행용)
 
 ── 왜 build.py 에 안 들어가나 ──
   PokeAPI 가 아니고, 한 번 만들고 끝이 아니다. build.py 는 빈 DB 에 한 번
@@ -182,6 +183,44 @@ def fill_items(conn, gaps):
     return done
 
 
+def missing_dates(conn, fmt, season=None):
+    """저쪽이 아직 주는 날짜 중 우리가 안 받은 것. 오래된 것부터."""
+    cur = conn.cursor()
+    cur.execute("SELECT DISTINCT snapshot_date FROM usage_snapshots "
+                "WHERE format = %s", (fmt,))
+    have = {r[0] for r in cur.fetchall()}
+    return [(s, d) for s, d in usage_csv.daily_dates(season)
+            if usage_csv.to_date(d) not in have]
+
+
+def backfill(conn, fmt, season, sleep, limit, dry_run):
+    """받을 수 있는데 아직 안 받은 날짜를 오래된 것부터 전부.
+
+    ── 왜 필요한가 ──
+      저쪽은 일자별 자료를 16일치만 남긴다. 하루라도 거르면 16일 뒤에
+      사라지고 다시 받을 방법이 없다. 매일 도는 자동 실행이 며칠 못 돌면
+      (노트북을 안 켰다거나) 그 구멍을 여기서 메운다.
+
+      그래서 자동 실행도 이 갈래로 부른다 — "오늘 것만" 이 아니라
+      "안 받은 것 전부" 다. 이미 받은 날짜는 collect() 가 건너뛴다.
+
+    ── 오래된 것부터 ──
+      중간에 끊기면 사라지기 직전의 것부터 남아 있어야 한다.
+    """
+    todo = missing_dates(conn, fmt, season)
+    if not todo:
+        print(f"{fmt}: 받을 수 있는 날짜를 전부 받았습니다.")
+        return 0, 0, 0
+
+    print(f"{fmt}: 안 받은 날짜 {len(todo)}개 — {', '.join(d for _, d in todo)}\n")
+    total = [0, 0, 0]
+    for i, (s, d) in enumerate(todo, 1):
+        print(f"── [{i}/{len(todo)}] {d} " + "─" * 30)
+        got = collect(conn, fmt, s, d, sleep, limit, dry_run)
+        total = [a + b for a, b in zip(total, got)]
+    return tuple(total)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--format", default="Singles",
@@ -189,6 +228,9 @@ def main(argv=None):
     ap.add_argument("--season", help="예: M4. 안 주면 색인의 최신 시즌")
     ap.add_argument("--date", help="저쪽 폴더 이름. 예: 30_07_2026. "
                                    "안 주면 가장 최근 하루")
+    ap.add_argument("--backfill", action="store_true",
+                    help="안 받은 날짜를 오래된 것부터 전부 받는다. "
+                         "--date 는 무시된다")
     ap.add_argument("--dry-run", action="store_true",
                     help="받아만 보고 DB 를 건드리지 않는다")
     ap.add_argument("--fill-missing", action="store_true",
@@ -200,9 +242,13 @@ def main(argv=None):
 
     conn = connect()
     try:
-        saved, skipped, failed = collect(
-            conn, args.format, args.season, args.date,
-            args.sleep, args.limit, args.dry_run)
+        run = backfill if args.backfill else collect
+        saved, skipped, failed = (
+            run(conn, args.format, args.season, args.sleep,
+                args.limit, args.dry_run)
+            if args.backfill else
+            run(conn, args.format, args.season, args.date,
+                args.sleep, args.limit, args.dry_run))
         print(f"\n넣음 {saved} · 건너뜀(이미 있음) {skipped} · 못 받음 {failed}")
         if args.dry_run:
             print("--dry-run 이라 DB 는 그대로입니다.")
