@@ -47,6 +47,30 @@ CREATE TABLE pokemon_types (
 """
 )
 
+# 타입 이름의 언어별 표기. 18타입 × ko·ja·en = 54행.
+#
+# 배수표(pokemon_types)와 같은 파일에 둔다. 둘 다 타입 이야기고, 둘 다
+# API 를 안 부르는 고정값이라 갈라 둘 이유가 없다.
+#
+# 이 표가 없으면 화면의 타입 배지도, 도우미의 시스템 프롬프트도, 타입
+# 아이콘 생성기도 영문으로 떨어진다. 읽는 곳이 다섯인데 만드는 곳이
+# 없어서 여기 넣는다.
+#
+# (language, name) 에 UNIQUE 를 거는 이유는 역방향 조회 때문이다.
+# "에스퍼" -> psychic 을 찾는데 두 타입이 같은 표기를 가지면 안 된다.
+#
+# type_name 이 VARCHAR 인 것은 지금 DB 가 그렇기 때문이다. pokemon_types
+# 처럼 enum 이면 오타를 막아 주지만, 그 변경은 여기서 하지 않는다 —
+# 배포본과 지금 DB 가 갈리면 "받아서 넣으면 내 것과 같아진다" 가 깨진다.
+POKEMON_TYPE_NAMES = """CREATE TABLE pokemon_type_names (
+    type_name  VARCHAR(10) NOT NULL,
+    language   VARCHAR(10) NOT NULL,   -- ko · ja · en
+    name       VARCHAR(20) NOT NULL,
+    PRIMARY KEY (type_name, language),
+    UNIQUE (language, name)
+);
+"""
+
 NATURES = (
     _create_enum(NATURES_ENUM, NATURE_NAMES)
     + f"""
@@ -336,7 +360,7 @@ ALL_TABLES = [
     "usage_rows", "usage_snapshots",
     "pokemon_moves", "move_stat_changes", "mega_evolutions",
     "items", "abilities", "moves", "pokemons",
-    "pokemon_types", "pokemon_natures",
+    "pokemon_type_names", "pokemon_types", "pokemon_natures",
     "stat_stages", "status_conditions", "weathers", "terrains",
 ]
 ALL_ENUMS = [TYPES_ENUM, NATURES_ENUM, "pokemon_type", "nature_name"]

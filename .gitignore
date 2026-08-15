@@ -1,3 +1,4 @@
+# ── 도구가 만드는 것 ──
 __pycache__/
 *.pyc
 .DS_Store
@@ -7,11 +8,27 @@ venv/
 *.egg-info/
 build/
 dist/
+.pytest_cache/
 
-# 재생성 가능한 데이터. overrides/ 는 사람이 확정한 값이라 커밋한다.
+# ── 작업 부산물 ──
+# 커밋 메시지 초안. 손으로 쓰고 git commit -F 로 넘긴다.
+.git-commit-msg.txt
+
+# ── 다시 만들 수 있는 데이터 ──
+# 지워도 스크립트가 같은 것을 다시 만든다.
+#   data/cache/   다시 받으면 된다
+#   data/images/  scripts.fetch_assets + scripts.make_type_icons
 data/cache/
 data/images/
-data/sql/
+
+# ── 개인 데이터 ──
 data/my_team.json
 data/decks.json
 data/decks.json.tmp
+
+# data/sql/ 은 여기 없다. 커밋한다.
+#   PokeAPI 를 다시 불러도 같은 것이 나오지 않기 때문이다. 빌드 이후에
+#   애노테이터로 한국어와 플래그를 손으로 확정했고, sync_moves 와
+#   migrate_roster 가 DB 를 계속 움직였다. 그 결과가 data/sql/ 이고,
+#   설치하는 쪽은 이 파일을 그대로 넣는다(scripts.etl.load_sql).
+# data/overrides/ 도 같은 이유로 커밋한다 — 사람이 눈으로 확정한 값이다.

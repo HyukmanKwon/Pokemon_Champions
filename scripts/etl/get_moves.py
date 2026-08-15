@@ -34,6 +34,9 @@ STAT_TABLE = "move_stat_changes"
 STAT_COLUMNS = ["move_name", "stat", "change"]
 STAT_DDL = schema.MOVE_STAT_CHANGES
 
+# dump_sql 이 읽는 목록 — 이 파일에 표가 하나 더 있다는 뜻이다.
+EXTRA = [(STAT_DDL, STAT_TABLE, STAT_COLUMNS)]
+
 # PokeAPI 능력치 이름 -> 이 프로젝트 표기
 STAT_MAP = {
     "attack": "a", "defense": "b",

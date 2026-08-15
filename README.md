@@ -15,7 +15,7 @@ LLM 도우미를 붙이는 것이 목표다.
 ```bash
 pip install -e ".[web,dev]"      # 한 번만. 어느 폴더에서 실행하든 import가 통한다
 createdb pokemon
-python -m scripts.etl.build      # PokeAPI -> SQL -> DB (약 1,900회 호출)
+python -m scripts.etl.load_sql   # data/sql/ 을 그대로 넣는다. 몇 초, API 호출 없음
 
 python main.py                   # 터미널에서 내 팀 보기/고치기
 python web.py                    # http://127.0.0.1:8000
@@ -34,6 +34,14 @@ python -m scripts.chat "메가갸라도스 지진이 한카리아스를 몇 방�
 
 접속 정보는 환경변수로 바꾼다. `.env.example` 참고.
 
+`load_sql` 은 저장소에 들어 있는 `data/sql/` 을 넣기만 한다. PokeAPI 에서
+**새로 만드는** 것은 관리자가 새 레귤레이션이 나왔을 때만 한다.
+
+```bash
+python -m scripts.etl.build      # PokeAPI -> SQL -> DB (약 1,900회 호출, 몇 분)
+python -m scripts.etl.dump_sql   # 손본 DB 를 data/sql/ 로 되받아 적고 커밋
+```
+
 DB 구축 과정은 [`scripts/etl/README.md`](scripts/etl/README.md)에 따로 정리돼 있다.
 
 ---
@@ -48,7 +56,7 @@ Pokemon_Champions/
 ├── .env.example
 │
 ├── data/                       코드가 아닌 것. 전부 여기
-│   ├── sql/                    DB 를 만드는 SQL 12개       (git 제외)
+│   ├── sql/                    DB 를 만드는 SQL 12개       (git 커밋)
 │   ├── overrides/              사람이 확정한 값 4개         (git 커밋)
 │   ├── cache/                                            (git 제외)
 │   │   ├── move_flag_map.csv   PokeAPI 기술 플래그 원본
@@ -66,7 +74,8 @@ Pokemon_Champions/
 │   ├── fetch_assets.py         스프라이트 내려받기
 │   │
 │   └── etl/                    PokeAPI -> SQL -> DB
-│       ├── build.py            빈 DB 에 전체 구축 (약 1,900회 호출)
+│       ├── load_sql.py         data/sql/ 을 빈 DB 에 넣기 (설치하는 쪽)
+│       ├── build.py            PokeAPI 에서 새로 구축 (약 1,900회 호출)
 │       ├── dump_sql.py         반대 방향 — 지금 DB 를 data/sql/ 로
 │       ├── schema.py           모든 DDL의 단일 출처
 │       ├── get_*.py            단계별 생성기 12개
@@ -143,9 +152,26 @@ Pokemon_Champions/
     └── test_team.py            14개
 ```
 
-`data/sql/` 은 `build.py` 가 만들지만, DB 는 빌드 이후로도 애노테이터 ·
-`sync_moves` · `migrate_roster` 로 계속 움직인다. 그래서 파일이 DB 보다 뒤처지는데,
-`dump_sql.py` 가 그 반대 방향을 맡는다 — 지금 DB 를 그대로 받아 적는다.
+`data/sql/` 을 커밋하는 이유가 여기 있다. 이 파일들을 처음 만드는 것은 `build.py`
+지만, DB 는 빌드 이후로도 애노테이터 · `sync_moves` · `migrate_roster` 로 계속
+움직인다. 그 손댄 결과는 **PokeAPI 를 다시 불러도 나오지 않는다.** 그러니 이건
+재생성 가능한 부산물이 아니라 다시 만들 수 없는 결과물이고, `data/overrides/` 와
+같은 취급을 받아야 한다.
+
+세 스크립트가 그 왕복을 나눠 맡는다.
+
+| | 언제 | 무엇을 |
+|---|---|---|
+| `load_sql.py` | 설치할 때마다 | `data/sql/` -> DB. API 호출 0회, 몇 초 |
+| `build.py` | 새 레귤레이션 | PokeAPI -> `data/sql/` -> DB. 1,900회, 몇 분 |
+| `dump_sql.py` | DB 를 손본 뒤 | DB -> `data/sql/`. 그리고 커밋한다 |
+
+`dump_sql.py` 는 행을 기본키순으로 정렬하므로 두 번 돌리면 같은 파일이 나온다.
+그래서 커밋해 두면 diff 로 "무엇이 달라졌나" 가 그대로 보인다.
+
+채용률 두 표(`usage_snapshots` · `usage_rows`)는 `data/sql/` 에 없다. PokeAPI 가
+아니라 하루 한 벌씩 쌓이는 것이라 배포할 내용이 없다. `load_sql.py` 가 빈 표만
+만들고, `sync_usage.py` 가 채운다.
 
 ---
 
@@ -268,9 +294,13 @@ Python은 "현재 실행 위치"를 기준으로 모듈을 찾는다. 파일이 
 | 폴더 | git | 이유 |
 |---|---|---|
 | `overrides/` | 커밋 | 사람이 눈으로 확인해 확정한 값. 다시 만들 수 없다 |
-| `sql/` `cache/` `images/` | 제외 | 스크립트가 언제든 다시 만든다 |
+| `sql/` | 커밋 | 그 확정한 값이 반영된 DB 자체. 이게 배포물이다 |
+| `cache/` `images/` | 제외 | 스크립트가 언제든 다시 만든다 |
 | `decks.json` | 제외 | 개인 데이터 |
 | `my_team.json` | 제외 | 개인 데이터. decks.json 이 없을 때 한 번 옮겨온다 |
+
+가르는 기준은 **"지우고 스크립트를 돌리면 똑같은 것이 나오는가"** 다. `cache/` 와
+`images/` 는 나온다. `sql/` 은 안 나온다 — 애노테이터로 손본 것이 들어 있다.
 
 내려받은 이미지를 패키지 폴더가 아니라 `data/images/`에 두는 이유도 같다. wheel로
 설치하면 패키지 폴더에 쓰기 권한이 없어 깨진다.

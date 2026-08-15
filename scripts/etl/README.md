@@ -1,11 +1,22 @@
 # scripts/etl — 데이터베이스 구축
 
-PokeAPI에서 데이터를 받아 **SQL 파일을 만들고**, 그 파일을 **실행해서 DB를 구성**한다.
-명령 하나면 끝난다. **프로젝트 루트에서** 실행한다.
+**그냥 쓰려는 것이라면 이 문서는 필요 없다.** `data/sql/` 이 저장소에 들어 있으니
+그것만 넣으면 된다. API 를 부르지 않고 몇 초면 끝난다.
 
 ```bash
-python -m scripts.etl.build
+python -m scripts.etl.load_sql
 ```
+
+이 아래는 그 `data/sql/` 을 **처음부터 다시 만드는** 이야기다. 새 레귤레이션이
+나왔을 때 관리자가 한 번 하는 일이고, PokeAPI 를 약 1,900회 호출한다.
+끝나면 `dump_sql.py` 로 되받아 적어 커밋해야, 다음 사람이 위 한 줄로 끝낼 수 있다.
+
+```bash
+python -m scripts.etl.build      # PokeAPI -> SQL 파일 -> DB
+python -m scripts.etl.dump_sql   # 손본 DB -> data/sql/  (그리고 커밋)
+```
+
+**프로젝트 루트에서** 실행한다.
 
 > 예전에는 `cd database && python main.py` 였다. 지금은 정식 패키지라 `-m` 으로
 > 돌린다. 어느 폴더에서 실행하든 같은 경로를 보게 하려는 것이다.

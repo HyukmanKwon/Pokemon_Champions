@@ -42,7 +42,6 @@ import sys
 from pokemon_champions.db import connect
 
 from . import paths
-from . import schema
 from .build import STEPS
 from .parse_utils import sql_of
 
@@ -94,16 +93,22 @@ def db_columns(cur, table):
 
 
 def build_file(cur, step):
-    """단계 하나의 SQL 전문과 (테이블, 행 수) 목록을 돌려준다."""
+    """단계 하나의 SQL 전문과 (테이블, 행 수) 목록을 돌려준다.
+
+    한 파일에 표가 여럿일 수 있다. 생성기가 EXTRA 로 알려 주고, 순서는
+    적힌 그대로 뒤에 붙는다 — 앞의 표를 참조하는 표가 있으면 그 순서가
+    곧 실행 순서다.
+
+        01_types.sql   pokemon_types + pokemon_type_names
+        04_moves.sql   moves + move_stat_changes
+    """
     sql, n = table_sql(cur, step.DDL, step.TABLE, step.COLUMNS)
     counts = [(step.TABLE, n)]
 
-    # 04_moves 만 한 파일에 테이블이 둘이다. (get_moves.build 와 같은 구조)
-    if hasattr(step, "STAT_TABLE"):
-        extra, m = table_sql(cur, schema.MOVE_STAT_CHANGES,
-                             step.STAT_TABLE, step.STAT_COLUMNS)
+    for ddl, table, columns in getattr(step, "EXTRA", []):
+        extra, m = table_sql(cur, ddl, table, columns)
         sql += "\n" + extra
-        counts.append((step.STAT_TABLE, m))
+        counts.append((table, m))
 
     return sql, counts
 
