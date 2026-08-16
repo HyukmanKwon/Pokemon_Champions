@@ -327,7 +327,15 @@ USAGE_SNAPSHOTS = """CREATE TABLE usage_snapshots (
     -- 다시 들어오면 UPDATE 한 번으로 도로 이어붙일 수 있다.
     pokemon_name   VARCHAR(50) REFERENCES pokemons(name) ON DELETE SET NULL,
 
-    source         TEXT,                   -- 받아온 CSV 경로. 어디서 왔는지 되짚을 때
+    source         TEXT,                  -- 받아온 CSV 경로. 어디서 왔는지 되짚을 때
+
+    -- 그날 그 포켓몬의 메타 순위. CSV 의 column_position 이다.
+    -- 1 이 가장 많이 쓰인 포켓몬이고, 없으면 NULL(옛 자료).
+    --
+    -- 이 칸이 없어서 도우미가 헛소리를 했다. "가장 많이 쓰이는 포켓몬" 을
+    -- 물으면 답할 자료가 없으니, 기술 채용률(지진 99.3%)을 포켓몬 사용률로
+    -- 읽고 줄을 세웠다. 빈칸이 있으면 모델은 채운다.
+    usage_rank     INT,
     fetched_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     UNIQUE (season, snapshot_date, format, battle_name)
@@ -348,6 +356,24 @@ USAGE_ROWS = """CREATE TABLE usage_rows (
     category     VARCHAR(20) NOT NULL,
     rank         INT NOT NULL,
     name         VARCHAR(50),   -- 영문 표기 그대로. stat_points 는 NULL
+
+    -- 그 이름을 우리 DB 에서 찾은 결과. 못 찾았거나 이름이 없는 줄(stat_points)
+    -- 이면 NULL 이다. 어느 표를 가리키는지는 category 가 정한다.
+    --
+    --     move       -> moves.name          held_item -> items.name
+    --     ability    -> abilities.name      teammate  -> pokemons.name
+    --
+    -- 외래키를 안 거는 이유는 한 칸이 네 표를 가리키기 때문이다. 대신
+    -- category 로 조인한다.
+    --
+    -- ── 왜 저장하나 ──
+    --   name 이 "Mimikyu" 로만 있으면 "한카리아스와 같이 쓰는 포켓몬의 타입
+    --   분포" 를 SQL 로 못 낸다. 매번 파이썬에서 슬러그를 다시 맞춰야 하고,
+    --   그 맞추기가 실패해도 조용히 빈 결과가 된다.
+    --
+    --   맞추는 규칙 자체는 usecases/usage.py 에 그대로 둔다. 여기 있는 것은
+    --   그 결과를 굳혀 둔 것이라, 규칙이 좋아지면 다시 채우면 된다.
+    linked_name  VARCHAR(50),
 
     -- teammate 는 NULL (저쪽이 비율을 안 준다).
     --
@@ -375,8 +401,37 @@ USAGE_ROWS = """CREATE TABLE usage_rows (
 CREATE INDEX usage_rows_name_idx ON usage_rows (category, name);
 """
 
+# ─────────────────────────────────────────────────────────────
+# 전체 순위. 색인(/api) 한 번이면 235마리가 다 온다.
+#
+# ── 왜 usage_snapshots 와 따로인가 ──
+#   저쪽이 주는 모양이 다르다. 스냅샷은 "그날 그 포켓몬의 CSV" 라 하루에
+#   235번 받아야 하지만, 이 순위는 색인 한 번에 전부 온다. 요청 수가
+#   235배 차이 나는 것을 한 표에 담으면 채우는 시점이 갈려 절반만 찬
+#   행이 생긴다.
+#
+#   그리고 색인 값에는 날짜가 안 붙어 온다. "오늘 순위" 로만 오므로 받은
+#   날짜를 우리가 찍는다. usage_snapshots.usage_rank 는 CSV 가 그날치로
+#   준 값이라 출처가 다르고, 둘을 따로 두면 서로 대조할 수 있다.
+# ─────────────────────────────────────────────────────────────
+
+USAGE_RANKINGS = """CREATE TABLE usage_rankings (
+    taken_on      DATE NOT NULL,          -- 받은 날. 저쪽은 날짜를 안 준다
+    format        VARCHAR(10) NOT NULL,
+    season        VARCHAR(10) NOT NULL,
+    position      INT NOT NULL,           -- 1 이 1위
+    battle_name   VARCHAR(50) NOT NULL,   -- 저쪽 표기 (Garchomp)
+    pokemon_name  VARCHAR(50) REFERENCES pokemons(name) ON DELETE SET NULL,
+    fetched_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (taken_on, format, battle_name)
+);
+
+CREATE UNIQUE INDEX usage_rankings_position_idx
+    ON usage_rankings (taken_on, format, position);
+"""
+
 ALL_TABLES = [
-    "usage_rows", "usage_snapshots",
+    "usage_rankings", "usage_rows", "usage_snapshots",
     "pokemon_moves", "move_stat_changes", "mega_evolutions",
     "items", "abilities", "moves", "pokemons",
     "pokemon_type_names", "pokemon_types", "pokemon_natures",

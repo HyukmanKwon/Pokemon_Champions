@@ -35,13 +35,13 @@
 import argparse
 import sys
 import time
+from datetime import date
 
-from pokemon_champions.usecases import usage_source
+from pokemon_champions.db import connect
+from pokemon_champions.db.repositories import lookup_repo, pokemon_repo, usage_repo
+from pokemon_champions.usecases import usage, usage_source
 
 from . import usage_csv
-from pokemon_champions.db import connect
-from pokemon_champions.db.repositories import pokemon_repo, usage_repo
-from pokemon_champions.usecases import usage
 
 from .get_items import COLUMNS as ITEM_COLUMNS
 from .get_items import fetch_item, parse_item
@@ -54,12 +54,34 @@ from .get_moves import (STAT_COLUMNS, STAT_TABLE, fetch_move, parse_move,
 FILLABLE = {"move": ("moves", "name"), "held_item": ("items", "name")}
 
 
-def to_row(raw):
-    """usage_csv 의 rows 한 줄 -> usage_rows 한 줄."""
+# 갈래별로 이름을 맞춰볼 우리 표. usage_rows.linked_name 이 이 결과다.
+# teammate 만 따로인 이유는 이름 규칙이 달라서다 (raichu-alola vs
+# Alolan Raichu) — resolve_pokemon 이 토큰으로 맞춘다.
+LINK_TABLE = {"move": "moves", "held_item": "items", "ability": "abilities"}
+
+
+def to_row(raw, maps, index):
+    """usage_csv 의 rows 한 줄 -> usage_rows 한 줄.
+
+    maps 와 index 는 이름을 우리 것으로 맞추는 데 쓴다. 한 마리에 50줄이
+    붙으므로 줄마다 새로 만들면 235배가 된다 — 부르는 쪽이 한 번 만들어
+    넘긴다.
+    """
+    cat, en = raw["category"], raw["name"] or None
+    if en is None:
+        linked = None
+    elif cat == "teammate":
+        linked = usage.resolve_pokemon(index, en)
+    elif cat in LINK_TABLE:
+        linked = maps[LINK_TABLE[cat]].get(usage.slugify(en))
+    else:
+        linked = None                     # stat_alignment · stat_points
+
     return {
-        "category": raw["category"],
+        "category": cat,
         "rank": raw["rank"],
-        "name": raw["name"] or None,      # SP 배분 줄은 이름이 없다
+        "name": en,                       # SP 배분 줄은 이름이 없다
+        "linked_name": linked,
         "percent": raw["percentage_value"],
         "stat_up": usage.STAT_KEY.get(raw["stat_up"]),
         "stat_down": usage.STAT_KEY.get(raw["stat_down"]),
@@ -67,7 +89,7 @@ def to_row(raw):
     }
 
 
-def collect(conn, fmt, season, date, sleep, limit, dry_run):
+def collect(conn, fmt, season, date, sleep, limit, dry_run, refetch=False):
     """하루치를 받아 넣는다. (넣음, 건너뜀, 실패) 를 돌려준다."""
     entries = usage_csv.csv_entries(fmt=fmt, season=season, date=date)
     if not entries:
@@ -79,8 +101,13 @@ def collect(conn, fmt, season, date, sleep, limit, dry_run):
     day = usage_csv.to_date(date)
     print(f"{season} · {date} · {fmt} — 대상 {len(entries)}마리")
 
-    have = usage_repo.known_keys(conn, season, fmt) if not dry_run else set()
+    have = (usage_repo.known_keys(conn, season, fmt)
+            if not dry_run and not refetch else set())
     index = usage.pokemon_index(pokemon_repo.fetch_list(conn))
+    # 이름을 우리 것으로 맞추는 표. 한 마리에 50줄이 붙으므로 여기서 한 번만
+    # 만든다 — 줄마다 만들면 235마리 × 50줄이 전부 DB 를 다시 읽는다.
+    maps = {t: lookup_repo.fetch_ko_map(conn, t)
+            for t in set(LINK_TABLE.values())}
 
     saved = skipped = failed = 0
     unlinked = []
@@ -105,8 +132,11 @@ def collect(conn, fmt, season, date, sleep, limit, dry_run):
                 conn,
                 {"season": season, "snapshot_date": day, "format": fmt,
                  "battle_name": name, "pokemon_name": ours,
-                 "source": entry["path"]},
-                [to_row(r) for r in rows],
+                 "source": entry["path"],
+                 # 줄마다 같은 값이 오므로 첫 줄에서 집는다. 그 포켓몬의
+                 # 메타 순위이지 줄의 성질이 아니라서 스냅샷 쪽에 둔다.
+                 "usage_rank": rows[0].get("column_position")},
+                [to_row(r, maps, index) for r in rows],
             )
             conn.commit()      # 한 마리씩 확정한다. 끊겨도 앞의 것은 남는다
         saved += 1
@@ -183,6 +213,41 @@ def fill_items(conn, gaps):
     return done
 
 
+def sync_rankings(conn, fmt, season="Current", dry_run=False):
+    """전체 메타 순위를 받아 usage_rankings 에 오늘치로 넣는다.
+
+    요청 한 번이면 235마리가 다 온다. 포켓몬마다 CSV 를 받는 collect() 와
+    견주면 235분의 1이라, 날짜별 CSV 를 다 받지 않아도 "지금 누가 제일
+    많이 쓰이나" 는 늘 최신으로 둘 수 있다.
+
+    저쪽이 날짜를 안 주므로 받은 날(오늘)로 찍는다. 같은 날 다시 받으면
+    갈아끼운다.
+    """
+    got = usage_source.rankings(fmt=fmt, season=season)
+    if not got:
+        print(f"{fmt}: 순위를 못 받았습니다.")
+        return 0
+
+    index = usage.pokemon_index(pokemon_repo.fetch_list(conn))
+    unlinked = []
+    for r in got:
+        r["pokemon_name"] = usage.resolve_pokemon(index, r["battle_name"])
+        if r["pokemon_name"] is None:
+            unlinked.append(r["battle_name"])
+
+    top = ", ".join(f"{r['position']}.{r['battle_name']}" for r in got[:5])
+    print(f"{fmt} 순위 {len(got)}마리 — {top} …")
+    if unlinked:
+        print(f"  우리 로스터에 없는 이름 {len(unlinked)}개는 "
+              f"pokemon_name 을 비워 둡니다: {', '.join(unlinked[:8])}")
+
+    if dry_run:
+        return 0
+    n = usage_repo.save_rankings(conn, date.today(), fmt, got)
+    conn.commit()
+    return n
+
+
 def missing_dates(conn, fmt, season=None):
     """저쪽이 아직 주는 날짜 중 우리가 안 받은 것. 오래된 것부터."""
     cur = conn.cursor()
@@ -193,7 +258,7 @@ def missing_dates(conn, fmt, season=None):
             if usage_csv.to_date(d) not in have]
 
 
-def backfill(conn, fmt, season, sleep, limit, dry_run):
+def backfill(conn, fmt, season, sleep, limit, dry_run, refetch=False):
     """받을 수 있는데 아직 안 받은 날짜를 오래된 것부터 전부.
 
     ── 왜 필요한가 ──
@@ -207,7 +272,8 @@ def backfill(conn, fmt, season, sleep, limit, dry_run):
     ── 오래된 것부터 ──
       중간에 끊기면 사라지기 직전의 것부터 남아 있어야 한다.
     """
-    todo = missing_dates(conn, fmt, season)
+    todo = ([(s, d) for s, d in usage_csv.daily_dates(season)] if refetch
+            else missing_dates(conn, fmt, season))
     if not todo:
         print(f"{fmt}: 받을 수 있는 날짜를 전부 받았습니다.")
         return 0, 0, 0
@@ -216,7 +282,7 @@ def backfill(conn, fmt, season, sleep, limit, dry_run):
     total = [0, 0, 0]
     for i, (s, d) in enumerate(todo, 1):
         print(f"── [{i}/{len(todo)}] {d} " + "─" * 30)
-        got = collect(conn, fmt, s, d, sleep, limit, dry_run)
+        got = collect(conn, fmt, s, d, sleep, limit, dry_run, refetch)
         total = [a + b for a, b in zip(total, got)]
     return tuple(total)
 
@@ -228,6 +294,10 @@ def main(argv=None):
     ap.add_argument("--season", help="예: M4. 안 주면 색인의 최신 시즌")
     ap.add_argument("--date", help="저쪽 폴더 이름. 예: 30_07_2026. "
                                    "안 주면 가장 최근 하루")
+    ap.add_argument("--refetch", action="store_true",
+                    help="이미 받은 날짜도 다시 받는다. 칸을 새로 늘렸을 때 쓴다")
+    ap.add_argument("--rankings-only", action="store_true",
+                    help="전체 순위만 받는다. 요청 1회, 몇 초")
     ap.add_argument("--backfill", action="store_true",
                     help="안 받은 날짜를 오래된 것부터 전부 받는다. "
                          "--date 는 무시된다")
@@ -242,13 +312,20 @@ def main(argv=None):
 
     conn = connect()
     try:
+        # 순위는 늘 같이 받는다. 요청 한 번이라 공짜에 가깝고, 이게 없으면
+        # "가장 많이 쓰이는 포켓몬" 에 답할 자료가 아예 없다.
+        sync_rankings(conn, args.format, dry_run=args.dry_run)
+        if args.rankings_only:
+            return 0
+        print()
+
         run = backfill if args.backfill else collect
         saved, skipped, failed = (
             run(conn, args.format, args.season, args.sleep,
-                args.limit, args.dry_run)
+                args.limit, args.dry_run, args.refetch)
             if args.backfill else
             run(conn, args.format, args.season, args.date,
-                args.sleep, args.limit, args.dry_run))
+                args.sleep, args.limit, args.dry_run, args.refetch))
         print(f"\n넣음 {saved} · 건너뜀(이미 있음) {skipped} · 못 받음 {failed}")
         if args.dry_run:
             print("--dry-run 이라 DB 는 그대로입니다.")

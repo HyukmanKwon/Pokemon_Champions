@@ -9,10 +9,10 @@
   만들지 않고 그 자리의 행을 갈아끼운다.
 """
 
-from ._rows import rows
+from ._rows import one, rows
 
 ROW_COLUMNS = [
-    "snapshot_id", "category", "rank", "name", "percent",
+    "snapshot_id", "category", "rank", "name", "linked_name", "percent",
     "stat_up", "stat_down",
     "hp_points", "attack_points", "defense_points",
     "sp_atk_points", "sp_def_points", "speed_points",
@@ -32,18 +32,21 @@ def save(conn, meta, rows):
     """스냅샷 한 장을 넣거나 갈아끼운다. snapshot_id 를 돌려준다.
 
     meta 는 season · snapshot_date · format · battle_name · pokemon_name ·
-    source 여섯 개다. rows 는 ROW_COLUMNS 에서 snapshot_id 를 뺀 dict 들.
+    source · usage_rank 일곱 개다. rows 는 ROW_COLUMNS 에서 snapshot_id 를
+    뺀 dict 들.
     """
     cur = conn.cursor()
     cur.execute(
         """
         INSERT INTO usage_snapshots
-            (season, snapshot_date, format, battle_name, pokemon_name, source)
+            (season, snapshot_date, format, battle_name, pokemon_name,
+             source, usage_rank)
         VALUES (%(season)s, %(snapshot_date)s, %(format)s,
-                %(battle_name)s, %(pokemon_name)s, %(source)s)
+                %(battle_name)s, %(pokemon_name)s, %(source)s, %(usage_rank)s)
         ON CONFLICT (season, snapshot_date, format, battle_name) DO UPDATE
             SET pokemon_name = EXCLUDED.pokemon_name,
                 source       = EXCLUDED.source,
+                usage_rank   = EXCLUDED.usage_rank,
                 fetched_at   = now()
         RETURNING id
         """,
@@ -133,3 +136,71 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
         (pokemon_name, fmt, moves),
     )
     return rows(cur)
+
+
+def save_rankings(conn, taken_on, fmt, rows):
+    """전체 순위 한 벌을 넣거나 갈아끼운다. 넣은 줄 수를 돌려준다.
+
+    rows 는 [{position, battle_name, season, pokemon_name}] 다.
+
+    같은 날을 다시 받으면 갈아끼운다. 저쪽 순위가 하루 안에 바뀌면 옛 줄이
+    남아 (taken_on, format, position) UNIQUE 에 걸리므로 먼저 지운다.
+    """
+    cur = conn.cursor()
+    cur.execute("DELETE FROM usage_rankings WHERE taken_on = %s AND format = %s",
+                (taken_on, fmt))
+    cur.executemany(
+        """
+        INSERT INTO usage_rankings
+            (taken_on, format, season, position, battle_name, pokemon_name)
+        VALUES (%(taken_on)s, %(format)s, %(season)s, %(position)s,
+                %(battle_name)s, %(pokemon_name)s)
+        """,
+        [{"taken_on": taken_on, "format": fmt, **r} for r in rows],
+    )
+    return len(rows)
+
+
+def fetch_ranking(conn, fmt="Singles", limit=20):
+    """가장 최근에 받은 전체 순위. 1위부터.
+
+    "가장 많이 쓰이는 포켓몬" 에 답하는 유일한 자료다. usage_rows 의
+    percent 는 전부 그 포켓몬 안에서의 비율이라 이 질문에 못 쓴다.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT r.position, r.battle_name, r.pokemon_name, p.ko_name,
+               r.taken_on, r.season
+        FROM usage_rankings r
+        LEFT JOIN pokemons p ON p.name = r.pokemon_name
+        WHERE r.format = %s
+          AND r.taken_on = (SELECT max(taken_on) FROM usage_rankings
+                            WHERE format = %s)
+        ORDER BY r.position
+        LIMIT %s
+        """,
+        (fmt, fmt, limit),
+    )
+    return rows(cur)
+
+
+def fetch_rank_of(conn, pokemon_name, fmt="Singles"):
+    """그 포켓몬의 최신 순위 한 줄. 없으면 None.
+
+    usage_stats 응답에 실어, 모델이 기술 채용률을 순위로 오해하지 않게 한다.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT position, taken_on,
+               (SELECT count(*) FROM usage_rankings
+                WHERE format = r.format AND taken_on = r.taken_on) AS total
+        FROM usage_rankings r
+        WHERE pokemon_name = %s AND format = %s
+        ORDER BY taken_on DESC
+        LIMIT 1
+        """,
+        (pokemon_name, fmt),
+    )
+    return one(cur)

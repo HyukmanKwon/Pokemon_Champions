@@ -42,5 +42,7 @@ fi
 trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT
 
 echo "───── $(date '+%Y-%m-%d %H:%M:%S') ─────"
+# --backfill 이 순위(usage_rankings)도 같이 받는다. 요청 한 번이라 공짜에
+# 가깝고, 이게 없으면 "가장 많이 쓰이는 포켓몬" 에 답할 자료가 없다.
 "$PYTHON" -m scripts.etl.sync_usage --backfill --format Singles
 echo "끝: $(date '+%H:%M:%S')"

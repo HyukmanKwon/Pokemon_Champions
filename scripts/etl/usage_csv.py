@@ -73,6 +73,10 @@ def parse_csv(text):
             "percentage_value": _percent(r.get("percentage")),
             "stat_up": (r.get("stat_up") or "").strip(),
             "stat_down": (r.get("stat_down") or "").strip(),
+            # 그 포켓몬의 메타 순위. 줄마다 같은 값이 되풀이돼 오지만
+            # 버리지 않는다 — 이것이 "가장 많이 쓰이는 포켓몬" 의 답이다.
+            # 예전에는 파싱에서 떨어뜨려서, 받아놓고도 못 쓰고 있었다.
+            "column_position": _int(r.get("column_position")),
         }
         row.update({c: _int(r.get(c)) for c in SP_COLUMNS})
         rows.append(row)

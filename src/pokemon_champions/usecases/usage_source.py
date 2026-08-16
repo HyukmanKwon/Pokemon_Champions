@@ -99,6 +99,38 @@ def fetch_index():
     return _cached(USAGE_DIR / "index.json", f"{BASE}/api")
 
 
+def rankings(fmt="Singles", season="Current"):
+    """전체 메타 순위. [{position, battle_name, season}] 를 1위부터.
+
+    색인 한 번이면 235마리가 다 온다. 포켓몬마다 CSV 를 받는 것과 견주면
+    요청이 235분의 1이라, 이것만 따로 받는 값이 있다.
+
+    ── 왜 이게 필요한가 ──
+      CSV 가 주는 percentage 는 전부 "그 포켓몬 안에서의 비율" 이다.
+      지진 99.3% 는 한카리아스가 지진을 채용하는 비율이지 한카리아스가
+      얼마나 쓰이는지가 아니다. 둘은 견줄 수 없는 숫자인데, 순위를 안
+      주면 도우미가 그 둘을 섞어 답한다. 실제로 그랬다.
+
+    ── 날짜가 안 붙어 온다 ──
+      저쪽은 "지금 순위" 로만 준다. 받은 날을 우리가 찍어야 하므로
+      여기서는 날짜를 넣지 않는다 — 넣는 쪽(sync_usage)이 정한다.
+    """
+    index = fetch_index()
+    if not index:
+        return []
+
+    out = []
+    for entry in index.get("pokemon", []):
+        name = entry.get("battleName") or entry.get("name")
+        summary = (entry.get("summary") or {}).get("battleSummary") or {}
+        block = (summary.get(season) or {}).get(fmt) or {}
+        position = block.get("position")
+        if name and position:
+            out.append({"position": position, "battle_name": name,
+                        "season": season})
+    return sorted(out, key=lambda r: r["position"])
+
+
 _lookup = {"by_tokens": None, "by_base": None}
 
 

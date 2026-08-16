@@ -27,9 +27,12 @@
   돌아야 하기 때문이다. 생성기는 배포판에 없을 수도 있다.
 
 ── 채용률 두 표는 여기서 만든다 ──
-  usage_snapshots · usage_rows 는 SQL 파일에 없다. PokeAPI 가 아니라
-  championsbattledata.com 에서 하루 한 벌씩 쌓이는 것이라, 배포할 내용이
-  아니라 빈 표만 있으면 된다. DDL 은 schema.py 에서 가져온다.
+  usage_snapshots · usage_rows · usage_rankings 는 SQL 파일에 없다.
+  PokeAPI 가 아니라 championsbattledata.com 에서 하루 한 벌씩 쌓이는
+  것이라, 배포할 내용이 아니라 빈 표만 있으면 된다. DDL 은 schema.py
+  에서 가져온다.
+
+  받은 사람은 python -m scripts.etl.sync_usage --backfill 로 채운다.
 
 ── 이미 있는 DB 에는 넣지 않는다 ──
   DDL 에 IF NOT EXISTS 가 없어서 두 번째 실행은 "already exists" 로
@@ -54,6 +57,7 @@ from . import schema
 EMPTY_TABLES = [
     ("usage_snapshots", schema.USAGE_SNAPSHOTS),
     ("usage_rows", schema.USAGE_ROWS),
+    ("usage_rankings", schema.USAGE_RANKINGS),
 ]
 
 
