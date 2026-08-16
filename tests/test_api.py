@@ -37,6 +37,13 @@ CALLS = [
 
     ("team", "GET", "/api/team", None),
     ("natures", "GET", "/api/natures", None),
+
+    # 채용률. 순위표 235줄을 통째로 박는다(약 43KB). 아까워 보이지만
+    # 순위가 밀리는 것은 한 줄만 봐서는 안 걸리고, 이 골든의 존재 이유가
+    # "옮기다 뭘 흘렸나" 를 잡는 것이다. 자료가 늘면 다시 뜨면 된다.
+    ("usage_ranking", "GET", "/api/usage", None),
+    ("usage_detail", "GET", "/api/usage/한카리아스", None),
+    ("usage_없는것", "GET", "/api/usage/없는포켓몬", None),
     ("calc_rules", "GET", "/api/calc/rules", None),
     ("options", "GET", "/api/pokemon/한카리아스/options", None),
 

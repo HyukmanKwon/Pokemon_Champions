@@ -73,7 +73,11 @@ def to_row(raw, maps, index):
     elif cat == "teammate":
         linked = usage.resolve_pokemon(index, en)
     elif cat in LINK_TABLE:
-        linked = maps[LINK_TABLE[cat]].get(usage.slugify(en))
+        # 슬러그를 넣는다. 한국어가 아니다 — maps 는 {슬러그: 한국어} 라
+        # .get() 의 결과를 그대로 쓰면 한국어가 들어가고, teammate 만
+        # 슬러그라 한 칸에 두 종류가 섞인다. 실제로 그렇게 넣었었다.
+        slug = usage.slugify(en)
+        linked = slug if slug in maps[LINK_TABLE[cat]] else None
     else:
         linked = None                     # stat_alignment · stat_points
 

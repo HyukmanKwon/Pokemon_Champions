@@ -180,6 +180,8 @@ def fetch_ranking(conn, fmt="Singles", limit=20):
         ORDER BY r.position
         LIMIT %s
         """,
+        # None 이면 전부. psycopg2 가 NULL 로 넘기고 Postgres 의 LIMIT NULL
+        # 은 "제한 없음" 이다 — 파이썬에서 문자열을 갈아 끼우지 않아도 된다.
         (fmt, fmt, limit),
     )
     return rows(cur)
@@ -204,3 +206,87 @@ def fetch_rank_of(conn, pokemon_name, fmt="Singles"):
         (pokemon_name, fmt),
     )
     return one(cur)
+
+
+def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
+    """한 마리의 가장 최근 스냅샷 전부. 갈래별로 top 개까지.
+
+    fetch_top_build 와 다르다. 저쪽은 계산기 기본값을 채우려고 1위만 뽑고,
+    이쪽은 화면에 늘어놓으려고 순위대로 다 가져온다.
+
+    저쪽 원본이 갈래마다 주는 개수가 다르다 — 기술·도구·팀원·성격은 10개,
+    SP 배분은 8개, 특성은 2개다. top 으로 자르되 없는 것을 만들지 않는다.
+
+    linked_name 을 같이 준다. 화면이 그 이름을 눌러 도감으로 건너뛰려면
+    우리 DB 의 키가 필요한데, 저쪽 표기(Focus Sash)로는 못 찾는다.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """
+        WITH latest AS (
+            SELECT id, snapshot_date, season, usage_rank
+            FROM usage_snapshots
+            WHERE pokemon_name = %s AND format = %s
+            ORDER BY snapshot_date DESC, id DESC
+            LIMIT 1
+        )
+        SELECT r.category, r.rank, r.name, r.linked_name, r.percent,
+               r.stat_up, r.stat_down,
+               r.hp_points, r.attack_points, r.defense_points,
+               r.sp_atk_points, r.sp_def_points, r.speed_points,
+               l.snapshot_date, l.season, l.usage_rank
+        FROM usage_rows r
+        JOIN latest l ON l.id = r.snapshot_id
+        WHERE r.rank <= %s
+        ORDER BY r.category, r.rank
+        """,
+        (pokemon_name, fmt, top),
+    )
+    return rows(cur)
+
+
+def fetch_rank_delta(conn, fmt="Singles", days=7):
+    """{저쪽 이름: {순위, 변화}}. 변화는 오른 만큼 양수.
+
+    3위였다가 1위가 되면 +2 다. 순위 숫자는 줄었지만 사람이 읽을 때는
+    "두 계단 올랐다" 이므로 부호를 뒤집어 둔다 — 화면에서 다시 뒤집게
+    하면 한쪽은 반드시 틀린다.
+
+    ── 왜 직전 스냅샷과 안 견주나 ──
+      저쪽이 매일 갱신하지 않는다. 실제로 07-30 과 08-04 는 235마리 순위가
+      한 마리도 안 달랐다. 직전과만 견주면 화면이 늘 "변화 없음" 이 되어
+      쓸모가 없다.
+
+      대신 days 일 전과 견준다. 16일을 통틀어 보면 235마리 중 225마리의
+      순위가 움직였다 — 그 정도 간격이어야 신호가 보인다.
+
+    비교할 앞날이 없으면 delta 가 None 이다. 자료가 days 일보다 짧거나
+    새로 올라온 포켓몬이 그렇다.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """
+        WITH latest AS (
+            SELECT max(snapshot_date) AS d FROM usage_snapshots
+            WHERE format = %(fmt)s AND usage_rank IS NOT NULL
+        ),
+        base AS (
+            -- days 일 전에 가장 가까운 스냅샷. 그날이 없으면 그 앞의 것.
+            SELECT max(snapshot_date) AS d FROM usage_snapshots
+            WHERE format = %(fmt)s AND usage_rank IS NOT NULL
+              AND snapshot_date <= (SELECT d FROM latest) - %(days)s::int
+        )
+        SELECT now.battle_name, now.pokemon_name,
+               now.usage_rank, was.usage_rank - now.usage_rank AS delta,
+               now.snapshot_date, was.snapshot_date AS compared_to
+        FROM usage_snapshots now
+        LEFT JOIN usage_snapshots was
+               ON was.battle_name = now.battle_name
+              AND was.format = now.format
+              AND was.snapshot_date = (SELECT d FROM base)
+        WHERE now.format = %(fmt)s
+          AND now.snapshot_date = (SELECT d FROM latest)
+        """,
+        {"fmt": fmt, "days": days},
+    )
+    return {r["battle_name"]: r for r in rows(cur)}

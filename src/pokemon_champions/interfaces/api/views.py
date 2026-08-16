@@ -148,6 +148,75 @@ def calc_rules(rules):
 
 
 # ─────────────────────────────────────────────────────────────
+# 채용률
+# ─────────────────────────────────────────────────────────────
+
+def usage_ranking(got):
+    """메타 순위표. 235줄에 타입 배지와 순위 변화를 붙인다.
+
+    delta 는 오른 만큼 양수다(3위 -> 1위 가 +2). 화면이 부호를 다시
+    뒤집지 않게 조립 층에서 이미 맞춰 두었다.
+    """
+    if not got:
+        return {"ranking": [], "total": 0,
+                "note": "채용률 자료가 아직 없습니다. "
+                        "python -m scripts.etl.sync_usage --backfill"}
+    return {
+        "format": got["format"],
+        "date": got["date"],
+        "compared_to": got["compared_to"],
+        "total": got["total"],
+        "ranking": [{"position": r["position"],
+                     # 우리 로스터에 없는 폼은 name 이 없다. 그때는 저쪽
+                     # 표기라도 보여준다 — 빼면 순위에 구멍이 생긴다.
+                     "name": r["name"],
+                     "ko_name": r["ko_name"] or r["battle_name"],
+                     "types": type_badges(*r["types"]),
+                     "delta": r["delta"]}
+                    for r in got["ranking"]],
+    }
+
+
+def usage_detail(got):
+    """한 마리의 채용 내역. 갈래마다 순위대로.
+
+    아이콘을 붙이는 갈래와 안 붙이는 갈래가 갈린다 — 기술은 타입 배지,
+    도구는 스프라이트, 팀원은 아이콘이고 성격·SP 는 그림이 없다.
+    """
+    if "error" in got:
+        return got
+
+    def named(rows, icon=None):
+        return [{"name": r["ko_name"] or r["name"],
+                 "key": r["name"],          # 눌러서 도감으로 건너뛸 때 쓴다
+                 "percent": r["percent"],
+                 **({"icon": icon(r["name"])} if icon and r["name"] else {})}
+                for r in rows]
+
+    return {
+        "pokemon": got["pokemon"],
+        "ko_name": got["ko_name"],
+        "format": got["format"],
+        "season": got["season"],
+        "date": got["date"],
+        "meta_rank": got["meta_rank"],
+        "source": got["source"],
+        "moves": named(got.get("moves", [])),
+        "items": named(got.get("items", []), assets.url_item_sprite),
+        "abilities": named(got.get("abilities", [])),
+        "teammates": named(got.get("teammates", [])),
+        "natures": [{"name": r["ko_name"] or r["name"],
+                     "percent": r["percent"],
+                     "up": r["up_ko_name"], "down": r["down_ko_name"]}
+                    for r in got.get("natures", [])],
+        "spreads": [{"spread": [r["spread"][k] for k in
+                                ("hp", "atk", "def", "spa", "spd", "spe")],
+                     "percent": r["percent"]}
+                    for r in got.get("spreads", [])],
+    }
+
+
+# ─────────────────────────────────────────────────────────────
 # 계산기
 # ─────────────────────────────────────────────────────────────
 

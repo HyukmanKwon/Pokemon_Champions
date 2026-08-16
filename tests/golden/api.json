@@ -5214,5 +5214,3775 @@
       }
     ],
     "status": 200
+  },
+  "usage_detail": {
+    "body": {
+      "abilities": [
+        {
+          "key": "rough-skin",
+          "name": "까칠한피부",
+          "percent": 98.9
+        },
+        {
+          "key": "sand-veil",
+          "name": "모래숨기",
+          "percent": 1.1
+        }
+      ],
+      "date": "2026-08-04",
+      "format": "Singles",
+      "items": [
+        {
+          "icon": "/sprite/item/focus-sash",
+          "key": "focus-sash",
+          "name": "기합의띠",
+          "percent": 40.5
+        },
+        {
+          "icon": "/sprite/item/sitrus-berry",
+          "key": "sitrus-berry",
+          "name": "자뭉열매",
+          "percent": 20.5
+        },
+        {
+          "icon": "/sprite/item/choice-scarf",
+          "key": "choice-scarf",
+          "name": "구애스카프",
+          "percent": 18.0
+        },
+        {
+          "icon": "/sprite/item/lum-berry",
+          "key": "lum-berry",
+          "name": "리샘열매",
+          "percent": 9.2
+        },
+        {
+          "icon": "/sprite/item/life-orb",
+          "key": "life-orb",
+          "name": "생명의구슬",
+          "percent": 3.1
+        },
+        {
+          "icon": "/sprite/item/garchompite",
+          "key": "garchompite",
+          "name": "한카리아스나이트",
+          "percent": 1.7
+        },
+        {
+          "icon": "/sprite/item/leftovers",
+          "key": "leftovers",
+          "name": "먹다남은음식",
+          "percent": 1.1
+        },
+        {
+          "icon": "/sprite/item/yache-berry",
+          "key": "yache-berry",
+          "name": "플카열매",
+          "percent": 0.8
+        },
+        {
+          "icon": "/sprite/item/haban-berry",
+          "key": "haban-berry",
+          "name": "하반열매",
+          "percent": 0.4
+        },
+        {
+          "icon": "/sprite/item/quick-claw",
+          "key": "quick-claw",
+          "name": "선제공격손톱",
+          "percent": 0.4
+        }
+      ],
+      "ko_name": "한카리아스",
+      "meta_rank": 1,
+      "moves": [
+        {
+          "key": "earthquake",
+          "name": "지진",
+          "percent": 99.3
+        },
+        {
+          "key": "stealth-rock",
+          "name": "스텔스록",
+          "percent": 47.1
+        },
+        {
+          "key": "scale-shot",
+          "name": "스케일샷",
+          "percent": 41.5
+        },
+        {
+          "key": "outrage",
+          "name": "역린",
+          "percent": 35.0
+        },
+        {
+          "key": "swords-dance",
+          "name": "칼춤",
+          "percent": 31.9
+        },
+        {
+          "key": "rock-tomb",
+          "name": "암석봉인",
+          "percent": 29.1
+        },
+        {
+          "key": "dragon-tail",
+          "name": "드래곤테일",
+          "percent": 26.0
+        },
+        {
+          "key": "poison-jab",
+          "name": "독찌르기",
+          "percent": 16.1
+        },
+        {
+          "key": "rock-slide",
+          "name": "스톤샤워",
+          "percent": 16.0
+        },
+        {
+          "key": "spikes",
+          "name": "압정뿌리기",
+          "percent": 15.4
+        }
+      ],
+      "natures": [
+        {
+          "down": "특수공격",
+          "name": "명랑",
+          "percent": 54.1,
+          "up": "스피드"
+        },
+        {
+          "down": "특수공격",
+          "name": "고집",
+          "percent": 26.6,
+          "up": "공격"
+        },
+        {
+          "down": "특수공격",
+          "name": "장난꾸러기",
+          "percent": 15.1,
+          "up": "방어"
+        },
+        {
+          "down": "특수공격",
+          "name": "신중",
+          "percent": 2.2,
+          "up": "특수방어"
+        },
+        {
+          "down": "특수방어",
+          "name": "천진난만",
+          "percent": 0.5,
+          "up": "스피드"
+        },
+        {
+          "down": "특수방어",
+          "name": "개구쟁이",
+          "percent": 0.3,
+          "up": "공격"
+        },
+        {
+          "down": "방어",
+          "name": "성급",
+          "percent": 0.2,
+          "up": "스피드"
+        },
+        {
+          "down": "공격",
+          "name": "대담",
+          "percent": 0.2,
+          "up": "방어"
+        },
+        {
+          "down": "방어",
+          "name": "외로움",
+          "percent": 0.2,
+          "up": "공격"
+        },
+        {
+          "down": "공격",
+          "name": "겁쟁이",
+          "percent": 0.1,
+          "up": "스피드"
+        }
+      ],
+      "pokemon": "garchomp",
+      "season": "M4",
+      "source": "championsbattledata.com (게임 내 배틀 데이터를 옮긴 팬 사이트)",
+      "spreads": [
+        {
+          "percent": 52.8,
+          "spread": [
+            2,
+            32,
+            0,
+            0,
+            0,
+            32
+          ]
+        },
+        {
+          "percent": 8.8,
+          "spread": [
+            0,
+            32,
+            2,
+            0,
+            0,
+            32
+          ]
+        },
+        {
+          "percent": 3.3,
+          "spread": [
+            32,
+            0,
+            32,
+            0,
+            0,
+            2
+          ]
+        },
+        {
+          "percent": 3.2,
+          "spread": [
+            0,
+            32,
+            1,
+            0,
+            1,
+            32
+          ]
+        },
+        {
+          "percent": 2.9,
+          "spread": [
+            0,
+            32,
+            0,
+            0,
+            2,
+            32
+          ]
+        },
+        {
+          "percent": 1.4,
+          "spread": [
+            0,
+            32,
+            0,
+            0,
+            0,
+            32
+          ]
+        },
+        {
+          "percent": 1.2,
+          "spread": [
+            32,
+            0,
+            25,
+            0,
+            0,
+            9
+          ]
+        },
+        {
+          "percent": 0.9,
+          "spread": [
+            32,
+            0,
+            19,
+            0,
+            15,
+            0
+          ]
+        }
+      ],
+      "teammates": [
+        {
+          "key": "mimikyu-disguised",
+          "name": "따라큐",
+          "percent": null
+        },
+        {
+          "key": "primarina",
+          "name": "누리레느",
+          "percent": null
+        },
+        {
+          "key": "meowscarada",
+          "name": "마스카나",
+          "percent": null
+        },
+        {
+          "key": "metagross",
+          "name": "메타그로스",
+          "percent": null
+        },
+        {
+          "key": "archaludon",
+          "name": "브리두라스",
+          "percent": null
+        },
+        {
+          "key": "gyarados",
+          "name": "갸라도스",
+          "percent": null
+        },
+        {
+          "key": "delphox",
+          "name": "마폭시",
+          "percent": null
+        },
+        {
+          "key": "charizard",
+          "name": "리자몽",
+          "percent": null
+        },
+        {
+          "key": "blaziken",
+          "name": "번치코",
+          "percent": null
+        },
+        {
+          "key": "scizor",
+          "name": "핫삼",
+          "percent": null
+        }
+      ]
+    },
+    "status": 200
+  },
+  "usage_ranking": {
+    "body": {
+      "compared_to": "2026-07-28",
+      "date": "2026-08-16",
+      "format": "Singles",
+      "ranking": [
+        {
+          "delta": 0,
+          "ko_name": "한카리아스",
+          "name": "garchomp",
+          "position": 1,
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "따라큐",
+          "name": "mimikyu-disguised",
+          "position": 2,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "마스카나",
+          "name": "meowscarada",
+          "position": 3,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "하마돈",
+          "name": "hippowdon",
+          "position": 4,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "브리두라스",
+          "name": "archaludon",
+          "position": 5,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "누리레느",
+          "name": "primarina",
+          "position": 6,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "메타그로스",
+          "name": "metagross",
+          "position": 7,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "갸라도스",
+          "name": "gyarados",
+          "position": 8,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "망나뇽",
+          "name": "dragonite",
+          "position": 9,
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "마폭시",
+          "name": "delphox",
+          "position": 10,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "리자몽",
+          "name": "charizard",
+          "position": 11,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "번치코",
+          "name": "blaziken",
+          "position": 12,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "개굴닌자",
+          "name": "greninja",
+          "position": 13,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "삼삼드래",
+          "name": "hydreigon",
+          "position": 14,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "아머까오",
+          "name": "corviknight",
+          "position": 15,
+          "types": [
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "킬라플로르",
+          "name": "glimmora",
+          "position": 16,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 2,
+          "ko_name": "킬가르도",
+          "name": "aegislash-shield",
+          "position": 17,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "대쓰여너(수컷)",
+          "name": "basculegion-male",
+          "position": 18,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "워시로토무",
+          "name": "rotom-wash",
+          "position": 19,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "팬텀",
+          "name": "gengar",
+          "position": 20,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "알로라 나인테일",
+          "name": "ninetales-alola",
+          "position": 21,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "라이츄",
+          "name": "raichu",
+          "position": 22,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "핫삼",
+          "name": "scizor",
+          "position": 23,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "아쿠스타",
+          "name": "starmie",
+          "position": 24,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "히스이 대검귀",
+          "name": "samurott-hisui",
+          "position": 25,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "찌르호크",
+          "name": "staraptor",
+          "position": 26,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "대도각참",
+          "name": "kingambit",
+          "position": 27,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "찌리배리",
+          "name": "bellibolt",
+          "position": 28,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "타부자고",
+          "name": "gholdengo",
+          "position": 29,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "라우드본",
+          "name": "skeledirge",
+          "position": 30,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "드래펄트",
+          "name": "dragapult",
+          "position": 31,
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "루카리오",
+          "name": "lucario",
+          "position": 32,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "블래키",
+          "name": "umbreon",
+          "position": 33,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "대짱이",
+          "name": "swampert",
+          "position": 34,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "불카모스",
+          "name": "volcarona",
+          "position": 35,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "이어롭",
+          "name": "lopunny",
+          "position": 36,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "메가니움",
+          "name": "meganium",
+          "position": 37,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "오롱털",
+          "name": "grimmsnarl",
+          "position": 38,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "님피아",
+          "name": "sylveon",
+          "position": 39,
+          "types": [
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "이상해꽃",
+          "name": "venusaur",
+          "position": 40,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "입치트",
+          "name": "mawile",
+          "position": 41,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "몰드류",
+          "name": "excadrill",
+          "position": 42,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "파라블레이즈",
+          "name": "ceruledge",
+          "position": 43,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "패리퍼",
+          "name": "pelipper",
+          "position": 44,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "엘풍",
+          "name": "whimsicott",
+          "position": 45,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "더시마사리",
+          "name": "toxapex",
+          "position": 46,
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            },
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "마기라스",
+          "name": "tyranitar",
+          "position": 47,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "픽시",
+          "name": "clefable",
+          "position": 48,
+          "types": [
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "스코빌런",
+          "name": "scovillain",
+          "position": 49,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "거북왕",
+          "name": "blastoise",
+          "position": 50,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "포푸니크",
+          "name": "sneasler",
+          "position": 51,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "클레스퍼트라",
+          "name": "espathra",
+          "position": 52,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "영원의 꽃 플라엣테",
+          "name": "floette-eternal",
+          "position": 53,
+          "types": [
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "드래캄",
+          "name": "dragalge",
+          "position": 54,
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": 2,
+          "ko_name": "파밀리쥐",
+          "name": "maushold-family-of-four",
+          "position": 55,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "배바닐라",
+          "name": "vanilluxe",
+          "position": 56,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "히트로토무",
+          "name": "rotom-heat",
+          "position": 57,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": -2,
+          "ko_name": "잠만보",
+          "name": "snorlax",
+          "position": 58,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "맘모꾸리",
+          "name": "mamoswine",
+          "position": 59,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "저승갓숭",
+          "name": "annihilape",
+          "position": 60,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "나무킹",
+          "name": "sceptile",
+          "position": 61,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "히스이 조로아크",
+          "name": "zoroark-hisui",
+          "position": 62,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "밀로틱",
+          "name": "milotic",
+          "position": 63,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "깨비물거미",
+          "name": "araquanid",
+          "position": 64,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "펜드라",
+          "name": "scolipede",
+          "position": 65,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "히스이 미끄래곤",
+          "name": "goodra-hisui",
+          "position": 66,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "깜까미",
+          "name": "sableye",
+          "position": 67,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "마릴리",
+          "name": "azumarill",
+          "position": 68,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "그우린차",
+          "name": "sinistcha",
+          "position": 69,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "메타몽",
+          "name": "ditto",
+          "position": 70,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "캥카",
+          "name": "kangaskhan",
+          "position": 71,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "비비용",
+          "name": "vivillon",
+          "position": 72,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "야도란",
+          "name": "slowbro",
+          "position": 73,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "사마자르",
+          "name": "kleavor",
+          "position": 74,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "샤로다",
+          "name": "serperior",
+          "position": 75,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "다크펫",
+          "name": "banette",
+          "position": 76,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "무장조",
+          "name": "skarmory",
+          "position": 77,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "브리무음",
+          "name": "hatterene",
+          "position": 78,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "가디안",
+          "name": "gardevoir",
+          "position": 79,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "엘레이드",
+          "name": "gallade",
+          "position": 80,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "눈여아",
+          "name": "froslass",
+          "position": 81,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "엠페르트",
+          "name": "empoleon",
+          "position": 82,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "어흥염",
+          "name": "incineroar",
+          "position": 83,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "장침바루",
+          "name": "overqwil",
+          "position": 84,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "꿈트렁",
+          "name": "orthworm",
+          "position": 85,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "카디나르마",
+          "name": "armarouge",
+          "position": 86,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "라플레시아",
+          "name": "vileplume",
+          "position": 87,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 2,
+          "ko_name": "샹델라",
+          "name": "chandelure",
+          "position": 88,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            },
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 2,
+          "ko_name": "에브이",
+          "name": "espeon",
+          "position": 89,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "우츠보트",
+          "name": "victreebel",
+          "position": 90,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": -4,
+          "ko_name": "묘두기",
+          "name": "houndstone",
+          "position": 91,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "노보청",
+          "name": "conkeldurr",
+          "position": 92,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "곤율거니",
+          "name": "scrafty",
+          "position": 93,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "글라이온",
+          "name": "gliscor",
+          "position": 94,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "왕큰부리",
+          "name": "toucannon",
+          "position": 95,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "포트데스",
+          "name": "polteageist",
+          "position": 96,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "파르토",
+          "name": "diggersby",
+          "position": 97,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "화염레오",
+          "name": "pyroar-male",
+          "position": 98,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "히스이 윈디",
+          "name": "arcanine-hisui",
+          "position": 99,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "가라르 야도킹",
+          "name": "slowking-galar",
+          "position": 100,
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "저리더프",
+          "name": "eelektross",
+          "position": 101,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "헤라크로스",
+          "name": "heracross",
+          "position": 102,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "두드리짱",
+          "name": "tinkaton",
+          "position": 103,
+          "types": [
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "돌핀맨 나이브폼",
+          "name": "palafin-zero",
+          "position": 104,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "샤미드",
+          "name": "vaporeon",
+          "position": 105,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "란쿨루스",
+          "name": "reuniclus",
+          "position": 106,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "프테라",
+          "name": "aerodactyl",
+          "position": 107,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "샤크니아",
+          "name": "sharpedo",
+          "position": 108,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "보스로라",
+          "name": "aggron",
+          "position": 109,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "브리가론",
+          "name": "chesnaught",
+          "position": 110,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "웨이니발",
+          "name": "quaquaval",
+          "position": 111,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 2,
+          "ko_name": "가라르 야도란",
+          "name": "slowbro-galar",
+          "position": 112,
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "일레도리자드",
+          "name": "heliolisk",
+          "position": 113,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": -2,
+          "ko_name": "눈설왕",
+          "name": "abomasnow",
+          "position": 114,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "포푸니라",
+          "name": "weavile",
+          "position": 115,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            },
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "쁘사이저",
+          "name": "pinsir",
+          "position": 116,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "파이어로",
+          "name": "talonflame",
+          "position": 117,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "히스이 모크나이퍼",
+          "name": "decidueye-hisui",
+          "position": 118,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": -2,
+          "ko_name": "염뉴트",
+          "name": "salazzle",
+          "position": 119,
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            },
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "대쓰여너(암컷)",
+          "name": "basculegion-female",
+          "position": 120,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "장크로다일",
+          "name": "feraligatr",
+          "position": 121,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "코터스",
+          "name": "torkoal",
+          "position": 122,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "후딘",
+          "name": "alakazam",
+          "position": 123,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "칼라마네로",
+          "name": "malamar",
+          "position": 124,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "히스이 블레이범",
+          "name": "typhlosion-hisui",
+          "position": 125,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "파비코리",
+          "name": "altaria",
+          "position": 126,
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "독침붕",
+          "name": "beedrill",
+          "position": 127,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "루가루암(황혼)",
+          "name": "lycanroc-dusk",
+          "position": 128,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "delta": -2,
+          "ko_name": "초염몽",
+          "name": "infernape",
+          "position": 129,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 59,
+          "ko_name": "Runerigus",
+          "name": null,
+          "position": 130,
+          "types": []
+        },
+        {
+          "delta": 0,
+          "ko_name": "팔데아 켄타로스(불꽃)",
+          "name": "tauros-paldea-blaze-breed",
+          "position": 131,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "쥬피썬더",
+          "name": "jolteon",
+          "position": 132,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "루차불",
+          "name": "hawlucha",
+          "position": 133,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "치렁",
+          "name": "chimecho",
+          "position": 134,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "윈디",
+          "name": "arcanine",
+          "position": 135,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "만마드",
+          "name": "mudsdale",
+          "position": 136,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "글레이시아",
+          "name": "glaceon",
+          "position": 137,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "얼음귀신",
+          "name": "glalie",
+          "position": 138,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "화강돌",
+          "name": "spiritomb",
+          "position": 139,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "데스니칸",
+          "name": "cofagrigus",
+          "position": 140,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "왕구리",
+          "name": "politoed",
+          "position": 141,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "토대부기",
+          "name": "torterra",
+          "position": 142,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "delta": 3,
+          "ko_name": "짜랑고우거",
+          "name": "kommo-o",
+          "position": 143,
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "커트로토무",
+          "name": "rotom-mow",
+          "position": 144,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "악비아르",
+          "name": "krookodile",
+          "position": 145,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "블로스터",
+          "name": "clawitzer",
+          "position": 146,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": -2,
+          "ko_name": "거북손데스",
+          "name": "barbaracle",
+          "position": 147,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "모단단게",
+          "name": "crabominable",
+          "position": 148,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "피죤투",
+          "name": "pidgeot",
+          "position": 149,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "클레피",
+          "name": "klefki",
+          "position": 150,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "아리아도스",
+          "name": "ariados",
+          "position": 151,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "콜로솔트",
+          "name": "garganacl",
+          "position": 152,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "달코퀸",
+          "name": "tsareena",
+          "position": 153,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "음번",
+          "name": "noivern",
+          "position": 154,
+          "types": [
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "나인테일",
+          "name": "ninetales",
+          "position": 155,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "요가램",
+          "name": "medicham",
+          "position": 156,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "강철톤",
+          "name": "steelix",
+          "position": 157,
+          "types": [
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "delta": null,
+          "ko_name": "괴력몬",
+          "name": "machamp",
+          "position": 158,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "전룡",
+          "name": "ampharos",
+          "position": 159,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "모르페코(배부른 모양)",
+          "name": "morpeko-full-belly",
+          "position": 160,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "헬가",
+          "name": "houndoom",
+          "position": 161,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            },
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "몽얌나",
+          "name": "musharna",
+          "position": 162,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "나루림",
+          "name": "slurpuff",
+          "position": 163,
+          "types": [
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "골루그",
+          "name": "golurk",
+          "position": 164,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "쏘콘",
+          "name": "forretress",
+          "position": 165,
+          "types": [
+            {
+              "icon": "/sprite/type/bug",
+              "name": "bug"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "미끄래곤",
+          "name": "goodra",
+          "position": 166,
+          "types": [
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "대로트",
+          "name": "trevenant",
+          "position": 167,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            },
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "야도킹",
+          "name": "slowking",
+          "position": 168,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "과미드라",
+          "name": "hydrapple",
+          "position": 169,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "조로아크",
+          "name": "zoroark",
+          "position": 170,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "염무왕",
+          "name": "emboar",
+          "position": 171,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 2,
+          "ko_name": "앱솔",
+          "name": "absol",
+          "position": 172,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "사다이사",
+          "name": "sandaconda",
+          "position": 173,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "delta": -2,
+          "ko_name": "피카츄",
+          "name": "pikachu",
+          "position": 174,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "로즈레이드",
+          "name": "roserade",
+          "position": 175,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "키키링",
+          "name": "farigiraf",
+          "position": 176,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "할비롱",
+          "name": "drampa",
+          "position": 177,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "거대코뿌리",
+          "name": "rhyperior",
+          "position": 178,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "마휘핑",
+          "name": "alcremie",
+          "position": 179,
+          "types": [
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "리피아",
+          "name": "leafeon",
+          "position": 180,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "아보크",
+          "name": "arbok",
+          "position": 181,
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "다부니",
+          "name": "audino",
+          "position": 182,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "팔데아 켄타로스(물)",
+          "name": "tauros-paldea-aqua-breed",
+          "position": 183,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "대여르",
+          "name": "falinks",
+          "position": 184,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "크레베이스",
+          "name": "avalugg",
+          "position": 185,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "아마루르가",
+          "name": "aurorus",
+          "position": 186,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "delta": null,
+          "ko_name": "에몽가",
+          "name": "emolga",
+          "position": 187,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 2,
+          "ko_name": "플라제스",
+          "name": "florges",
+          "position": 188,
+          "types": [
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "냐오닉스(수컷)",
+          "name": "meowstic-male",
+          "position": 189,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": -3,
+          "ko_name": "폭타",
+          "name": "camerupt",
+          "position": 190,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            },
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "레파르다스",
+          "name": "liepard",
+          "position": 191,
+          "types": [
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "견고라스",
+          "name": "tyrantrum",
+          "position": 192,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "썬더볼트",
+          "name": "manectric",
+          "position": 193,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "마임꽁꽁",
+          "name": "mr-rime",
+          "position": 194,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "부란다",
+          "name": "pangoro",
+          "position": 195,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            },
+            {
+              "icon": "/sprite/type/dark",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "블레이범",
+          "name": "typhlosion",
+          "position": 196,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "바리톱스",
+          "name": "bastiodon",
+          "position": 197,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "메더",
+          "name": "stunfisk",
+          "position": 198,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "부스터",
+          "name": "flareon",
+          "position": 199,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "독개굴",
+          "name": "toxicroak",
+          "position": 200,
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            },
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "프로스트로토무",
+          "name": "rotom-frost",
+          "position": 201,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "램펄드",
+          "name": "rampardos",
+          "position": 202,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "툰베어",
+          "name": "beartic",
+          "position": 203,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "펌킨인(특대과종)",
+          "name": "gourgeist-super",
+          "position": 204,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            },
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "렌트라",
+          "name": "luxray",
+          "position": 205,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "히스이 크레베이스",
+          "name": "avalugg-hisui",
+          "position": 206,
+          "types": [
+            {
+              "icon": "/sprite/type/ice",
+              "name": "ice"
+            },
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "모크나이퍼",
+          "name": "decidueye",
+          "position": 207,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "데덴네",
+          "name": "dedenne",
+          "position": 208,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "단지래플",
+          "name": "appletun",
+          "position": 209,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "트리미앙",
+          "name": "furfrou",
+          "position": 210,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": 1,
+          "ko_name": "더스트나",
+          "name": "garbodor",
+          "position": 211,
+          "types": [
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 2,
+          "ko_name": "침바루",
+          "name": "qwilfish",
+          "position": 212,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            },
+            {
+              "icon": "/sprite/type/poison",
+              "name": "poison"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "냐오닉스(암컷)",
+          "name": "meowstic-female",
+          "position": 213,
+          "types": [
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": -3,
+          "ko_name": "켄타로스",
+          "name": "tauros",
+          "position": 214,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "신비록",
+          "name": "wyrdeer",
+          "position": 215,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "가라르 메더",
+          "name": "stunfisk-galar",
+          "position": 216,
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/steel",
+              "name": "steel"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "스핀로토무",
+          "name": "rotom-fan",
+          "position": 217,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/flying",
+              "name": "flying"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "대검귀",
+          "name": "samurott",
+          "position": 218,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": 2,
+          "ko_name": "알로라 라이츄",
+          "name": "raichu-alola",
+          "position": 219,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "애프룡",
+          "name": "flapple",
+          "position": 220,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            },
+            {
+              "icon": "/sprite/type/dragon",
+              "name": "dragon"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "루가루암(한낮)",
+          "name": "lycanroc-midday",
+          "position": 221,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "루가루암(한밤)",
+          "name": "lycanroc-midnight",
+          "position": 222,
+          "types": [
+            {
+              "icon": "/sprite/type/rock",
+              "name": "rock"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "로토무",
+          "name": "rotom",
+          "position": 223,
+          "types": [
+            {
+              "icon": "/sprite/type/electric",
+              "name": "electric"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
+          "delta": 2,
+          "ko_name": "앗차키",
+          "name": "simipour",
+          "position": 224,
+          "types": [
+            {
+              "icon": "/sprite/type/water",
+              "name": "water"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "펌킨인(대과종)",
+          "name": "gourgeist-large",
+          "position": 225,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            },
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": -1,
+          "ko_name": "펌킨인(소과종)",
+          "name": "gourgeist-small",
+          "position": 226,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            },
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "하랑우탄",
+          "name": "oranguru",
+          "position": 227,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            },
+            {
+              "icon": "/sprite/type/psychic",
+              "name": "psychic"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "내던숭이",
+          "name": "passimian",
+          "position": 228,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "펌킨인",
+          "name": "gourgeist-average",
+          "position": 229,
+          "types": [
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            },
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "캐스퐁",
+          "name": "castform",
+          "position": 230,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "팔데아 켄타로스(격투)",
+          "name": "tauros-paldea-combat-breed",
+          "position": 231,
+          "types": [
+            {
+              "icon": "/sprite/type/fighting",
+              "name": "fighting"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "바오키",
+          "name": "simisear",
+          "position": 232,
+          "types": [
+            {
+              "icon": "/sprite/type/fire",
+              "name": "fire"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "프레프티르",
+          "name": "aromatisse",
+          "position": 233,
+          "types": [
+            {
+              "icon": "/sprite/type/fairy",
+              "name": "fairy"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "야나키",
+          "name": "simisage",
+          "position": 234,
+          "types": [
+            {
+              "icon": "/sprite/type/grass",
+              "name": "grass"
+            }
+          ]
+        },
+        {
+          "delta": 0,
+          "ko_name": "보르그",
+          "name": "watchog",
+          "position": 235,
+          "types": [
+            {
+              "icon": "/sprite/type/normal",
+              "name": "normal"
+            }
+          ]
+        }
+      ],
+      "total": 235
+    },
+    "status": 200
+  },
+  "usage_없는것": {
+    "body": {
+      "detail": "'없는포켓몬' 은(는) 포켓몬 목록에 없습니다."
+    },
+    "status": 404
   }
 }

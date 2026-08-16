@@ -37,10 +37,15 @@ from ...db.repositories import (ability_repo, item_repo, mega_repo,
 from ...usecases import team
 from ...calc.damage import Rules
 from ...text import normalize
-from ...usecases import battle, naming, roster
+from ...usecases import battle, naming, roster, usage
 from . import views
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+
+
+def _fmt(name):
+    """싱글/더블. 모르는 값이면 Singles 로 떨어뜨린다."""
+    return name if name in ("Singles", "Doubles") else "Singles"
 
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -407,6 +412,39 @@ def get_types():
     LLM 쪽도 같은 표를 읽는다(usecases/naming.type_names).
     """
     return views.types(naming.type_names(state["conn"]))
+
+
+# ─────────────────────────────────────────────────────────────
+# 채용률
+#
+# 사이트가 아니라 우리 DB 에서 읽는다. 목록에서 한 마리씩 누를 때마다 남의
+# 서버를 두드릴 수 없고, 순위와 추세는 DB 에만 있다.
+# (LLM 도구의 usage_stats 는 반대로 사이트에 물어 오늘 값을 받는다)
+# ─────────────────────────────────────────────────────────────
+
+@app.get("/api/usage")
+def usage_ranking(format: str = "Singles", days: int = 7):
+    """메타 순위 전체. days 일 전 대비 변화를 같이 준다."""
+    return views.usage_ranking(
+        usage.ranking_from_db(state["conn"], fmt=_fmt(format), days=days))
+
+
+@app.get("/api/usage/{ko_name}")
+def usage_detail(ko_name: str, format: str = "Singles", top: int = 10):
+    """한 마리의 채용 내역 — 기술·도구·특성·성격·SP·팀원을 순위대로."""
+    conn = state["conn"]
+    en = naming.resolve(conn, "pokemons", ko_name)
+    if en is None:
+        raise HTTPException(404, f"'{ko_name}' 은(는) 포켓몬 목록에 없습니다.")
+
+    got = views.usage_detail(usage.detail_from_db(
+        conn, en, ko_name=naming.ko(conn, "pokemons", en),
+        fmt=_fmt(format), top=top))
+    # 아직 안 받은 포켓몬은 404 다. 빈 목록을 주면 화면이 "채용률 0%" 로
+    # 그리는데, 그건 안 쓰인다는 뜻이 아니라 우리가 안 받았다는 뜻이다.
+    if "error" in got:
+        raise HTTPException(404, got["error"])
+    return got
 
 
 @app.get("/api/natures")

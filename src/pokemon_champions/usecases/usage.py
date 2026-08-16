@@ -26,7 +26,8 @@ usage 로 맞춰 두고, 받아오는 쪽만 _source 를 붙여 가른다.
 import re
 
 from . import usage_source
-from ..db.repositories import lookup_repo, nature_repo, usage_repo
+from ..db.repositories import (lookup_repo, nature_repo, pokemon_repo,
+                               usage_repo)
 
 CATEGORY_KEY = {
     "move": "moves",
@@ -57,6 +58,21 @@ STAT_KEY = {"HP": "hp", "Attack": "atk", "Defense": "def",
             "Sp. Atk": "spa", "Sp. Def": "spd", "Speed": "spe"}
 STAT_KO = {"HP": "체력", "Attack": "공격", "Defense": "방어",
            "Sp. Atk": "특수공격", "Sp. Def": "특수방어", "Speed": "스피드"}
+
+
+# STAT_KO 는 저쪽 표기(Sp. Atk)가 열쇠다. DB 에서 읽은 값은 이미 우리
+# 키(spa)라 그쪽으로도 찾을 수 있어야 한다.
+STAT_KO_BY_KEY = {STAT_KEY[k]: v for k, v in STAT_KO.items()}
+
+
+def _num(v):
+    """NUMERIC(4,1) 은 Decimal 로 온다. JSON 이 못 담으므로 float 으로.
+
+    round 를 한 번 더 거는 이유는 float(Decimal("40.5")) 이 40.5 로 잘
+    떨어지지만, 소수 한 자리라는 것을 여기서 못 박아 두면 나중에 자릿수가
+    늘었을 때 화면이 40.500000000000004 를 그린다.
+    """
+    return None if v is None else round(float(v), 1)
 
 
 def slugify(en_display):
@@ -316,3 +332,103 @@ def popular_spec(conn, en_name, fmt="Singles"):
             "unmatched": unmatched,
         }
     return spec
+
+
+def ranking_from_db(conn, fmt="Singles", days=7):
+    """전체 메타 순위 + 며칠 전 대비 변화. 1위부터.
+
+    usage_repo 가 준 것에 한국어 이름과 타입을 붙인다. 화면이 순위표를
+    그리려면 타입 배지가 필요한데 usage_rankings 에는 이름밖에 없다.
+    """
+    got = usage_repo.fetch_ranking(conn, fmt=fmt, limit=None)
+    if not got:
+        return {}
+
+    delta = usage_repo.fetch_rank_delta(conn, fmt=fmt, days=days)
+    meta = {r["name"]: r for r in pokemon_repo.fetch_list(conn)}
+
+    out = []
+    for r in got:
+        d = delta.get(r["battle_name"]) or {}
+        row = meta.get(r["pokemon_name"]) or {}
+        out.append({
+            "position": r["position"],
+            "name": r["pokemon_name"],
+            "ko_name": r["ko_name"],
+            # 우리 로스터에 없는 폼이면 저쪽 표기라도 보여준다. 빼 버리면
+            # 순위에 구멍이 생겨 "13위가 왜 없지" 가 된다.
+            "battle_name": r["battle_name"],
+            "types": [t for t in (row.get("type1"), row.get("type2")) if t],
+            "delta": d.get("delta"),
+        })
+
+    first = got[0]
+    sample = next(iter(delta.values()), {})
+    return {
+        "format": fmt,
+        "date": first["taken_on"].isoformat(),
+        "compared_to": (sample.get("compared_to").isoformat()
+                        if sample.get("compared_to") else None),
+        "total": len(out),
+        "ranking": out,
+    }
+
+
+def detail_from_db(conn, en_name, ko_name=None, fmt="Singles", top=10):
+    """한 마리의 채용 내역. DB 에 쌓인 가장 최근 스냅샷에서 읽는다.
+
+    ── usage_of() 와 무엇이 다른가 ──
+      저쪽은 사이트에 물어 오늘 값을 받는다. 이쪽은 우리가 쌓아둔 것을
+      읽는다. 화면이 목록에서 한 마리씩 누를 때마다 남의 서버를 두드릴
+      수는 없고, 순위(usage_rank)는 DB 에만 있다.
+
+      돌려주는 모양은 usage_of() 와 최대한 맞춘다. 같은 자료를 읽는 코드가
+      받아온 경로에 따라 두 벌로 갈리지 않게 하려는 것이다.
+    """
+    got = usage_repo.fetch_detail(conn, en_name, fmt=fmt, top=top)
+    if not got:
+        return {"error": f"'{ko_name or en_name}' 의 {fmt} 채용률이 "
+                         "DB 에 아직 없습니다. "
+                         "python -m scripts.etl.sync_usage --backfill"}
+
+    maps = _ko_maps(conn)
+    out = {}
+    for r in got:
+        cat = r["category"]
+        if cat not in CATEGORY_KEY:
+            continue
+        bucket = out.setdefault(CATEGORY_KEY[cat], [])
+
+        if cat == "stat_points":
+            bucket.append({
+                "spread": {key: r[col] or 0 for col, key in SP_COLUMNS},
+                "percent": _num(r["percent"]),
+            })
+            continue
+
+        en = r["name"] or ""
+        # linked_name 이 있으면 그것을 쓴다. 적재할 때 맞춰 둔 값이라
+        # 여기서 슬러그를 다시 만들 필요가 없다.
+        linked = r["linked_name"]
+        ko = (maps.get(cat, {}).get(linked) if linked
+              else maps.get(cat, {}).get(slugify(en)))
+        entry = {"name": linked or en, "ko_name": ko,
+                 "percent": _num(r["percent"])}
+        if cat == "stat_alignment":
+            entry["up"] = r["stat_up"]
+            entry["up_ko_name"] = STAT_KO_BY_KEY.get(r["stat_up"])
+            entry["down"] = r["stat_down"]
+            entry["down_ko_name"] = STAT_KO_BY_KEY.get(r["stat_down"])
+        bucket.append(entry)
+
+    first = got[0]
+    return {
+        "pokemon": en_name,
+        "ko_name": ko_name,
+        "format": fmt,
+        "season": first["season"],
+        "date": first["snapshot_date"].isoformat(),
+        "meta_rank": first["usage_rank"],
+        "source": "championsbattledata.com (게임 내 배틀 데이터를 옮긴 팬 사이트)",
+        **out,
+    }
