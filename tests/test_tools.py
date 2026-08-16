@@ -84,6 +84,10 @@ CALLS = [
     ("list_decks", {}),
     ("team_weaknesses", {}),
     ("usage_stats", {"pokemon": "한카리아스"}),
+
+    # 포켓몬끼리 견줄 수 있는 유일한 자료. usage_stats 의 percent 는 전부
+    # 그 포켓몬 안에서의 비율이라 이 질문에 못 쓴다.
+    ("top_pokemon", {"limit": 5}),
 ]
 
 

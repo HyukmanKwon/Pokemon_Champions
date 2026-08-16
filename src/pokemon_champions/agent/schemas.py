@@ -235,6 +235,23 @@ TOOLS = {
             "format": {**_STR, "description":
                        "Singles or Doubles. Defaults to Singles"}},
         "required": ["pokemon"]},
+
+    "top_pokemon": {
+        "description": "The current metagame ranking — which Pokemon are "
+                       "used most, position 1 first. Use it for 'what is "
+                       "the best/most used Pokemon?', 'what is top tier?', "
+                       "'what should I expect to face?'. "
+                       "IMPORTANT: this is the ONLY tool that compares "
+                       "Pokemon against each other. The percentages in "
+                       "usage_stats are within-Pokemon shares (Earthquake "
+                       "99.3% means that Garchomp runs Earthquake), so "
+                       "comparing them across Pokemon is meaningless.",
+        "properties": {
+            "limit": {"type": "integer",
+                      "description": "How many to return. Defaults to 20"},
+            "format": {**_STR, "description":
+                       "Singles or Doubles. Defaults to Singles"}},
+        "required": []},
 }
 
 

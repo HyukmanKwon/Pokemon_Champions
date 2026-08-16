@@ -29,7 +29,7 @@
 from dataclasses import dataclass
 
 from ..db.repositories import (ability_repo, item_repo, move_repo,
-                               pokemon_repo, rules_repo)
+                               pokemon_repo, rules_repo, usage_repo)
 from ..domain import STAT_ORDER
 from ..calc import damage
 from ..usecases import team, usage
@@ -364,6 +364,11 @@ def bulk_index(s, pokemon):
 #   같은 취급이다.
 # ─────────────────────────────────────────────────────────────
 
+def _fmt(name):
+    """모델이 아무 말이나 넣어도 아는 포맷으로. 모르면 Singles."""
+    return name if name in ("Singles", "Doubles") else "Singles"
+
+
 def _deck_id(s, deck=None):
     """모델이 이름으로 부른 덱 -> id. 못 찾으면 세션에 묶인 덱(없으면 활성).
 
@@ -451,14 +456,37 @@ def team_weaknesses(s, deck=None):
         {n: _ko(s, "pokemons", n) for n, _ in members})
 
 
+def top_pokemon(s, limit=20, format="Singles"):
+    """지금 메타에서 가장 많이 쓰이는 포켓몬 — 1위부터.
+
+    "뭐가 제일 많이 쓰여?" · "메타 상위권이 뭐야" 에 쓰는 도구다.
+
+    ── usage_stats 와 헷갈리면 안 된다 ──
+      usage_stats 가 주는 percent 는 전부 "그 포켓몬 안에서의 비율" 이다.
+      지진 99.3% 는 한카리아스가 지진을 채용하는 비율이지 한카리아스가
+      얼마나 쓰이는지가 아니다. 두 포켓몬의 그 숫자를 견주면 뜻이 없다.
+
+      포켓몬끼리 견줄 수 있는 것은 이 도구가 주는 순위뿐이다.
+    """
+    return views.ranking(
+        usage_repo.fetch_ranking(s.conn, fmt=_fmt(format), limit=limit),
+        _fmt(format))
+
+
 def usage_stats(s, pokemon, format="Singles"):
-    """랭크배틀 채용률 — 기술·도구·특성·성격·SP·함께 쓰는 포켓몬."""
+    """한 마리의 채용률 — 기술·도구·특성·성격·SP·함께 쓰는 포켓몬.
+
+    여기 percent 는 전부 그 포켓몬 안에서의 비율이다. 포켓몬끼리 견주려면
+    top_pokemon 을 쓴다. 그 혼동을 막으려고 meta_rank 를 같이 싣는다.
+    """
     en, err = _need(s, "pokemons", pokemon)
     if err:
         return err
-    return usage.usage_of(s.conn, en, ko_name=_ko(s, "pokemons", en),
-                          fmt=format if format in ("Singles", "Doubles")
-                          else "Singles")
+    fmt = _fmt(format)
+    got = usage.usage_of(s.conn, en, ko_name=_ko(s, "pokemons", en), fmt=fmt)
+    if "error" in got:
+        return got
+    return {**got, **views.rank_note(usage_repo.fetch_rank_of(s.conn, en, fmt))}
 
 
 # ─────────────────────────────────────────────────────────────
@@ -482,6 +510,7 @@ HANDLERS = {
     "list_decks": list_decks,
     "team_weaknesses": team_weaknesses,
     "usage_stats": usage_stats,
+    "top_pokemon": top_pokemon,
 }
 
 # 함수와 설명이 두 파일로 갈렸으니 한쪽만 고치는 일이 생긴다. 스키마만

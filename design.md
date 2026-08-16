@@ -86,7 +86,7 @@ Pokemon_Champions/
     │   └── usage_source.py      채용률 원본 받아오기 + 캐시
     │
     ├── agent/               ▸ LLM 도우미. 모델은 도구만 고르고 계산은 안 한다
-    │   ├── tools.py             도구 15개
+    │   ├── tools.py             도구 16개
     │   ├── schemas.py           도구 스키마
     │   ├── views.py             결과를 모델이 읽을 모양으로
     │   └── runner.py            Ollama 루프

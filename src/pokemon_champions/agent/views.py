@@ -253,6 +253,44 @@ def bulk(got):
 
 
 # ─────────────────────────────────────────────────────────────
+# 채용률
+# ─────────────────────────────────────────────────────────────
+
+def ranking(rows, fmt):
+    """메타 순위 목록. 1위부터.
+
+    percent 를 안 싣는다 — 저쪽이 포켓몬별 사용률 %를 안 주고 순위만 준다.
+    없는 숫자를 자리만 만들어 두면 모델이 채운다.
+    """
+    if not rows:
+        return {"error": "순위 자료가 아직 없습니다. "
+                         "python -m scripts.etl.sync_usage --rankings-only"}
+    return {
+        "format": fmt,
+        "date": rows[0]["taken_on"].isoformat(),
+        "note": "순위만 있고 사용률 %는 저쪽이 주지 않습니다.",
+        "ranking": [{"position": r["position"],
+                     "name": r["pokemon_name"] or r["battle_name"],
+                     "ko_name": r["ko_name"]}
+                    for r in rows],
+    }
+
+
+def rank_note(row, total_key="total"):
+    """그 포켓몬의 메타 순위 한 줄. 없으면 빈 dict.
+
+    usage_stats 에 같이 실어, 모델이 기술 채용률(지진 99.3%)을 포켓몬
+    사용률로 오해하지 않게 한다. 실제로 그 오해가 있었다 — 답할 자료가
+    없으면 모델은 옆에 있는 숫자로 채운다.
+    """
+    if not row:
+        return {}
+    return {"meta_rank": {"position": row["position"],
+                          "of": row[total_key],
+                          "date": row["taken_on"].isoformat()}}
+
+
+# ─────────────────────────────────────────────────────────────
 # 덱
 # ─────────────────────────────────────────────────────────────
 

@@ -1526,6 +1526,38 @@
       }
     ]
   },
+  "top_pokemon({\"limit\": 5})": {
+    "date": "2026-08-16",
+    "format": "Singles",
+    "note": "순위만 있고 사용률 %는 저쪽이 주지 않습니다.",
+    "ranking": [
+      {
+        "ko_name": "한카리아스",
+        "name": "garchomp",
+        "position": 1
+      },
+      {
+        "ko_name": "따라큐",
+        "name": "mimikyu-disguised",
+        "position": 2
+      },
+      {
+        "ko_name": "마스카나",
+        "name": "meowscarada",
+        "position": 3
+      },
+      {
+        "ko_name": "하마돈",
+        "name": "hippowdon",
+        "position": 4
+      },
+      {
+        "ko_name": "브리두라스",
+        "name": "archaludon",
+        "position": 5
+      }
+    ]
+  },
   "type_effectiveness({\"attack_type\": \"ground\", \"defender\": \"한카리아스\"})": {
     "attack_type": "ground",
     "defender": "garchomp",
@@ -1637,6 +1669,11 @@
       }
     ],
     "ko_name": "한카리아스",
+    "meta_rank": {
+      "date": "2026-08-16",
+      "of": 235,
+      "position": 1
+    },
     "moves": [
       {
         "ko_name": "지진",
