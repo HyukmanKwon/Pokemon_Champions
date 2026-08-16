@@ -89,13 +89,14 @@ const Usage = (() => {
     wrap.innerHTML = `
       <table class="dex-table usage-table">
         <thead><tr>
-          <th class="num">순위</th><th>포켓몬</th><th>타입</th>
+          <th class="num">순위</th><th colspan="2">포켓몬</th><th>타입</th>
           <th class="num" title="${esc(state.comparedTo || "")} 대비">순위 변동</th>
         </tr></thead>
         <tbody>${shown.map(r => `
           <tr data-key="${esc(r.ko_name)}"
               class="${state.selected === r.ko_name ? "on" : ""}">
             <td class="num">${r.position}</td>
+            <td class="pic">${iconImg(r.icon, r.ko_name)}</td>
             <td>${esc(r.ko_name)}</td>
             <td><span class="type-badges">${(r.types || []).map(t =>
                    iconImg(t.icon, typeKo(t.name), "")).join("")}</span></td>
@@ -165,8 +166,15 @@ const Usage = (() => {
 
     box.innerHTML = `
       <header class="usage-head">
-        <h3>${esc(d.ko_name)}</h3>
-        <span class="rank">${d.meta_rank}위</span>
+        ${iconImg(d.sprite, d.ko_name, "sprite")}
+        <div class="who">
+          <div class="line">
+            <h3>${esc(d.ko_name)}</h3>
+            <span class="rank">${d.meta_rank}위</span>
+          </div>
+          <span class="type-badges">${(d.types || []).map(t =>
+            iconImg(t.icon, typeKo(t.name), "")).join("")}</span>
+        </div>
         <span class="sub">${esc(d.date)} · ${esc(d.format)}</span>
       </header>
       <div class="usage-cols">

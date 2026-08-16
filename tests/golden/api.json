@@ -5297,54 +5297,74 @@
       "meta_rank": 1,
       "moves": [
         {
+          "icon": "/sprite/type/ground",
           "key": "earthquake",
           "name": "지진",
-          "percent": 99.3
+          "percent": 99.3,
+          "type": "ground"
         },
         {
+          "icon": "/sprite/type/rock",
           "key": "stealth-rock",
           "name": "스텔스록",
-          "percent": 47.1
+          "percent": 47.1,
+          "type": "rock"
         },
         {
+          "icon": "/sprite/type/dragon",
           "key": "scale-shot",
           "name": "스케일샷",
-          "percent": 41.5
+          "percent": 41.5,
+          "type": "dragon"
         },
         {
+          "icon": "/sprite/type/dragon",
           "key": "outrage",
           "name": "역린",
-          "percent": 35.0
+          "percent": 35.0,
+          "type": "dragon"
         },
         {
+          "icon": "/sprite/type/normal",
           "key": "swords-dance",
           "name": "칼춤",
-          "percent": 31.9
+          "percent": 31.9,
+          "type": "normal"
         },
         {
+          "icon": "/sprite/type/rock",
           "key": "rock-tomb",
           "name": "암석봉인",
-          "percent": 29.1
+          "percent": 29.1,
+          "type": "rock"
         },
         {
+          "icon": "/sprite/type/dragon",
           "key": "dragon-tail",
           "name": "드래곤테일",
-          "percent": 26.0
+          "percent": 26.0,
+          "type": "dragon"
         },
         {
+          "icon": "/sprite/type/poison",
           "key": "poison-jab",
           "name": "독찌르기",
-          "percent": 16.1
+          "percent": 16.1,
+          "type": "poison"
         },
         {
+          "icon": "/sprite/type/rock",
           "key": "rock-slide",
           "name": "스톤샤워",
-          "percent": 16.0
+          "percent": 16.0,
+          "type": "rock"
         },
         {
+          "icon": "/sprite/type/ground",
           "key": "spikes",
           "name": "압정뿌리기",
-          "percent": 15.4
+          "percent": 15.4,
+          "type": "ground"
         }
       ],
       "natures": [
@@ -5502,56 +5522,77 @@
           ]
         }
       ],
+      "sprite": "/sprite/pokemon/445",
       "teammates": [
         {
+          "icon": "/sprite/pokemon/778/icon",
           "key": "mimikyu-disguised",
           "name": "따라큐",
           "percent": null
         },
         {
+          "icon": "/sprite/pokemon/730/icon",
           "key": "primarina",
           "name": "누리레느",
           "percent": null
         },
         {
+          "icon": "/sprite/pokemon/908/icon",
           "key": "meowscarada",
           "name": "마스카나",
           "percent": null
         },
         {
+          "icon": "/sprite/pokemon/376/icon",
           "key": "metagross",
           "name": "메타그로스",
           "percent": null
         },
         {
+          "icon": "/sprite/pokemon/1018/icon",
           "key": "archaludon",
           "name": "브리두라스",
           "percent": null
         },
         {
+          "icon": "/sprite/pokemon/130/icon",
           "key": "gyarados",
           "name": "갸라도스",
           "percent": null
         },
         {
+          "icon": "/sprite/pokemon/655/icon",
           "key": "delphox",
           "name": "마폭시",
           "percent": null
         },
         {
+          "icon": "/sprite/pokemon/6/icon",
           "key": "charizard",
           "name": "리자몽",
           "percent": null
         },
         {
+          "icon": "/sprite/pokemon/257/icon",
           "key": "blaziken",
           "name": "번치코",
           "percent": null
         },
         {
+          "icon": "/sprite/pokemon/212/icon",
           "key": "scizor",
           "name": "핫삼",
           "percent": null
+        }
+      ],
+      "types": [
+        {
+          "icon": "/sprite/type/dragon",
+          "name": "dragon"
+        },
+        {
+          "icon": "/sprite/type/ground",
+          "name": "ground"
         }
       ]
     },
@@ -5565,6 +5606,7 @@
       "ranking": [
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/445/icon",
           "ko_name": "한카리아스",
           "name": "garchomp",
           "position": 1,
@@ -5581,6 +5623,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/778/icon",
           "ko_name": "따라큐",
           "name": "mimikyu-disguised",
           "position": 2,
@@ -5597,6 +5640,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/908/icon",
           "ko_name": "마스카나",
           "name": "meowscarada",
           "position": 3,
@@ -5613,6 +5657,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/450/icon",
           "ko_name": "하마돈",
           "name": "hippowdon",
           "position": 4,
@@ -5625,6 +5670,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/1018/icon",
           "ko_name": "브리두라스",
           "name": "archaludon",
           "position": 5,
@@ -5641,6 +5687,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/730/icon",
           "ko_name": "누리레느",
           "name": "primarina",
           "position": 6,
@@ -5657,6 +5704,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/376/icon",
           "ko_name": "메타그로스",
           "name": "metagross",
           "position": 7,
@@ -5673,6 +5721,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/130/icon",
           "ko_name": "갸라도스",
           "name": "gyarados",
           "position": 8,
@@ -5689,6 +5738,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/149/icon",
           "ko_name": "망나뇽",
           "name": "dragonite",
           "position": 9,
@@ -5705,6 +5755,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/655/icon",
           "ko_name": "마폭시",
           "name": "delphox",
           "position": 10,
@@ -5721,6 +5772,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/6/icon",
           "ko_name": "리자몽",
           "name": "charizard",
           "position": 11,
@@ -5737,6 +5789,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/257/icon",
           "ko_name": "번치코",
           "name": "blaziken",
           "position": 12,
@@ -5753,6 +5806,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/658/icon",
           "ko_name": "개굴닌자",
           "name": "greninja",
           "position": 13,
@@ -5769,6 +5823,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/635/icon",
           "ko_name": "삼삼드래",
           "name": "hydreigon",
           "position": 14,
@@ -5785,6 +5840,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/823/icon",
           "ko_name": "아머까오",
           "name": "corviknight",
           "position": 15,
@@ -5801,6 +5857,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/970/icon",
           "ko_name": "킬라플로르",
           "name": "glimmora",
           "position": 16,
@@ -5817,6 +5874,7 @@
         },
         {
           "delta": 2,
+          "icon": "/sprite/pokemon/681/icon",
           "ko_name": "킬가르도",
           "name": "aegislash-shield",
           "position": 17,
@@ -5833,6 +5891,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/902/icon",
           "ko_name": "대쓰여너(수컷)",
           "name": "basculegion-male",
           "position": 18,
@@ -5849,6 +5908,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/10009/icon",
           "ko_name": "워시로토무",
           "name": "rotom-wash",
           "position": 19,
@@ -5865,6 +5925,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/94/icon",
           "ko_name": "팬텀",
           "name": "gengar",
           "position": 20,
@@ -5881,6 +5942,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10104/icon",
           "ko_name": "알로라 나인테일",
           "name": "ninetales-alola",
           "position": 21,
@@ -5897,6 +5959,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/26/icon",
           "ko_name": "라이츄",
           "name": "raichu",
           "position": 22,
@@ -5909,6 +5972,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/212/icon",
           "ko_name": "핫삼",
           "name": "scizor",
           "position": 23,
@@ -5925,6 +5989,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/121/icon",
           "ko_name": "아쿠스타",
           "name": "starmie",
           "position": 24,
@@ -5941,6 +6006,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10236/icon",
           "ko_name": "히스이 대검귀",
           "name": "samurott-hisui",
           "position": 25,
@@ -5957,6 +6023,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/398/icon",
           "ko_name": "찌르호크",
           "name": "staraptor",
           "position": 26,
@@ -5973,6 +6040,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/983/icon",
           "ko_name": "대도각참",
           "name": "kingambit",
           "position": 27,
@@ -5989,6 +6057,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/939/icon",
           "ko_name": "찌리배리",
           "name": "bellibolt",
           "position": 28,
@@ -6001,6 +6070,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/1000/icon",
           "ko_name": "타부자고",
           "name": "gholdengo",
           "position": 29,
@@ -6017,6 +6087,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/911/icon",
           "ko_name": "라우드본",
           "name": "skeledirge",
           "position": 30,
@@ -6033,6 +6104,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/887/icon",
           "ko_name": "드래펄트",
           "name": "dragapult",
           "position": 31,
@@ -6049,6 +6121,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/448/icon",
           "ko_name": "루카리오",
           "name": "lucario",
           "position": 32,
@@ -6065,6 +6138,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/197/icon",
           "ko_name": "블래키",
           "name": "umbreon",
           "position": 33,
@@ -6077,6 +6151,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/260/icon",
           "ko_name": "대짱이",
           "name": "swampert",
           "position": 34,
@@ -6093,6 +6168,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/637/icon",
           "ko_name": "불카모스",
           "name": "volcarona",
           "position": 35,
@@ -6109,6 +6185,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/428/icon",
           "ko_name": "이어롭",
           "name": "lopunny",
           "position": 36,
@@ -6121,6 +6198,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/154/icon",
           "ko_name": "메가니움",
           "name": "meganium",
           "position": 37,
@@ -6133,6 +6211,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/861/icon",
           "ko_name": "오롱털",
           "name": "grimmsnarl",
           "position": 38,
@@ -6149,6 +6228,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/700/icon",
           "ko_name": "님피아",
           "name": "sylveon",
           "position": 39,
@@ -6161,6 +6241,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/3/icon",
           "ko_name": "이상해꽃",
           "name": "venusaur",
           "position": 40,
@@ -6177,6 +6258,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/303/icon",
           "ko_name": "입치트",
           "name": "mawile",
           "position": 41,
@@ -6193,6 +6275,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/530/icon",
           "ko_name": "몰드류",
           "name": "excadrill",
           "position": 42,
@@ -6209,6 +6292,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/937/icon",
           "ko_name": "파라블레이즈",
           "name": "ceruledge",
           "position": 43,
@@ -6225,6 +6309,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/279/icon",
           "ko_name": "패리퍼",
           "name": "pelipper",
           "position": 44,
@@ -6241,6 +6326,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/547/icon",
           "ko_name": "엘풍",
           "name": "whimsicott",
           "position": 45,
@@ -6257,6 +6343,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/748/icon",
           "ko_name": "더시마사리",
           "name": "toxapex",
           "position": 46,
@@ -6273,6 +6360,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/248/icon",
           "ko_name": "마기라스",
           "name": "tyranitar",
           "position": 47,
@@ -6289,6 +6377,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/36/icon",
           "ko_name": "픽시",
           "name": "clefable",
           "position": 48,
@@ -6301,6 +6390,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/952/icon",
           "ko_name": "스코빌런",
           "name": "scovillain",
           "position": 49,
@@ -6317,6 +6407,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/9/icon",
           "ko_name": "거북왕",
           "name": "blastoise",
           "position": 50,
@@ -6329,6 +6420,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/903/icon",
           "ko_name": "포푸니크",
           "name": "sneasler",
           "position": 51,
@@ -6345,6 +6437,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/956/icon",
           "ko_name": "클레스퍼트라",
           "name": "espathra",
           "position": 52,
@@ -6357,6 +6450,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10061/icon",
           "ko_name": "영원의 꽃 플라엣테",
           "name": "floette-eternal",
           "position": 53,
@@ -6369,6 +6463,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/691/icon",
           "ko_name": "드래캄",
           "name": "dragalge",
           "position": 54,
@@ -6385,6 +6480,7 @@
         },
         {
           "delta": 2,
+          "icon": "/sprite/pokemon/925/icon",
           "ko_name": "파밀리쥐",
           "name": "maushold-family-of-four",
           "position": 55,
@@ -6397,6 +6493,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/584/icon",
           "ko_name": "배바닐라",
           "name": "vanilluxe",
           "position": 56,
@@ -6409,6 +6506,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/10008/icon",
           "ko_name": "히트로토무",
           "name": "rotom-heat",
           "position": 57,
@@ -6425,6 +6523,7 @@
         },
         {
           "delta": -2,
+          "icon": "/sprite/pokemon/143/icon",
           "ko_name": "잠만보",
           "name": "snorlax",
           "position": 58,
@@ -6437,6 +6536,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/473/icon",
           "ko_name": "맘모꾸리",
           "name": "mamoswine",
           "position": 59,
@@ -6453,6 +6553,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/979/icon",
           "ko_name": "저승갓숭",
           "name": "annihilape",
           "position": 60,
@@ -6469,6 +6570,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/254/icon",
           "ko_name": "나무킹",
           "name": "sceptile",
           "position": 61,
@@ -6481,6 +6583,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10239/icon",
           "ko_name": "히스이 조로아크",
           "name": "zoroark-hisui",
           "position": 62,
@@ -6497,6 +6600,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/350/icon",
           "ko_name": "밀로틱",
           "name": "milotic",
           "position": 63,
@@ -6509,6 +6613,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/752/icon",
           "ko_name": "깨비물거미",
           "name": "araquanid",
           "position": 64,
@@ -6525,6 +6630,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/545/icon",
           "ko_name": "펜드라",
           "name": "scolipede",
           "position": 65,
@@ -6541,6 +6647,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10242/icon",
           "ko_name": "히스이 미끄래곤",
           "name": "goodra-hisui",
           "position": 66,
@@ -6557,6 +6664,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/302/icon",
           "ko_name": "깜까미",
           "name": "sableye",
           "position": 67,
@@ -6573,6 +6681,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/184/icon",
           "ko_name": "마릴리",
           "name": "azumarill",
           "position": 68,
@@ -6589,6 +6698,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/1013/icon",
           "ko_name": "그우린차",
           "name": "sinistcha",
           "position": 69,
@@ -6605,6 +6715,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/132/icon",
           "ko_name": "메타몽",
           "name": "ditto",
           "position": 70,
@@ -6617,6 +6728,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/115/icon",
           "ko_name": "캥카",
           "name": "kangaskhan",
           "position": 71,
@@ -6629,6 +6741,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/666/icon",
           "ko_name": "비비용",
           "name": "vivillon",
           "position": 72,
@@ -6645,6 +6758,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/80/icon",
           "ko_name": "야도란",
           "name": "slowbro",
           "position": 73,
@@ -6661,6 +6775,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/900/icon",
           "ko_name": "사마자르",
           "name": "kleavor",
           "position": 74,
@@ -6677,6 +6792,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/497/icon",
           "ko_name": "샤로다",
           "name": "serperior",
           "position": 75,
@@ -6689,6 +6805,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/354/icon",
           "ko_name": "다크펫",
           "name": "banette",
           "position": 76,
@@ -6701,6 +6818,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/227/icon",
           "ko_name": "무장조",
           "name": "skarmory",
           "position": 77,
@@ -6717,6 +6835,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/858/icon",
           "ko_name": "브리무음",
           "name": "hatterene",
           "position": 78,
@@ -6733,6 +6852,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/282/icon",
           "ko_name": "가디안",
           "name": "gardevoir",
           "position": 79,
@@ -6749,6 +6869,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/475/icon",
           "ko_name": "엘레이드",
           "name": "gallade",
           "position": 80,
@@ -6765,6 +6886,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/478/icon",
           "ko_name": "눈여아",
           "name": "froslass",
           "position": 81,
@@ -6781,6 +6903,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/395/icon",
           "ko_name": "엠페르트",
           "name": "empoleon",
           "position": 82,
@@ -6797,6 +6920,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/727/icon",
           "ko_name": "어흥염",
           "name": "incineroar",
           "position": 83,
@@ -6813,6 +6937,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/904/icon",
           "ko_name": "장침바루",
           "name": "overqwil",
           "position": 84,
@@ -6829,6 +6954,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/968/icon",
           "ko_name": "꿈트렁",
           "name": "orthworm",
           "position": 85,
@@ -6841,6 +6967,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/936/icon",
           "ko_name": "카디나르마",
           "name": "armarouge",
           "position": 86,
@@ -6857,6 +6984,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/45/icon",
           "ko_name": "라플레시아",
           "name": "vileplume",
           "position": 87,
@@ -6873,6 +7001,7 @@
         },
         {
           "delta": 2,
+          "icon": "/sprite/pokemon/609/icon",
           "ko_name": "샹델라",
           "name": "chandelure",
           "position": 88,
@@ -6889,6 +7018,7 @@
         },
         {
           "delta": 2,
+          "icon": "/sprite/pokemon/196/icon",
           "ko_name": "에브이",
           "name": "espeon",
           "position": 89,
@@ -6901,6 +7031,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/71/icon",
           "ko_name": "우츠보트",
           "name": "victreebel",
           "position": 90,
@@ -6917,6 +7048,7 @@
         },
         {
           "delta": -4,
+          "icon": "/sprite/pokemon/972/icon",
           "ko_name": "묘두기",
           "name": "houndstone",
           "position": 91,
@@ -6929,6 +7061,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/534/icon",
           "ko_name": "노보청",
           "name": "conkeldurr",
           "position": 92,
@@ -6941,6 +7074,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/560/icon",
           "ko_name": "곤율거니",
           "name": "scrafty",
           "position": 93,
@@ -6957,6 +7091,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/472/icon",
           "ko_name": "글라이온",
           "name": "gliscor",
           "position": 94,
@@ -6973,6 +7108,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/733/icon",
           "ko_name": "왕큰부리",
           "name": "toucannon",
           "position": 95,
@@ -6989,6 +7125,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/855/icon",
           "ko_name": "포트데스",
           "name": "polteageist",
           "position": 96,
@@ -7001,6 +7138,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/660/icon",
           "ko_name": "파르토",
           "name": "diggersby",
           "position": 97,
@@ -7017,6 +7155,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/668/icon",
           "ko_name": "화염레오",
           "name": "pyroar-male",
           "position": 98,
@@ -7033,6 +7172,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10230/icon",
           "ko_name": "히스이 윈디",
           "name": "arcanine-hisui",
           "position": 99,
@@ -7049,6 +7189,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10172/icon",
           "ko_name": "가라르 야도킹",
           "name": "slowking-galar",
           "position": 100,
@@ -7065,6 +7206,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/604/icon",
           "ko_name": "저리더프",
           "name": "eelektross",
           "position": 101,
@@ -7077,6 +7219,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/214/icon",
           "ko_name": "헤라크로스",
           "name": "heracross",
           "position": 102,
@@ -7093,6 +7236,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/959/icon",
           "ko_name": "두드리짱",
           "name": "tinkaton",
           "position": 103,
@@ -7109,6 +7253,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/964/icon",
           "ko_name": "돌핀맨 나이브폼",
           "name": "palafin-zero",
           "position": 104,
@@ -7121,6 +7266,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/134/icon",
           "ko_name": "샤미드",
           "name": "vaporeon",
           "position": 105,
@@ -7133,6 +7279,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/579/icon",
           "ko_name": "란쿨루스",
           "name": "reuniclus",
           "position": 106,
@@ -7145,6 +7292,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/142/icon",
           "ko_name": "프테라",
           "name": "aerodactyl",
           "position": 107,
@@ -7161,6 +7309,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/319/icon",
           "ko_name": "샤크니아",
           "name": "sharpedo",
           "position": 108,
@@ -7177,6 +7326,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/306/icon",
           "ko_name": "보스로라",
           "name": "aggron",
           "position": 109,
@@ -7193,6 +7343,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/652/icon",
           "ko_name": "브리가론",
           "name": "chesnaught",
           "position": 110,
@@ -7209,6 +7360,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/914/icon",
           "ko_name": "웨이니발",
           "name": "quaquaval",
           "position": 111,
@@ -7225,6 +7377,7 @@
         },
         {
           "delta": 2,
+          "icon": "/sprite/pokemon/10165/icon",
           "ko_name": "가라르 야도란",
           "name": "slowbro-galar",
           "position": 112,
@@ -7241,6 +7394,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/695/icon",
           "ko_name": "일레도리자드",
           "name": "heliolisk",
           "position": 113,
@@ -7257,6 +7411,7 @@
         },
         {
           "delta": -2,
+          "icon": "/sprite/pokemon/460/icon",
           "ko_name": "눈설왕",
           "name": "abomasnow",
           "position": 114,
@@ -7273,6 +7428,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/461/icon",
           "ko_name": "포푸니라",
           "name": "weavile",
           "position": 115,
@@ -7289,6 +7445,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/127/icon",
           "ko_name": "쁘사이저",
           "name": "pinsir",
           "position": 116,
@@ -7301,6 +7458,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/663/icon",
           "ko_name": "파이어로",
           "name": "talonflame",
           "position": 117,
@@ -7317,6 +7475,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/10244/icon",
           "ko_name": "히스이 모크나이퍼",
           "name": "decidueye-hisui",
           "position": 118,
@@ -7333,6 +7492,7 @@
         },
         {
           "delta": -2,
+          "icon": "/sprite/pokemon/758/icon",
           "ko_name": "염뉴트",
           "name": "salazzle",
           "position": 119,
@@ -7349,6 +7509,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10248/icon",
           "ko_name": "대쓰여너(암컷)",
           "name": "basculegion-female",
           "position": 120,
@@ -7365,6 +7526,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/160/icon",
           "ko_name": "장크로다일",
           "name": "feraligatr",
           "position": 121,
@@ -7377,6 +7539,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/324/icon",
           "ko_name": "코터스",
           "name": "torkoal",
           "position": 122,
@@ -7389,6 +7552,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/65/icon",
           "ko_name": "후딘",
           "name": "alakazam",
           "position": 123,
@@ -7401,6 +7565,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/687/icon",
           "ko_name": "칼라마네로",
           "name": "malamar",
           "position": 124,
@@ -7417,6 +7582,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10233/icon",
           "ko_name": "히스이 블레이범",
           "name": "typhlosion-hisui",
           "position": 125,
@@ -7433,6 +7599,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/334/icon",
           "ko_name": "파비코리",
           "name": "altaria",
           "position": 126,
@@ -7449,6 +7616,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/15/icon",
           "ko_name": "독침붕",
           "name": "beedrill",
           "position": 127,
@@ -7465,6 +7633,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/10152/icon",
           "ko_name": "루가루암(황혼)",
           "name": "lycanroc-dusk",
           "position": 128,
@@ -7477,6 +7646,7 @@
         },
         {
           "delta": -2,
+          "icon": "/sprite/pokemon/392/icon",
           "ko_name": "초염몽",
           "name": "infernape",
           "position": 129,
@@ -7493,6 +7663,7 @@
         },
         {
           "delta": 59,
+          "icon": null,
           "ko_name": "Runerigus",
           "name": null,
           "position": 130,
@@ -7500,6 +7671,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10251/icon",
           "ko_name": "팔데아 켄타로스(불꽃)",
           "name": "tauros-paldea-blaze-breed",
           "position": 131,
@@ -7516,6 +7688,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/135/icon",
           "ko_name": "쥬피썬더",
           "name": "jolteon",
           "position": 132,
@@ -7528,6 +7701,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/701/icon",
           "ko_name": "루차불",
           "name": "hawlucha",
           "position": 133,
@@ -7544,6 +7718,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/358/icon",
           "ko_name": "치렁",
           "name": "chimecho",
           "position": 134,
@@ -7556,6 +7731,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/59/icon",
           "ko_name": "윈디",
           "name": "arcanine",
           "position": 135,
@@ -7568,6 +7744,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/750/icon",
           "ko_name": "만마드",
           "name": "mudsdale",
           "position": 136,
@@ -7580,6 +7757,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/471/icon",
           "ko_name": "글레이시아",
           "name": "glaceon",
           "position": 137,
@@ -7592,6 +7770,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/362/icon",
           "ko_name": "얼음귀신",
           "name": "glalie",
           "position": 138,
@@ -7604,6 +7783,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/442/icon",
           "ko_name": "화강돌",
           "name": "spiritomb",
           "position": 139,
@@ -7620,6 +7800,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/563/icon",
           "ko_name": "데스니칸",
           "name": "cofagrigus",
           "position": 140,
@@ -7632,6 +7813,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/186/icon",
           "ko_name": "왕구리",
           "name": "politoed",
           "position": 141,
@@ -7644,6 +7826,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/389/icon",
           "ko_name": "토대부기",
           "name": "torterra",
           "position": 142,
@@ -7660,6 +7843,7 @@
         },
         {
           "delta": 3,
+          "icon": "/sprite/pokemon/784/icon",
           "ko_name": "짜랑고우거",
           "name": "kommo-o",
           "position": 143,
@@ -7676,6 +7860,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/10012/icon",
           "ko_name": "커트로토무",
           "name": "rotom-mow",
           "position": 144,
@@ -7692,6 +7877,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/553/icon",
           "ko_name": "악비아르",
           "name": "krookodile",
           "position": 145,
@@ -7708,6 +7894,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/693/icon",
           "ko_name": "블로스터",
           "name": "clawitzer",
           "position": 146,
@@ -7720,6 +7907,7 @@
         },
         {
           "delta": -2,
+          "icon": "/sprite/pokemon/689/icon",
           "ko_name": "거북손데스",
           "name": "barbaracle",
           "position": 147,
@@ -7736,6 +7924,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/740/icon",
           "ko_name": "모단단게",
           "name": "crabominable",
           "position": 148,
@@ -7752,6 +7941,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/18/icon",
           "ko_name": "피죤투",
           "name": "pidgeot",
           "position": 149,
@@ -7768,6 +7958,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/707/icon",
           "ko_name": "클레피",
           "name": "klefki",
           "position": 150,
@@ -7784,6 +7975,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/168/icon",
           "ko_name": "아리아도스",
           "name": "ariados",
           "position": 151,
@@ -7800,6 +7992,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/934/icon",
           "ko_name": "콜로솔트",
           "name": "garganacl",
           "position": 152,
@@ -7812,6 +8005,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/763/icon",
           "ko_name": "달코퀸",
           "name": "tsareena",
           "position": 153,
@@ -7824,6 +8018,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/715/icon",
           "ko_name": "음번",
           "name": "noivern",
           "position": 154,
@@ -7840,6 +8035,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/38/icon",
           "ko_name": "나인테일",
           "name": "ninetales",
           "position": 155,
@@ -7852,6 +8048,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/308/icon",
           "ko_name": "요가램",
           "name": "medicham",
           "position": 156,
@@ -7868,6 +8065,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/208/icon",
           "ko_name": "강철톤",
           "name": "steelix",
           "position": 157,
@@ -7884,6 +8082,7 @@
         },
         {
           "delta": null,
+          "icon": "/sprite/pokemon/68/icon",
           "ko_name": "괴력몬",
           "name": "machamp",
           "position": 158,
@@ -7896,6 +8095,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/181/icon",
           "ko_name": "전룡",
           "name": "ampharos",
           "position": 159,
@@ -7908,6 +8108,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/877/icon",
           "ko_name": "모르페코(배부른 모양)",
           "name": "morpeko-full-belly",
           "position": 160,
@@ -7924,6 +8125,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/229/icon",
           "ko_name": "헬가",
           "name": "houndoom",
           "position": 161,
@@ -7940,6 +8142,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/518/icon",
           "ko_name": "몽얌나",
           "name": "musharna",
           "position": 162,
@@ -7952,6 +8155,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/685/icon",
           "ko_name": "나루림",
           "name": "slurpuff",
           "position": 163,
@@ -7964,6 +8168,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/623/icon",
           "ko_name": "골루그",
           "name": "golurk",
           "position": 164,
@@ -7980,6 +8185,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/205/icon",
           "ko_name": "쏘콘",
           "name": "forretress",
           "position": 165,
@@ -7996,6 +8202,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/706/icon",
           "ko_name": "미끄래곤",
           "name": "goodra",
           "position": 166,
@@ -8008,6 +8215,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/709/icon",
           "ko_name": "대로트",
           "name": "trevenant",
           "position": 167,
@@ -8024,6 +8232,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/199/icon",
           "ko_name": "야도킹",
           "name": "slowking",
           "position": 168,
@@ -8040,6 +8249,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/1019/icon",
           "ko_name": "과미드라",
           "name": "hydrapple",
           "position": 169,
@@ -8056,6 +8266,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/571/icon",
           "ko_name": "조로아크",
           "name": "zoroark",
           "position": 170,
@@ -8068,6 +8279,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/500/icon",
           "ko_name": "염무왕",
           "name": "emboar",
           "position": 171,
@@ -8084,6 +8296,7 @@
         },
         {
           "delta": 2,
+          "icon": "/sprite/pokemon/359/icon",
           "ko_name": "앱솔",
           "name": "absol",
           "position": 172,
@@ -8096,6 +8309,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/844/icon",
           "ko_name": "사다이사",
           "name": "sandaconda",
           "position": 173,
@@ -8108,6 +8322,7 @@
         },
         {
           "delta": -2,
+          "icon": "/sprite/pokemon/25/icon",
           "ko_name": "피카츄",
           "name": "pikachu",
           "position": 174,
@@ -8120,6 +8335,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/407/icon",
           "ko_name": "로즈레이드",
           "name": "roserade",
           "position": 175,
@@ -8136,6 +8352,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/981/icon",
           "ko_name": "키키링",
           "name": "farigiraf",
           "position": 176,
@@ -8152,6 +8369,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/780/icon",
           "ko_name": "할비롱",
           "name": "drampa",
           "position": 177,
@@ -8168,6 +8386,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/464/icon",
           "ko_name": "거대코뿌리",
           "name": "rhyperior",
           "position": 178,
@@ -8184,6 +8403,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/869/icon",
           "ko_name": "마휘핑",
           "name": "alcremie",
           "position": 179,
@@ -8196,6 +8416,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/470/icon",
           "ko_name": "리피아",
           "name": "leafeon",
           "position": 180,
@@ -8208,6 +8429,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/24/icon",
           "ko_name": "아보크",
           "name": "arbok",
           "position": 181,
@@ -8220,6 +8442,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/531/icon",
           "ko_name": "다부니",
           "name": "audino",
           "position": 182,
@@ -8232,6 +8455,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10252/icon",
           "ko_name": "팔데아 켄타로스(물)",
           "name": "tauros-paldea-aqua-breed",
           "position": 183,
@@ -8248,6 +8472,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/870/icon",
           "ko_name": "대여르",
           "name": "falinks",
           "position": 184,
@@ -8260,6 +8485,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/713/icon",
           "ko_name": "크레베이스",
           "name": "avalugg",
           "position": 185,
@@ -8272,6 +8498,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/699/icon",
           "ko_name": "아마루르가",
           "name": "aurorus",
           "position": 186,
@@ -8288,6 +8515,7 @@
         },
         {
           "delta": null,
+          "icon": "/sprite/pokemon/587/icon",
           "ko_name": "에몽가",
           "name": "emolga",
           "position": 187,
@@ -8304,6 +8532,7 @@
         },
         {
           "delta": 2,
+          "icon": "/sprite/pokemon/671/icon",
           "ko_name": "플라제스",
           "name": "florges",
           "position": 188,
@@ -8316,6 +8545,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/678/icon",
           "ko_name": "냐오닉스(수컷)",
           "name": "meowstic-male",
           "position": 189,
@@ -8328,6 +8558,7 @@
         },
         {
           "delta": -3,
+          "icon": "/sprite/pokemon/323/icon",
           "ko_name": "폭타",
           "name": "camerupt",
           "position": 190,
@@ -8344,6 +8575,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/510/icon",
           "ko_name": "레파르다스",
           "name": "liepard",
           "position": 191,
@@ -8356,6 +8588,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/697/icon",
           "ko_name": "견고라스",
           "name": "tyrantrum",
           "position": 192,
@@ -8372,6 +8605,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/310/icon",
           "ko_name": "썬더볼트",
           "name": "manectric",
           "position": 193,
@@ -8384,6 +8618,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/866/icon",
           "ko_name": "마임꽁꽁",
           "name": "mr-rime",
           "position": 194,
@@ -8400,6 +8635,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/675/icon",
           "ko_name": "부란다",
           "name": "pangoro",
           "position": 195,
@@ -8416,6 +8652,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/157/icon",
           "ko_name": "블레이범",
           "name": "typhlosion",
           "position": 196,
@@ -8428,6 +8665,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/411/icon",
           "ko_name": "바리톱스",
           "name": "bastiodon",
           "position": 197,
@@ -8444,6 +8682,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/618/icon",
           "ko_name": "메더",
           "name": "stunfisk",
           "position": 198,
@@ -8460,6 +8699,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/136/icon",
           "ko_name": "부스터",
           "name": "flareon",
           "position": 199,
@@ -8472,6 +8712,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/454/icon",
           "ko_name": "독개굴",
           "name": "toxicroak",
           "position": 200,
@@ -8488,6 +8729,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10010/icon",
           "ko_name": "프로스트로토무",
           "name": "rotom-frost",
           "position": 201,
@@ -8504,6 +8746,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/409/icon",
           "ko_name": "램펄드",
           "name": "rampardos",
           "position": 202,
@@ -8516,6 +8759,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/614/icon",
           "ko_name": "툰베어",
           "name": "beartic",
           "position": 203,
@@ -8528,6 +8772,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/10032/icon",
           "ko_name": "펌킨인(특대과종)",
           "name": "gourgeist-super",
           "position": 204,
@@ -8544,6 +8789,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/405/icon",
           "ko_name": "렌트라",
           "name": "luxray",
           "position": 205,
@@ -8556,6 +8802,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10243/icon",
           "ko_name": "히스이 크레베이스",
           "name": "avalugg-hisui",
           "position": 206,
@@ -8572,6 +8819,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/724/icon",
           "ko_name": "모크나이퍼",
           "name": "decidueye",
           "position": 207,
@@ -8588,6 +8836,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/702/icon",
           "ko_name": "데덴네",
           "name": "dedenne",
           "position": 208,
@@ -8604,6 +8853,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/842/icon",
           "ko_name": "단지래플",
           "name": "appletun",
           "position": 209,
@@ -8620,6 +8870,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/676/icon",
           "ko_name": "트리미앙",
           "name": "furfrou",
           "position": 210,
@@ -8632,6 +8883,7 @@
         },
         {
           "delta": 1,
+          "icon": "/sprite/pokemon/569/icon",
           "ko_name": "더스트나",
           "name": "garbodor",
           "position": 211,
@@ -8644,6 +8896,7 @@
         },
         {
           "delta": 2,
+          "icon": "/sprite/pokemon/211/icon",
           "ko_name": "침바루",
           "name": "qwilfish",
           "position": 212,
@@ -8660,6 +8913,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10025/icon",
           "ko_name": "냐오닉스(암컷)",
           "name": "meowstic-female",
           "position": 213,
@@ -8672,6 +8926,7 @@
         },
         {
           "delta": -3,
+          "icon": "/sprite/pokemon/128/icon",
           "ko_name": "켄타로스",
           "name": "tauros",
           "position": 214,
@@ -8684,6 +8939,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/899/icon",
           "ko_name": "신비록",
           "name": "wyrdeer",
           "position": 215,
@@ -8700,6 +8956,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10180/icon",
           "ko_name": "가라르 메더",
           "name": "stunfisk-galar",
           "position": 216,
@@ -8716,6 +8973,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10011/icon",
           "ko_name": "스핀로토무",
           "name": "rotom-fan",
           "position": 217,
@@ -8732,6 +8990,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/503/icon",
           "ko_name": "대검귀",
           "name": "samurott",
           "position": 218,
@@ -8744,6 +9003,7 @@
         },
         {
           "delta": 2,
+          "icon": "/sprite/pokemon/10100/icon",
           "ko_name": "알로라 라이츄",
           "name": "raichu-alola",
           "position": 219,
@@ -8760,6 +9020,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/841/icon",
           "ko_name": "애프룡",
           "name": "flapple",
           "position": 220,
@@ -8776,6 +9037,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/745/icon",
           "ko_name": "루가루암(한낮)",
           "name": "lycanroc-midday",
           "position": 221,
@@ -8788,6 +9050,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10126/icon",
           "ko_name": "루가루암(한밤)",
           "name": "lycanroc-midnight",
           "position": 222,
@@ -8800,6 +9063,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/479/icon",
           "ko_name": "로토무",
           "name": "rotom",
           "position": 223,
@@ -8816,6 +9080,7 @@
         },
         {
           "delta": 2,
+          "icon": "/sprite/pokemon/516/icon",
           "ko_name": "앗차키",
           "name": "simipour",
           "position": 224,
@@ -8828,6 +9093,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/10031/icon",
           "ko_name": "펌킨인(대과종)",
           "name": "gourgeist-large",
           "position": 225,
@@ -8844,6 +9110,7 @@
         },
         {
           "delta": -1,
+          "icon": "/sprite/pokemon/10030/icon",
           "ko_name": "펌킨인(소과종)",
           "name": "gourgeist-small",
           "position": 226,
@@ -8860,6 +9127,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/765/icon",
           "ko_name": "하랑우탄",
           "name": "oranguru",
           "position": 227,
@@ -8876,6 +9144,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/766/icon",
           "ko_name": "내던숭이",
           "name": "passimian",
           "position": 228,
@@ -8888,6 +9157,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/711/icon",
           "ko_name": "펌킨인",
           "name": "gourgeist-average",
           "position": 229,
@@ -8904,6 +9174,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/351/icon",
           "ko_name": "캐스퐁",
           "name": "castform",
           "position": 230,
@@ -8916,6 +9187,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/10250/icon",
           "ko_name": "팔데아 켄타로스(격투)",
           "name": "tauros-paldea-combat-breed",
           "position": 231,
@@ -8928,6 +9200,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/514/icon",
           "ko_name": "바오키",
           "name": "simisear",
           "position": 232,
@@ -8940,6 +9213,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/683/icon",
           "ko_name": "프레프티르",
           "name": "aromatisse",
           "position": 233,
@@ -8952,6 +9226,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/512/icon",
           "ko_name": "야나키",
           "name": "simisage",
           "position": 234,
@@ -8964,6 +9239,7 @@
         },
         {
           "delta": 0,
+          "icon": "/sprite/pokemon/505/icon",
           "ko_name": "보르그",
           "name": "watchog",
           "position": 235,

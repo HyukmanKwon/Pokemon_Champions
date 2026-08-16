@@ -171,6 +171,7 @@ def fetch_ranking(conn, fmt="Singles", limit=20):
     cur.execute(
         """
         SELECT r.position, r.battle_name, r.pokemon_name, p.ko_name,
+               p.id AS pokemon_id, p.type1, p.type2,
                r.taken_on, r.season
         FROM usage_rankings r
         LEFT JOIN pokemons p ON p.name = r.pokemon_name
@@ -234,9 +235,16 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
                r.stat_up, r.stat_down,
                r.hp_points, r.attack_points, r.defense_points,
                r.sp_atk_points, r.sp_def_points, r.speed_points,
-               l.snapshot_date, l.season, l.usage_rank
+               l.snapshot_date, l.season, l.usage_rank,
+               -- 화면에 그림을 붙이는 데 쓴다. 기술은 타입 배지, 팀원은
+               -- 아이콘이라 각자 다른 표에서 온다. linked_name 을 굳혀
+               -- 둔 덕에 조인 한 번으로 끝난다.
+               m.type AS move_type,
+               tp.id  AS teammate_id
         FROM usage_rows r
         JOIN latest l ON l.id = r.snapshot_id
+        LEFT JOIN moves    m  ON r.category = 'move'     AND m.name  = r.linked_name
+        LEFT JOIN pokemons tp ON r.category = 'teammate' AND tp.name = r.linked_name
         WHERE r.rank <= %s
         ORDER BY r.category, r.rank
         """,

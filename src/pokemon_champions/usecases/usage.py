@@ -348,12 +348,10 @@ def ranking_from_db(conn, fmt="Singles", days=7):
         return {}
 
     delta = usage_repo.fetch_rank_delta(conn, fmt=fmt, days=days)
-    meta = {r["name"]: r for r in pokemon_repo.fetch_list(conn)}
 
     out = []
     for r in got:
         d = delta.get(r["battle_name"]) or {}
-        row = meta.get(r["pokemon_name"]) or {}
         out.append({
             "position": r["position"],
             "name": r["pokemon_name"],
@@ -361,7 +359,8 @@ def ranking_from_db(conn, fmt="Singles", days=7):
             # 우리 로스터에 없는 폼이면 저쪽 표기라도 보여준다. 빼 버리면
             # 순위에 구멍이 생겨 "13위가 왜 없지" 가 된다.
             "battle_name": r["battle_name"],
-            "types": [t for t in (row.get("type1"), row.get("type2")) if t],
+            "pokemon_id": r["pokemon_id"],
+            "types": [t for t in (r["type1"], r["type2"]) if t],
             "delta": d.get("delta"),
         })
 
@@ -394,6 +393,11 @@ def detail_from_db(conn, en_name, ko_name=None, fmt="Singles", top=10):
                          "DB 에 아직 없습니다. "
                          "python -m scripts.etl.sync_usage --backfill"}
 
+    # 그 포켓몬 자신의 그림과 타입. 상세 머리에 크게 건다.
+    meta = pokemon_repo.fetch_meta(conn, ko_name) if ko_name else {}
+    pokemon_id = meta.get("id")
+    types = [t for t in (meta.get("type1"), meta.get("type2")) if t]
+
     maps = _ko_maps(conn)
     out = {}
     for r in got:
@@ -417,6 +421,11 @@ def detail_from_db(conn, en_name, ko_name=None, fmt="Singles", top=10):
               else maps.get(cat, {}).get(slugify(en)))
         entry = {"name": linked or en, "ko_name": ko,
                  "percent": _num(r["percent"])}
+        # 그림을 붙이는 데 필요한 것. 갈래마다 다르므로 있는 것만 얹는다.
+        if r["move_type"]:
+            entry["type"] = r["move_type"]
+        if r["teammate_id"]:
+            entry["pokemon_id"] = r["teammate_id"]
         if cat == "stat_alignment" and ko is None and not r["stat_up"]:
             # 저쪽은 무보정 성격을 넷으로 준다(Hardy · Docile · Serious ·
             # Quirky). 레귤레이션 M-B 는 보정이 같은 것을 하나로 접어
@@ -434,6 +443,8 @@ def detail_from_db(conn, en_name, ko_name=None, fmt="Singles", top=10):
     return {
         "pokemon": en_name,
         "ko_name": ko_name,
+        "pokemon_id": pokemon_id,
+        "types": types,
         "format": fmt,
         "season": first["season"],
         "date": first["snapshot_date"].isoformat(),

@@ -171,6 +171,7 @@ def usage_ranking(got):
                      # 표기라도 보여준다 — 빼면 순위에 구멍이 생긴다.
                      "name": r["name"],
                      "ko_name": r["ko_name"] or r["battle_name"],
+                     "icon": assets.url_pokemon_icon(r["pokemon_id"]),
                      "types": type_badges(*r["types"]),
                      "delta": r["delta"]}
                     for r in got["ranking"]],
@@ -187,11 +188,26 @@ def usage_detail(got):
         return got
 
     def named(rows, icon=None):
-        return [{"name": r["ko_name"] or r["name"],
+        """이름 · 비율에 그림을 붙인다.
+
+        갈래마다 그림이 다른 표에서 온다 — 기술은 타입 배지, 도구는
+        스프라이트, 팀원은 포켓몬 아이콘이다. 조립 층이 필요한 열쇠
+        (type · pokemon_id)를 이미 실어 보내므로 여기서는 URL 만 만든다.
+        """
+        out = []
+        for r in rows:
+            e = {"name": r["ko_name"] or r["name"],
                  "key": r["name"],          # 눌러서 도감으로 건너뛸 때 쓴다
-                 "percent": r["percent"],
-                 **({"icon": icon(r["name"])} if icon and r["name"] else {})}
-                for r in rows]
+                 "percent": r["percent"]}
+            if icon and r["name"]:
+                e["icon"] = icon(r["name"])
+            if r.get("type"):
+                e["icon"] = assets.url_type_icon(r["type"])
+                e["type"] = r["type"]
+            if r.get("pokemon_id"):
+                e["icon"] = assets.url_pokemon_icon(r["pokemon_id"])
+            out.append(e)
+        return out
 
     return {
         "pokemon": got["pokemon"],
@@ -200,6 +216,8 @@ def usage_detail(got):
         "season": got["season"],
         "date": got["date"],
         "meta_rank": got["meta_rank"],
+        "sprite": assets.url_pokemon_sprite(got["pokemon_id"]),
+        "types": type_badges(*got["types"]),
         "source": got["source"],
         "moves": named(got.get("moves", [])),
         "items": named(got.get("items", []), assets.url_item_sprite),
