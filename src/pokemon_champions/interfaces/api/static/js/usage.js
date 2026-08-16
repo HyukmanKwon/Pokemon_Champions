@@ -90,7 +90,7 @@ const Usage = (() => {
       <table class="dex-table usage-table">
         <thead><tr>
           <th class="num">순위</th><th>포켓몬</th><th>타입</th>
-          <th class="num" title="${esc(state.comparedTo || "")} 대비">변화</th>
+          <th class="num" title="${esc(state.comparedTo || "")} 대비">순위 변동</th>
         </tr></thead>
         <tbody>${shown.map(r => `
           <tr data-key="${esc(r.ko_name)}"
@@ -118,12 +118,19 @@ const Usage = (() => {
       </li>`).join("")}</ol>`;
   }
 
+  // 성격만 칸이 넷이라(이름 · 보정 · 막대 · 비율) 좁은 칸에서 막대가
+  // 눌린다. "특수공격" 을 "특공" 으로 줄여 자리를 낸다 — 내 팀 화면이
+  // 쓰는 STAT_SHORT 와 같은 말이라 한 낱말이 두 모양으로 안 보인다.
+  const SHORT = {"특수공격": "특공", "특수방어": "특방"};
+  const shortStat = s => SHORT[s] || s;
+
   function natures(rows) {
     if (!rows.length) return `<div class="empty">자료 없음</div>`;
     return `<ol class="usage-bars">${rows.map(r => `
       <li>
         <span class="nm">${esc(r.name)}</span>
-        <span class="sub">${r.up ? `${esc(r.up)}↑ ${esc(r.down)}↓` : "무보정"}</span>
+        <span class="sub">${r.up
+          ? `${esc(shortStat(r.up))}↑ ${esc(shortStat(r.down))}↓` : "무보정"}</span>
         <span class="bar"><i style="width:${Math.min(r.percent, 100)}%"></i></span>
         <span class="pct">${r.percent}%</span>
       </li>`).join("")}</ol>`;
