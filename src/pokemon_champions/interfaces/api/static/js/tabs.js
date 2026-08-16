@@ -17,6 +17,7 @@ function showTab(kind) {
   // 적어두면 탭을 하나 더할 때마다 여기가 조용히 틀린다 — 실제로 도우미
   // 탭을 더했을 때 initDex("agent") 를 부를 뻔했다.
   if (kind === "calc") Calc.init();
+  else if (kind === "usage") Usage.init();
   else if (DEX[kind]) initDex(kind);
 }
 

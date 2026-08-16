@@ -504,3 +504,77 @@
     .deckbar .deck small { display: none; }
     .deckbar .deck-actions button { flex: 0 0 auto; }
   }
+
+/* ═════════════════════════════════════════════════════════════
+   채용률
+
+   틀(.dex, .dex-list, .dex-detail)은 도감 것을 그대로 쓴다. 여기서는
+   순위표의 숫자 칸과 비율 막대만 더한다.
+   ═════════════════════════════════════════════════════════════ */
+
+.usage-table td.num, .usage-table th.num { text-align: right; width: 3.5rem; }
+.usage-table td.delta { width: 3.5rem; font-size: 0.78rem; }
+/* 순위가 오른 쪽을 accent 로 둔다. 하드코딩한 초록·빨강은
+   다크모드에서 대비가 무너진다. */
+.usage-table td.delta.up   { color: var(--accent); }
+.usage-table td.delta.down { color: var(--error); }
+.usage-table td.delta.same { color: var(--muted); }
+
+.usage-head {
+  display: flex; align-items: baseline; gap: 8px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
+}
+.usage-head h3 { margin: 0; font-size: 1.05rem; }
+.usage-head .rank {
+  background: var(--accent); color: #fff; border-radius: 10px;
+  padding: 1px 8px; font-size: 0.78rem;
+}
+.usage-head .sub { color: var(--muted); font-size: 0.75rem; margin-left: auto; }
+
+/* 한 줄로 세운다. 상세 칸이 380px 고정이라 두 줄로 쪼개면 한 칸이 164px 이
+   되는데, 이름(7.5rem)과 비율(3rem)만으로 이미 넘쳐서 막대 폭이 0 이 된다.
+   막대가 안 보이면 그린 뜻이 없다. */
+.usage-cols { display: grid; gap: 14px; }
+.usage-cols h4 {
+  margin: 0 0 6px; font-size: 0.82rem; color: var(--muted);
+  display: flex; align-items: baseline; gap: 6px;
+}
+.usage-cols h4 .sub { font-size: 0.68rem; font-weight: normal; }
+
+.usage-bars { list-style: none; margin: 0; padding: 0; }
+.usage-bars li {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.8rem; padding: 1px 0;
+}
+.usage-bars img { height: 18px; width: 18px; object-fit: contain; }
+/* 이름 칸을 고정폭으로 잡아야 막대의 왼쪽 끝이 줄마다 맞는다.
+   안 맞으면 길이를 눈으로 견줄 수가 없어 막대를 그린 뜻이 없다. */
+.usage-bars .nm {
+  flex: 0 1 6.5rem; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* SP 배분은 "2 / 32 / 0 / 0 / 0 / 32" 여섯 칸이라 이름 칸에 안 들어간다.
+   줄여서 자르면 뒤 세 칸이 사라지는데, 그건 스피드 투자를 안 보여주는
+   것이라 표의 뜻이 없어진다. */
+.usage-bars .nm.mono {
+  font-family: ui-monospace, monospace; font-size: 0.68rem;
+  flex: 0 0 9.5rem; letter-spacing: -0.02em;
+}
+.usage-bars .sub { flex: 0 0 6rem; color: var(--muted); font-size: 0.7rem; }
+/* min-width 0 이 없으면 flex 항목이 내용 크기 밑으로 안 줄어들어, 옆 칸이
+   넓을 때 막대가 밀려 사라진다. */
+.usage-bars .bar {
+  flex: 1 1 auto; min-width: 24px; height: 6px;
+  background: var(--border); border-radius: 3px;
+}
+.usage-bars .bar i {
+  display: block; height: 100%; background: var(--accent); border-radius: 3px;
+}
+.usage-bars .pct {
+  flex: 0 0 3rem; text-align: right; color: var(--muted); font-size: 0.72rem;
+}
+
+.usage-source {
+  margin: 12px 0 0; font-size: 0.7rem; color: var(--muted);
+  border-top: 1px solid var(--border); padding-top: 8px;
+}

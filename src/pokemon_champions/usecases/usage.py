@@ -250,6 +250,9 @@ def usage_of(conn, en_name, ko_name=None, fmt="Singles", top=8):
 # HP 는 성격이 안 건드리므로 여기 없다.
 NATURE_STAT = {"atk": "a", "def": "b", "spa": "c", "spd": "d", "spe": "s"}
 
+# 보정이 없는 성격. 저쪽은 넷으로 나눠 주지만 우리 표에는 하나다.
+NEUTRAL_NATURE_KO = "성실"
+
 
 def popular_spec(conn, en_name, fmt="Singles"):
     """DB 에 쌓인 가장 최근 채용률에서 "가장 많이 쓰인 한 벌" 을 만든다.
@@ -414,6 +417,12 @@ def detail_from_db(conn, en_name, ko_name=None, fmt="Singles", top=10):
               else maps.get(cat, {}).get(slugify(en)))
         entry = {"name": linked or en, "ko_name": ko,
                  "percent": _num(r["percent"])}
+        if cat == "stat_alignment" and ko is None and not r["stat_up"]:
+            # 저쪽은 무보정 성격을 넷으로 준다(Hardy · Docile · Serious ·
+            # Quirky). 레귤레이션 M-B 는 보정이 같은 것을 하나로 접어
+            # "성실" 만 두므로, 이름을 못 찾는 게 아니라 우리 쪽에 없는
+            # 것이다. 영문 그대로 두면 화면에 Hardy 가 뜬다.
+            entry["ko_name"] = ko = NEUTRAL_NATURE_KO
         if cat == "stat_alignment":
             entry["up"] = r["stat_up"]
             entry["up_ko_name"] = STAT_KO_BY_KEY.get(r["stat_up"])
