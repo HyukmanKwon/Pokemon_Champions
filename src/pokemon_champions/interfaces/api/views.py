@@ -218,6 +218,9 @@ def usage_detail(got):
         "meta_rank": got["meta_rank"],
         "sprite": assets.url_pokemon_sprite(got["pokemon_id"]),
         "types": type_badges(*got["types"]),
+        # 한국어 이름이 없는 폼은 종족값을 못 읽는다. 칸은 남기고 null 로
+        # 둔다 — 빼 버리면 읽는 쪽이 그 칸이 있다는 것을 잊는다.
+        "base": stats_dict(got["base"]) if got.get("base") else None,
         "source": got["source"],
         "moves": named(got.get("moves", [])),
         "items": named(got.get("items", []), assets.url_item_sprite),

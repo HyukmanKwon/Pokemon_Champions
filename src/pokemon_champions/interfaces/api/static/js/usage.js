@@ -147,6 +147,17 @@ const Usage = (() => {
       </li>`).join("")}</ol>`;
   }
 
+  // 머리의 종족값. 도감의 막대(dex.statBars)와 달리 여기는 값만 늘어놓는다 —
+  // 머리는 그림 높이(96px)까지만 쓸 수 있고, 막대 여섯 줄은 그 안에 안 들어간다.
+  // 여기서 알고 싶은 것도 "얼마나 빠른가" 지 "무엇이 제일 높은가" 가 아니다.
+  function baseStats(b) {
+    if (!b) return `<div class="usage-base"></div>`;
+    return `<div class="usage-base">${STAT_KEYS.map((k, i) => `
+      <div><span class="cap">${STAT_SHORT[i]}</span><span class="v">${b[k]}</span></div>`).join("")}
+      <div class="sum"><span class="cap">합계</span><span class="v">${b.total}</span></div>
+    </div>`;
+  }
+
   async function openDetail(koName) {
     state.selected = koName;
     renderTable();
@@ -166,16 +177,17 @@ const Usage = (() => {
 
     box.innerHTML = `
       <header class="usage-head">
-        ${iconImg(d.sprite, d.ko_name, "sprite")}
         <div class="who">
-          <div class="line">
-            <h3>${esc(d.ko_name)}</h3>
-            <span class="rank">${d.meta_rank}위</span>
-          </div>
+          <h3>${esc(d.ko_name)}</h3>
+          <span class="rank">${d.meta_rank}위</span>
+        </div>
+        <div class="what">
           <span class="type-badges">${(d.types || []).map(t =>
             iconImg(t.icon, typeKo(t.name), "")).join("")}</span>
+          <span class="sub">${esc(d.date)} · ${esc(d.format)}</span>
         </div>
-        <span class="sub">${esc(d.date)} · ${esc(d.format)}</span>
+        ${iconImg(d.sprite, d.ko_name, "sprite")}
+        ${baseStats(d.base)}
       </header>
       <div class="usage-cols">
         <section><h4>기술</h4>${bars(d.moves)}</section>

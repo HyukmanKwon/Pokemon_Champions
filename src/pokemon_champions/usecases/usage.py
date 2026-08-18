@@ -393,10 +393,15 @@ def detail_from_db(conn, en_name, ko_name=None, fmt="Singles", top=10):
                          "DB 에 아직 없습니다. "
                          "python -m scripts.etl.sync_usage --backfill"}
 
-    # 그 포켓몬 자신의 그림과 타입. 상세 머리에 크게 건다.
+    # 그 포켓몬 자신의 그림과 타입과 종족값. 상세 머리에 크게 건다.
+    # 채용률은 "무엇을 들려 어떻게 굴리나" 인데, 그 선택의 이유가 대개
+    # 종족값에 있다 — 스피드가 낮아서 트릭룸을, 방어가 두꺼워서 대타출동을
+    # 고른다. 머리에 없으면 도감 탭을 열어 견줘야 한다.
     meta = pokemon_repo.fetch_meta(conn, ko_name) if ko_name else {}
     pokemon_id = meta.get("id")
     types = [t for t in (meta.get("type1"), meta.get("type2")) if t]
+    # 한국어 이름이 없는 폼은 meta 도 못 읽는다. 그때는 종족값도 없다.
+    base = pokemon_repo.fetch_base(conn, ko_name) if ko_name else None
 
     maps = _ko_maps(conn)
     out = {}
@@ -445,6 +450,7 @@ def detail_from_db(conn, en_name, ko_name=None, fmt="Singles", top=10):
         "ko_name": ko_name,
         "pokemon_id": pokemon_id,
         "types": types,
+        "base": base,
         "format": fmt,
         "season": first["season"],
         "date": first["snapshot_date"].isoformat(),
