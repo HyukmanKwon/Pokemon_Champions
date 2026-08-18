@@ -121,8 +121,6 @@ const DEX = {
       {key: "category", label: "분류", cell: r => esc(dash(r.category)),
        sort: r => r.category || ""},
       numCol("fling_power", "던지기 위력"),
-      {key: "usable", label: "대전 사용", cls: "mid",
-       cell: r => r.usable ? "✓" : "✗", sort: r => r.usable ? 1 : 0},
       {key: "description", label: "설명",
        cell: r => `<span class="sub">${esc((r.description || "").slice(0, 60))}</span>`},
     ],
@@ -133,12 +131,6 @@ const DEX = {
        options: rows => [...new Set(rows.map(r => r.category).filter(Boolean))]
          .sort().map(v => ({value: v, label: v})),
        match: (r, v) => r.category === v},
-      {key: "usable", label: "대전 사용", options: () => [
-         {value: "yes", label: "가능만"}, {value: "no", label: "불가만"}],
-       match: (r, v) => v === "yes" ? r.usable : !r.usable},
-      {key: "reviewed", label: "사람 확인", options: () => [
-         {value: "no", label: "미확인만"}, {value: "yes", label: "확인됨만"}],
-       match: (r, v) => v === "yes" ? r.reviewed : !r.reviewed},
     ],
     detail: itemDetail,
   },
@@ -450,9 +442,7 @@ function moveDetail(d) {
       ["능력 변화 확률", d.stat_chance ? `${d.stat_chance}%` : ""],
       ["능력 변화", changes ? `${changes} <span class="sub">(${target})</span>` : ""],
     ])),
-    section("플래그", j(flags,
-      `<span class="chip ${d.reviewed ? "ok" : "warn"}">${
-        d.reviewed ? "사람이 확인함" : "미확인"}</span>`)),
+    section("플래그", flags),
     section(`배우는 포켓몬 (${d.learners.length})`, pokemonRel(d.learners)),
   );
 }
@@ -480,9 +470,6 @@ function itemDetail(d) {
     kv([
       ["분류", esc(dash(d.category))],
       ["던지기 위력", dash(d.fling_power)],
-      ["대전 사용", `<span class="chip ${d.usable ? "ok" : "warn"}">${
-        d.usable ? "가능" : "불가"}</span> <span class="chip ${
-        d.reviewed ? "ok" : "warn"}">${d.reviewed ? "확인됨" : "미확인"}</span>`],
     ]),
     m ? section("메가진화", `
       <p>

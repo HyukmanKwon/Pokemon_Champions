@@ -118,8 +118,7 @@ def ability_detail(row):
 
 def item_detail(row):
     return {"name": row["name"], "ko_name": row["ko_name"],
-            "category": row["category"], "description": row["description"],
-            "usable": row["usable"]}
+            "category": row["category"], "description": row["description"]}
 
 
 # ─────────────────────────────────────────────────────────────

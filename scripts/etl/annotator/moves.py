@@ -138,12 +138,16 @@ def fetch():
     cur = conn.cursor()
     # hits 는 min/max 를 합쳐 만드는 가상 열이라 SELECT 목록에서 뺀다
     cols = [c[0] for c in INFO_COLUMNS if c[0] != "hits"] \
-        + EXTRA_COLUMNS + list(FLAGS) + ["reviewed"]
+        + EXTRA_COLUMNS + list(FLAGS)
     cur.execute(f"SELECT {', '.join(cols)} FROM moves ORDER BY id")
     rows = [dict(zip(cols, r)) for r in cur.fetchall()]
     conn.close()
 
+    # 확인 여부는 moves 표에 없다. 큐레이션 작업 상태라 override JSON 에만 산다.
+    reviewed = set(overrides.load(OVERRIDE_KEY, refresh=True)["reviewed"])
+
     for r in rows:
+        r["reviewed"] = r["name"] in reviewed
         # 0은 빈칸으로 둔다. 그러면 선공기·후공기만 눈에 띈다
         r["priority"] = f"{r['priority']:+d}" if r["priority"] else None
         r["target"] = TARGET_LABELS.get(r["target"], r["target"])
@@ -166,9 +170,9 @@ def save(name, flags, reviewed):
     cur = conn.cursor()
     sets = ", ".join(f"{f} = %s" for f in FLAGS)
     cur.execute(
-        f"UPDATE moves SET {sets}, reviewed = %s WHERE name = %s "
+        f"UPDATE moves SET {sets} WHERE name = %s "
         f"RETURNING id, category",
-        [flags[f] for f in FLAGS] + [reviewed, name],
+        [flags[f] for f in FLAGS] + [name],
     )
     row = cur.fetchone()
     conn.commit()
@@ -202,7 +206,7 @@ def check_schema():
                 "WHERE table_name = 'moves'")
     have = {r[0] for r in cur.fetchall()}
     conn.close()
-    missing = [f for f in FLAGS + ["reviewed"] if f not in have]
+    missing = [f for f in FLAGS if f not in have]
     if missing:
         print("moves 테이블에 플래그 컬럼이 없습니다:", ", ".join(missing))
         print("\nREADME §7 로 DB를 지우고 python -m scripts.etl.build 를"

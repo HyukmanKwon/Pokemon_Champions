@@ -13,7 +13,7 @@ COLUMNS = ["id", "name", "ko_name", "type", "power", "accuracy",
            "target", "meta_category", "ailment", "ailment_chance",
            "crit_rate", "drain", "healing", "flinch_chance",
            "stat_chance", "min_hits", "max_hits",
-           *move_flags.FLAGS, "reviewed",
+           *move_flags.FLAGS,
            "description", "effect"]
 
 # annotator.py 가 쓰는 override 파일 이름
@@ -174,7 +174,7 @@ def parse_move(data):
     # 덮어쓴다. flag_source 는 CSV 를 썼는지 추측했는지 (통계용).
     category = data["damage_class"]["name"]
     flags, source = move_flags.resolve(data["id"], data["name"], category)
-    reviewed = overrides.apply(OVERRIDE_KEY, data["name"], flags)
+    overrides.apply(OVERRIDE_KEY, data["name"], flags)
 
     # 한국어 이름·설명도 override 를 태운다. PokeAPI 값이 옛 번역인 경우가 있다.
     ko = korean(data, KO_OVERRIDE_KEY)
@@ -203,7 +203,6 @@ def parse_move(data):
         "max_hits": meta.get("max_hits"),
 
         **flags,
-        "reviewed": reviewed,
 
         # 밑줄로 시작하는 둘은 COLUMNS 에 없다. moves 행에는 안 들어가지만
         # 같은 응답에서만 나오는 값이라 여기서 같이 들고 나간다.

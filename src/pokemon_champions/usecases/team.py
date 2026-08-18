@@ -118,7 +118,7 @@ def validate_spec(conn, spec, allow_mega=False):
 
     item = normalize(spec["item"]) if spec.get("item") else None
     if item and item not in set(
-            item_repo.fetch_usable(conn, include_mega_stones=True)):
+            item_repo.fetch_selectable(conn, include_mega_stones=True)):
         raise ValueError(f"포챔스에서 지닐 수 없는 도구입니다: {item}")
 
 

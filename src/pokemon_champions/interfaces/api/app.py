@@ -400,7 +400,7 @@ def get_items():
     받아서 여섯 카드가 같이 쓴다. 포켓몬을 가리는 것은 메가스톤뿐이고,
     그건 슬롯의 mega_stones 에 따로 들어 있다.
     """
-    return item_repo.fetch_usable(state["conn"])
+    return item_repo.fetch_selectable(state["conn"])
 
 
 @app.get("/api/types")

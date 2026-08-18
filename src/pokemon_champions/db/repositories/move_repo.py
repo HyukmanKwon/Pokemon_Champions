@@ -79,7 +79,7 @@ def fetch_list(conn):
     cur.execute(
         """
         SELECT id, name, ko_name, type, category,
-               power, accuracy, pp, priority, ailment, reviewed
+               power, accuracy, pp, priority, ailment
         FROM moves
         ORDER BY ko_name NULLS LAST, name
         """

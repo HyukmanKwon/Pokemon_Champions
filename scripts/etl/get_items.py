@@ -11,24 +11,18 @@ items 테이블용 06_items.sql 을 생성한다.
     도구는 "text" 다. pick_korean_flavor 에 키를 넘겨줘야 한다.
 """
 
-from . import overrides
 from . import schema
 from .parse_utils import (collect, endpoint, get_json, korean,
                           pick_english_effect, sql_of, to_values)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/item"
 KO_OVERRIDE_KEY = "item_ko_names"
-USABLE_OVERRIDE_KEY = "item_usable"
 POKEAPI_CATEGORY = "https://pokeapi.co/api/v2/item-category"
-
-# 카테고리로 긁어온 목록이라 대전에서 쓸 수 없는 것이 섞인다. PokeAPI 는 그
-# 구분을 주지 않으므로 일단 전부 TRUE 로 두고 사람이 확인한다.
-DEFAULT_USABLE = True
 
 FILENAME = "06_items.sql"
 TABLE = "items"
 COLUMNS = ["id", "name", "ko_name", "category",
-           "fling_power", "description", "effect", "usable", "reviewed"]
+           "fling_power", "description", "effect"]
 DDL = schema.ITEMS
 
 # ─────────────────────────────────────────────────────────────
@@ -44,9 +38,9 @@ ITEM_CATEGORIES = [
 # 카테고리 통째로 담기에는 아까운 것들. 카테고리 안에 대전에서 못 쓰는
 # 것이 더 많아서, 쓸 것만 이름으로 집는다.
 #
-# held-items 만 해도 72개인데 그중 남길 건 아래 정도다. 카테고리를 통째로
-# 넣고 나중에 usable 플래그로 거르는 방법도 있지만, 그러면 도감이 안 쓰는
-# 도구로 뒤덮인다.
+# held-items 만 해도 72개인데 그중 남길 건 아래 정도다. 여기서 좁히는 것이
+# 유일한 거름망이다 — 카테고리를 통째로 넣고 뒤에서 플래그로 거르면
+# 도감이 안 쓰는 도구로 뒤덮이고, 거르는 자리가 둘로 갈린다.
 EXTRA_ITEMS = [
     # 열매 — 상태이상 회복. status-cures 카테고리를 통째로 넣으면 해독제·
     # 만병통치제 같은 가방 아이템이 딸려 온다. 지니는 열매만 집는다.
@@ -132,12 +126,6 @@ def parse_item(data):
     # 손본 이름·설명을 덮어씌운다. 도구만 본문 키가 "text" 다.
     ko = korean(data, KO_OVERRIDE_KEY, flavor_key="text")
 
-    # 지닐 수 있는 도구인지의 판정. 이 적용이 없으면
-    # python -m scripts.etl.build 한 번에 손으로 찍은 것이 전부 날아간다.
-    #   python -m scripts.etl.annotator.items
-    flags = {"usable": DEFAULT_USABLE}
-    reviewed = overrides.apply(USABLE_OVERRIDE_KEY, data["name"], flags)
-
     return {
         "id": data["id"],
         "name": data["name"],
@@ -146,8 +134,6 @@ def parse_item(data):
         "fling_power": data["fling_power"],   # 던질 수 없는 도구는 None
         "description": ko["description"],
         "effect": pick_english_effect(data["effect_entries"]),
-        "usable": flags["usable"],
-        "reviewed": reviewed,
     }
 
 
@@ -159,8 +145,5 @@ def build(conn):
 
     rows = collect(items, fetch_item, parse_item)
 
-    judged = len(overrides.load(USABLE_OVERRIDE_KEY)["values"])
-    print(f"지닐 수 없다고 확인된 도구: {judged}개 "
-          f"(annotator/items.py 로 확인합니다)")
     return sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
 

@@ -38,7 +38,7 @@ def fake_repos(monkeypatch):
     monkeypatch.setattr(team.move_repo, "fetch_learnable",
                         lambda conn, ko: list(LEARNABLE))
     monkeypatch.setattr(
-        team.item_repo, "fetch_usable",
+        team.item_repo, "fetch_selectable",
         lambda conn, include_mega_stones=False:
             USABLE + (MEGA_STONES if include_mega_stones else []))
 

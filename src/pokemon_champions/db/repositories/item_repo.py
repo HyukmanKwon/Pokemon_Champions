@@ -1,22 +1,19 @@
 """items 테이블 조회.
 
-── usable 이 무엇인가 ──
-  PokeAPI 는 "포챔스에서 지니게 할 수 있는 도구인가"를 알려주지 않는다.
-  거르는 자리가 두 군데인데, 지금 일하는 쪽은 앞쪽이다.
+── 거르는 자리는 수집할 때 하나뿐이다 ──
+  "포챔스에서 지니게 할 수 있는 도구인가"를 PokeAPI 는 알려주지 않는다.
+  그 판단은 get_items.py 의 ITEM_CATEGORIES 3개 + EXTRA_ITEMS 낱개 지정이
+  전부 한다. 여기 들어온 것은 이미 지닐 수 있는 도구다.
 
-    1. 수집할 때   get_items.py 의 ITEM_CATEGORIES 3개 + EXTRA_ITEMS 낱개
-                   지정으로 애초에 좁게 받는다. 지금 166개가 이것이다
-    2. 받은 뒤     items.usable 로 거른다. annotator.items 로 찍는다
-
-  1 이 먼저 좁혀 주기 때문에 지금 DB 는 166개 전부 usable=true 이고,
-  이 함수의 WHERE usable 은 사실상 통과다. 그래도 조건을 남겨 둔다 —
-  카테고리를 넓히는 순간 2 가 유일한 방어선이 된다.
+  전에는 items.usable 로 한 번 더 걸렀지만, 그 칸은 168개 전부 true 라
+  아무것도 거르지 않으면서 "이 행을 써도 되나"를 매 질의마다 묻게 만들었다.
+  카테고리를 넓힐 일이 생기면 넓히는 그 자리에서 좁힌다.
 """
 
 from ._rows import one, rows
 
 
-def fetch_usable(conn, include_mega_stones=False):
+def fetch_selectable(conn, include_mega_stones=False):
     """포챔스에서 지닐 수 있는 도구를 한국어 이름으로, 가나다순으로.
 
     도구는 포켓몬마다 다르지 않으므로 전역 목록 하나면 된다.
@@ -31,7 +28,7 @@ def fetch_usable(conn, include_mega_stones=False):
       지니는 것은 잘못이 아니라 그냥 메가가 안 되는 것뿐이라서,
       주인이 아닌 스톤도 통과시켜야 한다.
     """
-    where = "usable AND ko_name IS NOT NULL"
+    where = "ko_name IS NOT NULL"
     if not include_mega_stones:
         where += " AND category <> 'mega-stones'"
 
@@ -45,18 +42,11 @@ def fetch_usable(conn, include_mega_stones=False):
 # ─────────────────────────────────────────────────────────────
 
 def fetch_list(conn):
-    """도구 전부. usable 로 거르지 않는다.
-
-    fetch_usable 은 "고를 수 있는 것"을 주는 함수라 거르는 게 맞지만,
-    도감은 DB 에 무엇이 들어 있는지 보는 화면이다. 여기서까지 걸러 버리면
-    usable=false 로 잘못 표시된 도구를 눈으로 찾아낼 방법이 없어진다.
-    대신 usable/reviewed 를 같이 보내 화면에서 표시하고 거르게 한다.
-    """
+    """도구 전부. 도감은 DB 에 무엇이 들어 있는지 보는 화면이다."""
     cur = conn.cursor()
     cur.execute(
         """
-        SELECT id, name, ko_name, category, fling_power,
-               description, usable, reviewed
+        SELECT id, name, ko_name, category, fling_power, description
         FROM items
         ORDER BY ko_name NULLS LAST, name
         """
@@ -73,7 +63,7 @@ def fetch_detail(conn, name):
     cur = conn.cursor()
     cur.execute(
         "SELECT id, name, ko_name, category, fling_power, "
-        "description, effect, usable, reviewed FROM items WHERE name = %s",
+        "description, effect FROM items WHERE name = %s",
         (name,),
     )
     row = one(cur)
@@ -86,7 +76,10 @@ def fetch_detail(conn, name):
                bp.name AS base_name, bp.ko_name AS base_ko_name,
                mp.id   AS mega_id,
                mp.name AS mega_name, mp.ko_name AS mega_ko_name,
-               me.variant
+               -- 이 쿼리는 도구가 주어라 items 를 조인하지 않는다.
+               -- 스톤 이름은 me.item_name 이 곧 그것이다.
+               CASE WHEN me.item_name LIKE '%%-x' THEN 'x'
+                    WHEN me.item_name LIKE '%%-y' THEN 'y' END AS variant
         FROM mega_evolutions me
         JOIN pokemons bp ON bp.name = me.base_name
         JOIN pokemons mp ON mp.name = me.mega_name
