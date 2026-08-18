@@ -1,4 +1,4 @@
-CREATE TYPE pokemon_natures_enum AS ENUM ('lonely', 'brave', 'adamant', 'naughty', 'bold', 'relaxed', 'impish', 'lax', 'timid', 'hasty', 'jolly', 'naive', 'modest', 'mild', 'quiet', 'rash', 'calm', 'gentle', 'sassy', 'careful', 'serious');
+CREATE TYPE pokemon_natures_enum AS ENUM ('lonely', 'brave', 'adamant', 'naughty', 'bold', 'relaxed', 'impish', 'lax', 'timid', 'hasty', 'jolly', 'naive', 'modest', 'mild', 'quiet', 'rash', 'calm', 'gentle', 'sassy', 'careful', 'serious', 'hardy', 'docile', 'bashful', 'quirky');
 
 CREATE TABLE pokemon_natures (
     en_name  pokemon_natures_enum PRIMARY KEY,
@@ -26,8 +26,12 @@ VALUES
     ('mild', '의젓', 'c', 'b'),
     ('quiet', '차분', 'c', 's'),
     ('rash', '덜렁', 'c', 'd'),
-    ('calm', '온순', 'd', 'a'),
+    ('calm', '침착', 'd', 'a'),
     ('gentle', '얌전', 'd', 'b'),
     ('sassy', '건방', 'd', 's'),
     ('careful', '신중', 'd', 'c'),
-    ('serious', '성실', NULL, NULL);
+    ('serious', '성실', NULL, NULL),
+    ('hardy', '노력', NULL, NULL),
+    ('docile', '온순', NULL, NULL),
+    ('bashful', '수줍음', NULL, NULL),
+    ('quirky', '변덕', NULL, NULL);

@@ -24,16 +24,21 @@ NATURES = [
     ("mild",    "의젓",       "c",  "b"),
     ("quiet",   "차분",       "c",  "s"),
     ("rash",    "덜렁",       "c",  "d"),
-    ("calm",    "온순",       "d",  "a"),
+    ("calm",    "침착",       "d",  "a"),
     ("gentle",  "얌전",       "d",  "b"),
     ("sassy",   "건방",       "d",  "s"),
     ("careful", "신중",       "d",  "c"),
+    # 무보정 성격 다섯. 능력치가 안 움직여서 서로 구별할 근거가 이름뿐이다.
     ("serious", "성실",       None, None),
+    ("hardy",   "노력",       None, None),
+    ("docile",  "온순",       None, None),
+    ("bashful", "수줍음",     None, None),
+    ("quirky",  "변덕",       None, None),
 ]
 
 
 def build(conn):
-    """02_natures.sql 전문을 만들어 돌려준다. (21행, API 호출 없음)"""
+    """02_natures.sql 전문을 만들어 돌려준다. (25행, API 호출 없음)"""
     return literal_build(conn, DDL, TABLE, COLUMNS, NATURES,
                          echo=lambda n: f"{n[0]:<10} {n[1]}")
 

@@ -57,7 +57,12 @@ FILLABLE = {"move": ("moves", "name"), "held_item": ("items", "name")}
 # 갈래별로 이름을 맞춰볼 우리 표. usage_rows.linked_name 이 이 결과다.
 # teammate 만 따로인 이유는 이름 규칙이 달라서다 (raichu-alola vs
 # Alolan Raichu) — resolve_pokemon 이 토큰으로 맞춘다.
-LINK_TABLE = {"move": "moves", "held_item": "items", "ability": "abilities"}
+#
+# stat_alignment 는 성격 이름(Jolly)이 오는데 오래 비워 두었었다. 그 줄이
+# 37,500개라 "어느 성격을 많이 쓰나" 를 SQL 로 못 냈다. 슬러그가 곧
+# pokemon_natures.en_name 이라 다른 갈래와 같은 방식으로 붙는다.
+LINK_TABLE = {"move": "moves", "held_item": "items", "ability": "abilities",
+              "stat_alignment": "pokemon_natures"}
 
 
 def to_row(raw, maps, index):

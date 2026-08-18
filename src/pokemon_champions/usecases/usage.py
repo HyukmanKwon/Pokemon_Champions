@@ -75,8 +75,27 @@ def _num(v):
     return None if v is None else round(float(v), 1)
 
 
+# 저쪽 자료의 표기 오류. 슬러그로 바꾸기 전에 원문을 갈아끼운다.
+#
+# 앞의 셋은 대문자 I 자리에 소문자 l 이 들어간 것이라 눈으로는 거의 구별이
+# 안 된다(lron / Iron). 맨 뒤는 잘린 표기다 — 이 이름이 붙은 네 마리
+# (블레이범·에스파더·펜드라·샤크니아)가 전부 speed-boost 를 숨은 특성으로
+# 가지고 있어서 가속으로 읽는다.
+#
+# 여기서 고치는 이유는 linked_name 이 안 붙으면 그 줄이 집계에서 조용히
+# 빠지기 때문이다. 원문(usage_rows.name)은 그대로 남으므로 저쪽이 표기를
+# 고치면 이 표에서 빼면 된다.
+SOURCE_ALIASES = {
+    "lron Fist": "Iron Fist",
+    "lron Ball": "Iron Ball",
+    "Leat Guard": "Leaf Guard",
+    "Boost": "Speed Boost",
+}
+
+
 def slugify(en_display):
     """'Focus Sash' -> 'focus-sash'. 우리 DB 의 name 형식으로 맞춘다."""
+    en_display = SOURCE_ALIASES.get(en_display, en_display)
     s = en_display.lower().replace("’", "").replace("'", "").replace(".", "")
     s = re.sub(r"[\s_]+", "-", s.strip())
     return re.sub(r"[^a-z0-9-]", "", s)
@@ -297,12 +316,18 @@ def popular_spec(conn, en_name, fmt="Singles"):
             percent["sp"] = pct
 
         elif cat == "stat_alignment":
-            # DB 의 stat_up/stat_down 은 이미 우리 키다(spe · spa).
-            # sync_usage.to_row 가 넣을 때 STAT_KEY 로 옮겨 두었으므로
-            # 여기서 또 옮기면 None 이 되어 전부 성실로 떨어진다.
-            up = NATURE_STAT.get(r["stat_up"])
-            down = NATURE_STAT.get(r["stat_down"])
-            ko = nature_repo.fetch_by_mods(conn, up, down)
+            # linked_name 이 곧 pokemon_natures.en_name 이라 이게 있으면
+            # 그대로 쓴다. 보정으로 되찾는 길은 무보정 성격 다섯(성실·노력·
+            # 온순·수줍음·변덕)을 구별하지 못한다.
+            ko = maps["stat_alignment"].get(r["linked_name"])
+            if ko is None:
+                # 옛 스냅샷은 linked_name 이 비어 있다. 그때는 보정으로 찾는다.
+                # DB 의 stat_up/stat_down 은 이미 우리 키다(spe · spa).
+                # sync_usage.to_row 가 넣을 때 STAT_KEY 로 옮겨 두었으므로
+                # 여기서 또 옮기면 None 이 되어 전부 성실로 떨어진다.
+                ko = nature_repo.fetch_by_mods(
+                    conn, NATURE_STAT.get(r["stat_up"]),
+                    NATURE_STAT.get(r["stat_down"]))
             if ko is None:
                 unmatched.append(("nature", en))
             else:
