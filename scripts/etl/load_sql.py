@@ -54,7 +54,11 @@ from . import paths
 from . import schema
 
 # SQL 파일에 없고 여기서 빈 표로 만드는 것들. (이름, DDL)
+#
+# 순서가 곧 CREATE 순서다. battle_names 가 맨 앞인 것은 스냅샷과 순위가
+# 그것을 참조하기 때문이고, usage_rows 는 usage_snapshots 뒤여야 한다.
 EMPTY_TABLES = [
+    ("battle_names", schema.BATTLE_NAMES),
     ("usage_snapshots", schema.USAGE_SNAPSHOTS),
     ("usage_rows", schema.USAGE_ROWS),
     ("usage_rankings", schema.USAGE_RANKINGS),

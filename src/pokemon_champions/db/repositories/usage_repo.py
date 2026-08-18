@@ -28,26 +28,42 @@ def known_keys(conn, season, fmt):
     return {(d, n) for d, n in cur.fetchall()}
 
 
+def link_battle_name(conn, battle_name, pokemon_name):
+    """저쪽 표기를 대응표에 올린다. 이미 있으면 우리 이름만 갱신한다.
+
+    이름을 못 붙였으면(NULL) 기존 값을 덮지 않는다. 로스터가 늘어 한 번
+    붙은 이름을, 매칭이 잠깐 실패한 날의 NULL 이 도로 지우면 안 된다.
+    """
+    conn.cursor().execute(
+        """
+        INSERT INTO battle_names (battle_name, pokemon_name) VALUES (%s, %s)
+        ON CONFLICT (battle_name) DO UPDATE
+            SET pokemon_name = COALESCE(EXCLUDED.pokemon_name,
+                                        battle_names.pokemon_name)
+        """,
+        (battle_name, pokemon_name),
+    )
+
+
 def save(conn, meta, rows):
     """스냅샷 한 장을 넣거나 갈아끼운다. snapshot_id 를 돌려준다.
 
     meta 는 season · snapshot_date · format · battle_name · pokemon_name ·
-    source · usage_rank 일곱 개다. rows 는 ROW_COLUMNS 에서 snapshot_id 를
-    뺀 dict 들.
+    source · usage_rank 일곱 개다. pokemon_name 은 usage_snapshots 가 아니라
+    battle_names 로 간다. rows 는 ROW_COLUMNS 에서 snapshot_id 를 뺀 dict 들.
     """
     cur = conn.cursor()
+    link_battle_name(conn, meta["battle_name"], meta.get("pokemon_name"))
     cur.execute(
         """
         INSERT INTO usage_snapshots
-            (season, snapshot_date, format, battle_name, pokemon_name,
-             source, usage_rank)
+            (season, snapshot_date, format, battle_name, source, usage_rank)
         VALUES (%(season)s, %(snapshot_date)s, %(format)s,
-                %(battle_name)s, %(pokemon_name)s, %(source)s, %(usage_rank)s)
+                %(battle_name)s, %(source)s, %(usage_rank)s)
         ON CONFLICT (season, snapshot_date, format, battle_name) DO UPDATE
-            SET pokemon_name = EXCLUDED.pokemon_name,
-                source       = EXCLUDED.source,
-                usage_rank   = EXCLUDED.usage_rank,
-                fetched_at   = now()
+            SET source     = EXCLUDED.source,
+                usage_rank = EXCLUDED.usage_rank,
+                fetched_at = now()
         RETURNING id
         """,
         meta,
@@ -117,12 +133,13 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
     cur.execute(
         """
         WITH latest AS (
-            SELECT id FROM usage_snapshots
-            WHERE pokemon_name = %s AND format = %s
+            SELECT s.id FROM usage_snapshots s
+            JOIN battle_names b ON b.battle_name = s.battle_name
+            WHERE b.pokemon_name = %s AND s.format = %s
             ORDER BY snapshot_date DESC, id DESC
             LIMIT 1
         )
-        SELECT r.category, r.rank, r.name, r.percent,
+        SELECT r.category, r.rank, r.name, r.linked_name, r.percent,
                r.stat_up, r.stat_down,
                r.hp_points, r.attack_points, r.defense_points,
                r.sp_atk_points, r.sp_def_points, r.speed_points,
@@ -147,14 +164,16 @@ def save_rankings(conn, taken_on, fmt, rows):
     남아 (taken_on, format, position) UNIQUE 에 걸리므로 먼저 지운다.
     """
     cur = conn.cursor()
+    for r in rows:
+        link_battle_name(conn, r["battle_name"], r.get("pokemon_name"))
     cur.execute("DELETE FROM usage_rankings WHERE taken_on = %s AND format = %s",
                 (taken_on, fmt))
     cur.executemany(
         """
         INSERT INTO usage_rankings
-            (taken_on, format, season, position, battle_name, pokemon_name)
+            (taken_on, format, season, position, battle_name)
         VALUES (%(taken_on)s, %(format)s, %(season)s, %(position)s,
-                %(battle_name)s, %(pokemon_name)s)
+                %(battle_name)s)
         """,
         [{"taken_on": taken_on, "format": fmt, **r} for r in rows],
     )
@@ -170,11 +189,12 @@ def fetch_ranking(conn, fmt="Singles", limit=20):
     cur = conn.cursor()
     cur.execute(
         """
-        SELECT r.position, r.battle_name, r.pokemon_name, p.ko_name,
+        SELECT r.position, r.battle_name, b.pokemon_name, p.ko_name,
                p.id AS pokemon_id, p.type1, p.type2,
                r.taken_on, r.season
         FROM usage_rankings r
-        LEFT JOIN pokemons p ON p.name = r.pokemon_name
+        JOIN battle_names b ON b.battle_name = r.battle_name
+        LEFT JOIN pokemons p ON p.name = b.pokemon_name
         WHERE r.format = %s
           AND r.taken_on = (SELECT max(taken_on) FROM usage_rankings
                             WHERE format = %s)
@@ -200,8 +220,9 @@ def fetch_rank_of(conn, pokemon_name, fmt="Singles"):
                (SELECT count(*) FROM usage_rankings
                 WHERE format = r.format AND taken_on = r.taken_on) AS total
         FROM usage_rankings r
-        WHERE pokemon_name = %s AND format = %s
-        ORDER BY taken_on DESC
+        JOIN battle_names b ON b.battle_name = r.battle_name
+        WHERE b.pokemon_name = %s AND r.format = %s
+        ORDER BY r.taken_on DESC
         LIMIT 1
         """,
         (pokemon_name, fmt),
@@ -225,10 +246,11 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
     cur.execute(
         """
         WITH latest AS (
-            SELECT id, snapshot_date, season, usage_rank
-            FROM usage_snapshots
-            WHERE pokemon_name = %s AND format = %s
-            ORDER BY snapshot_date DESC, id DESC
+            SELECT s.id, s.snapshot_date, s.season, s.usage_rank
+            FROM usage_snapshots s
+            JOIN battle_names b ON b.battle_name = s.battle_name
+            WHERE b.pokemon_name = %s AND s.format = %s
+            ORDER BY s.snapshot_date DESC, s.id DESC
             LIMIT 1
         )
         SELECT r.category, r.rank, r.name, r.linked_name, r.percent,
@@ -284,10 +306,11 @@ def fetch_rank_delta(conn, fmt="Singles", days=7):
             WHERE format = %(fmt)s AND usage_rank IS NOT NULL
               AND snapshot_date <= (SELECT d FROM latest) - %(days)s::int
         )
-        SELECT now.battle_name, now.pokemon_name,
+        SELECT now.battle_name, b.pokemon_name,
                now.usage_rank, was.usage_rank - now.usage_rank AS delta,
                now.snapshot_date, was.snapshot_date AS compared_to
         FROM usage_snapshots now
+        JOIN battle_names b ON b.battle_name = now.battle_name
         LEFT JOIN usage_snapshots was
                ON was.battle_name = now.battle_name
               AND was.format = now.format
