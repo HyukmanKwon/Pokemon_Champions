@@ -1,6 +1,8 @@
 CREATE TABLE pokemon_moves (
-    pokemon_name  VARCHAR(50) NOT NULL,
-    move_name     VARCHAR(50) NOT NULL,
+    pokemon_name  VARCHAR(50) NOT NULL
+        REFERENCES pokemons(name) ON UPDATE CASCADE ON DELETE CASCADE,
+    move_name     VARCHAR(50) NOT NULL
+        REFERENCES moves(name) ON UPDATE CASCADE,
     PRIMARY KEY (pokemon_name, move_name)
 );
 

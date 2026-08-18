@@ -13,14 +13,21 @@
   목록을 안 건드리고 그냥 돌리면 아무 일도 일어나지 않는다.
 
 ── 포켓몬만 넣어서는 안 되는 것들 ──
-  pokemons 행 하나가 abilities · pokemon_moves · mega_evolutions 세 곳을
-  가리킨다. 특성과 기술은 외래키가 없어서 없는 것을 가리켜도 INSERT 가
-  통과하고, 화면에서 그 칸만 조용히 빈다. 그래서 포켓몬을 넣고 뺀 뒤에
-  세 표를 차례로 맞춘다.
+  pokemons 행 하나가 pokemon_abilities · pokemon_moves · mega_evolutions
+  세 곳을 가리킨다. 그래서 포켓몬을 넣고 뺀 뒤에 세 표를 차례로 맞춘다.
+
+  특성은 넣는 순서가 정해져 있다. pokemon_abilities.ability_name 이
+  abilities(name) 을 참조하므로, 처음 보는 특성은 abilities 에 먼저 받아
+  두어야 한다. 그래서 포켓몬 행만 먼저 넣고 특성 행은 모아 두었다가
+  sync_abilities 뒤에 넣는다.
+
+  기술도 같은 이유로 moves 에 있는 것만 넣는다 (insert_moves 가 교집합을
+  취한다). 없는 기술을 넣으려 하면 외래키가 막는다.
 
 ── 지우는 순서 ──
-  pokemon_moves 와 mega_evolutions 가 pokemons(name) 을 참조한다. 참조하는
-  쪽을 먼저 지우지 않으면 외래키에 걸린다.
+  mega_evolutions 가 pokemons(name) 을 참조하는데 CASCADE 가 아니라,
+  먼저 끊지 않으면 외래키에 걸린다. pokemon_moves 와 pokemon_abilities 는
+  ON DELETE CASCADE 라 따로 지우지 않아도 딸려 나간다.
 
 ── 한 트랜잭션 ──
   중간에 실패하면 전부 되돌린다. 포켓몬은 지워졌는데 기술 연결만 남는
@@ -36,7 +43,7 @@ from .get_abilities import fetch_ability, parse_ability, select_ability_names
 from .get_items import COLUMNS as ITEM_COLUMNS
 from .get_items import collect_item_names, fetch_item, parse_item
 from .get_mega_evolutions import match_stone, select_stones
-from .get_pokemons import (COLUMNS, base_of, fetch_pokemon, mega_bases,
+from .get_pokemons import (COLUMNS, base_of, fetch_pokemon,
                            parse_pokemon, pokemon_M_B, split_mega)
 from .get_pokemon_moves import fetch_pokemon as fetch_moves_source
 
@@ -66,6 +73,21 @@ def insert_pokemon(cur, row):
     )
 
 
+def insert_abilities(cur, triples):
+    """pokemon_abilities 행들. abilities 를 채운 뒤에 불러야 한다.
+
+    ability_name 이 abilities(name) 을 참조하므로, 처음 보는 특성을 아직
+    안 받아둔 상태에서 넣으면 외래키가 막고 트랜잭션 전체가 무너진다.
+    그래서 포켓몬 행과 따로 떼어 sync_abilities 뒤로 미룬다.
+    """
+    for pokemon, ability, slot in triples:
+        cur.execute(
+            "INSERT INTO pokemon_abilities (pokemon_name, ability_name, slot)"
+            " VALUES (%s, %s, %s)",
+            (pokemon, ability, slot),
+        )
+
+
 def insert_moves(cur, name, valid):
     """새로 들어온 포켓몬의 습득 기술을 연결한다.
 
@@ -86,25 +108,14 @@ def insert_moves(cur, name, valid):
 
 
 def delete_pokemon(cur, name):
-    cur.execute("DELETE FROM pokemon_moves WHERE pokemon_name = %s", (name,))
+    # pokemon_moves 와 pokemon_abilities 는 ON DELETE CASCADE 라 딸려 나간다.
+    # mega_evolutions 만 CASCADE 가 아니라 여기서 먼저 끊는다 — 메가 관계를
+    # 조용히 지우면 어느 폼이 사라졌는지 로그에 안 남는다.
     cur.execute(
         "DELETE FROM mega_evolutions WHERE mega_name = %s OR base_name = %s",
         (name, name),
     )
     cur.execute("DELETE FROM pokemons WHERE name = %s", (name,))
-
-
-def sync_can_mega(cur):
-    """can_mega 를 목록 기준으로 다시 칠한다.
-
-    베이스가 바뀐 메가(floette-mega -> floette-eternal)가 있으면 예전 베이스에
-    켜져 있던 깃발이 남는다. 전부 껐다가 다시 켜는 편이 확실하다.
-    """
-    bases = sorted(mega_bases(pokemon_M_B))
-    cur.execute("UPDATE pokemons SET can_mega = FALSE")
-    cur.execute(
-        "UPDATE pokemons SET can_mega = TRUE WHERE name = ANY(%s)", (bases,))
-    return bases
 
 
 def sync_mega_bases(cur):
@@ -163,17 +174,17 @@ def sync_items(cur):
     return added, to_drop, failed, unlinked
 
 
-def sync_abilities(cur):
-    """pokemons 가 가리키는데 abilities 에 없는 특성을 받아 채운다.
+def sync_abilities(cur, extra=()):
+    """pokemon_abilities 가 가리키는데 abilities 에 없는 특성을 받아 채운다.
 
-    ability1/2/3 은 외래키가 아니라 그냥 문자열이라, 없는 특성을 가리켜도
-    INSERT 는 통과한다. 대신 상세 화면의 특성 목록이 abilities 와 JOIN 이라
-    그 칸만 조용히 빈다 — 모르페코의 하라펠코가 안 뜨는 게 이 경우다.
+    extra 는 아직 표에 안 들어간 특성 이름들이다. 새로 추가되는 포켓몬의
+    특성이 여기로 온다 — 그 행을 넣으려면 abilities 가 먼저 있어야 하는데,
+    표를 보고 목록을 만들면 아직 없어서 안 보인다. (모르페코의 하라펠코)
 
     삭제된 특성은 지우지 않는다. 어느 포켓몬도 안 가진 특성이 남아 있어도
     화면에 해로울 게 없고, 목록을 되돌릴 때 다시 받지 않아도 된다.
     """
-    wanted = set(select_ability_names(cur))
+    wanted = set(select_ability_names(cur)) | set(extra)
     cur.execute("SELECT name FROM abilities")
     have = {r[0] for r in cur.fetchall()}
 
@@ -198,10 +209,9 @@ def sync_mega_rows(cur):
     포켓몬만 넣고 여기를 안 채우면, 도감에는 뜨는데 엔트리에서 메가 버튼이
     안 생긴다 — resolve_mega 가 이 표를 보기 때문이다.
     """
-    cur.execute("SELECT name, is_mega FROM pokemons")
-    rows = cur.fetchall()
-    names = {n for n, _ in rows}
-    megas = sorted(n for n, is_mega in rows if is_mega)
+    cur.execute("SELECT name FROM pokemons")
+    names = {r[0] for r in cur.fetchall()}
+    megas = sorted(n for n in names if split_mega(n)[0] is not None)
 
     cur.execute("SELECT mega_name FROM mega_evolutions")
     have = {r[0] for r in cur.fetchall()}
@@ -215,12 +225,11 @@ def sync_mega_rows(cur):
         if base not in names:
             orphans.append(mega)
             continue
-        variant = split_mega(mega)[1]
-        stone = match_stone(base, variant, stones)
+        stone = match_stone(base, split_mega(mega)[1], stones)
         cur.execute(
             "INSERT INTO mega_evolutions"
-            " (mega_name, base_name, variant, item_name) VALUES (%s, %s, %s, %s)",
-            (mega, base, variant, stone),
+            " (mega_name, base_name, item_name) VALUES (%s, %s, %s)",
+            (mega, base, stone),
         )
         added.append((mega, stone))
     return added, orphans
@@ -257,17 +266,20 @@ def main():
     try:
         ensure_pokemon_id_column(cur)
 
-        bases = mega_bases(pokemon_M_B)
         cur.execute("SELECT name FROM moves")
         valid_moves = {r[0] for r in cur.fetchall()}
 
+        pending_abilities = []
         for name in to_add:
             data = fetch_pokemon(name)
             if data is None:
                 # PokeAPI 에 없는 이름이면 여기서 멈춘다. 조용히 건너뛰면
                 # 오타를 적어놓고 "추가됐겠지" 하고 넘어가게 된다.
                 raise SystemExit(f"PokeAPI 에 없는 이름: {name}")
-            insert_pokemon(cur, parse_pokemon(data, bases))
+            row = parse_pokemon(data)
+            insert_pokemon(cur, row)
+            # 특성 행은 abilities 를 채운 뒤에 넣는다. 아래 sync_abilities 참고.
+            pending_abilities.extend(row["_abilities"])
             n = insert_moves(cur, name, valid_moves)
             print(f"  + {name} (기술 {n}개)")
 
@@ -293,7 +305,7 @@ def main():
                     continue
                 cur.execute(
                     "UPDATE pokemons SET pokemon_id = %s WHERE name = %s",
-                    (parse_pokemon(data, bases)["pokemon_id"], name))
+                    (parse_pokemon(data)["pokemon_id"], name))
             print(f"  pokemon_id 채움: {missing}행")
 
         # 메가 관계표보다 먼저 맞춘다. 스톤을 items 에서 찾기 때문이다.
@@ -309,11 +321,15 @@ def main():
 
         # 포켓몬을 다 넣고 뺀 뒤에 본다. 새로 들어온 폼이 처음 들고 오는
         # 특성(모르페코의 하라펠코 같은)이 여기서 채워진다.
-        new_abilities, ability_failed = sync_abilities(cur)
+        new_abilities, ability_failed = sync_abilities(
+            cur, extra={a for _, a, _ in pending_abilities})
         for name, ko in new_abilities:
             print(f"  + 특성 {name} -> {ko}")
         if ability_failed:
             print(f"  ! 특성 못 받음: {ability_failed}")
+
+        # 이제서야 넣을 수 있다 — 위에서 abilities 가 채워졌다.
+        insert_abilities(cur, pending_abilities)
 
         added, orphans = sync_mega_rows(cur)
         for mega, stone in added:
@@ -324,7 +340,6 @@ def main():
         for mega in orphans:
             print(f"  ! {mega} - 베이스({base_of(mega)})가 DB 에 없어 건너뜀")
 
-        print(f"  can_mega 켜짐: {len(sync_can_mega(cur))}마리")
 
         conn.commit()
     except Exception:

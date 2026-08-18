@@ -3,7 +3,7 @@
 abilities 테이블용 05_abilities.sql 을 생성한다.
 
 핵심:
-  - 대상 특성 목록 = DB의 pokemons 테이블 ability1/2/3 에서 중복 없이 SELECT
+  - 대상 특성 목록 = DB의 pokemon_abilities 에서 중복 없이 SELECT
     (포켓몬 목록이 바뀌면 특성 목록도 자동으로 따라간다)
   - 따라서 03_pokemons.sql 이 DB에 올라간 뒤에 실행돼야 한다.
     build.py 는 생성과 실행을 번갈아 하므로 순서가 저절로 맞는다.
@@ -41,18 +41,9 @@ def parse_ability(data):
 
 
 def select_ability_names(cur):
-    """pokemons 테이블의 ability1/2/3을 합쳐 중복 없는 특성 이름 목록을 만든다."""
+    """pokemon_abilities 에 쓰인 특성 이름을 중복 없이. (03 단계가 채운다)"""
     cur.execute(
-        """
-        SELECT DISTINCT ability FROM (
-            SELECT ability1 AS ability FROM pokemons
-            UNION SELECT ability2 FROM pokemons
-            UNION SELECT ability3 FROM pokemons
-        ) t
-        WHERE ability IS NOT NULL
-        ORDER BY ability
-        """
-    )
+        "SELECT DISTINCT ability_name FROM pokemon_abilities ORDER BY 1")
     return [row[0] for row in cur.fetchall()]
 
 
@@ -64,4 +55,9 @@ def build(conn):
 
     rows = collect(abilities, fetch_ability, parse_ability)
     return sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
+
+
+# 이 파일 끝에 붙는 SQL. pokemon_abilities(03) 가 abilities(05) 를 가리키게
+# 만드는 외래키인데, 두 표가 모두 서 있는 첫 시점이 여기라 여기서 건다.
+POST_SQL = schema.POKEMON_ABILITIES_FK
 

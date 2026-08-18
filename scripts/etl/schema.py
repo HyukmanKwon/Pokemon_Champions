@@ -14,6 +14,9 @@ NATURE_NAMES = [
     "modest", "mild", "quiet", "rash",
     "calm", "gentle", "sassy", "careful",
     "serious",
+    # 무보정 성격. 본가는 다섯인데 오래 성실 하나만 넣어 두었다.
+    # 채용률에 이 넷이 41행 잡혀서 뒤늦게 채운다.
+    "hardy", "docile", "bashful", "quirky",
 ]
 
 
@@ -83,6 +86,15 @@ CREATE TABLE pokemon_natures (
 """
 )
 
+# can_mega / is_mega 를 칸으로 두지 않는다.
+#
+# 둘 다 mega_evolutions 에서 그대로 나온다 — 그 표에 base_name 으로 있으면
+# 메가가 가능하고, mega_name 으로 있으면 그 자체가 메가폼이다. 칸으로 두면
+# 관계표와 갈라질 수 있고, 실제로 갈리지 않게 하려고 migrate_roster 가
+# "전부 껐다가 다시 켜는" 함수(sync_can_mega)를 들고 있었다. 다시 칠해야
+# 하는 값이라면 애초에 저장할 값이 아니다.
+#
+# 읽는 쪽은 repositories 가 EXISTS 로 만들어 준다. 응답 모양은 그대로다.
 POKEMONS = f"""CREATE TABLE pokemons (
     id         INT,   -- PokeAPI 번호. 폼마다 다르고 폼 변이는 10000번대다
     pokemon_id INT,   -- 원종 도감 번호. 폼이 달라도 같다 (메가리자몽 -> 6)
@@ -90,9 +102,6 @@ POKEMONS = f"""CREATE TABLE pokemons (
     ko_name   VARCHAR(50),
     type1     {TYPES_ENUM} NOT NULL,
     type2     {TYPES_ENUM},
-    ability1  VARCHAR(50),
-    ability2  VARCHAR(50),
-    ability3  VARCHAR(50),
     height    REAL,
     weight    REAL,
     h         INT,
@@ -100,9 +109,7 @@ POKEMONS = f"""CREATE TABLE pokemons (
     b         INT,
     c         INT,
     d         INT,
-    s         INT,
-    can_mega  BOOLEAN NOT NULL DEFAULT FALSE,  -- 이 폼에서 메가진화가 가능한가
-    is_mega   BOOLEAN NOT NULL DEFAULT FALSE   -- 이 폼 자체가 메가폼인가
+    s         INT
 );
 """
 
@@ -131,7 +138,8 @@ MOVES = f"""CREATE TABLE moves (
     max_hits        INT,          -- 연속기 최대 타수. 단타는 NULL
 
     -- 기술 플래그. PokeAPI에 없어서 이름 규칙으로 추측하고 사람이 확인한다.
-    -- 확정값은 overrides/move_flags.json 에 쌓인다. (annotator/moves.py)
+    -- 확정값과 확인 여부는 overrides/move_flags.json 에 쌓인다.
+    -- (annotator/moves.py) 확인 여부는 큐레이션 작업 상태라 표에 두지 않는다.
     is_contact  BOOLEAN NOT NULL DEFAULT FALSE,  -- 까칠한피부, 정전기, 철가시
     is_punch    BOOLEAN NOT NULL DEFAULT FALSE,  -- 철주먹 +20%
     is_bite     BOOLEAN NOT NULL DEFAULT FALSE,  -- 옹골찬턱 +50%
@@ -144,7 +152,6 @@ MOVES = f"""CREATE TABLE moves (
     is_pulse    BOOLEAN NOT NULL DEFAULT FALSE,  -- 메가런처 위력 1.5배
     is_gravity  BOOLEAN NOT NULL DEFAULT FALSE,  -- 중력 상태에서 사용 불가
     is_press    BOOLEAN NOT NULL DEFAULT FALSE,  -- 작아지기 상대에 필중 + 2배
-    reviewed    BOOLEAN NOT NULL DEFAULT FALSE,  -- 사람이 플래그를 확인했는가
 
     description  TEXT,           -- 한국어 플레이버 텍스트
     effect       TEXT            -- 영어 효과 설명
@@ -174,6 +181,16 @@ ABILITIES = """CREATE TABLE abilities (
 );
 """
 
+# "포챔스에서 지닐 수 있는가" 를 칸으로 두지 않는다.
+#
+# 전에는 usable BOOLEAN 과 그것을 사람이 확인했는지를 적는 reviewed 가
+# 있었다. 그런데 거르는 자리가 이미 앞에 있다 — get_items.py 의
+# ITEM_CATEGORIES 3개 + EXTRA_ITEMS 낱개 지정이 애초에 좁게 받아서, 이 표에
+# 들어온 168개는 전부 지닐 수 있는 도구다. 뒤쪽 칸은 168개 전부 true 라
+# 아무것도 거르지 않으면서 읽는 쪽마다 "이 행을 써도 되나" 를 묻게 만들었다.
+#
+# 카테고리를 넓힐 일이 생기면 넓히는 그 자리에서 좁힌다. 거르는 자리는
+# 하나여야 한다.
 ITEMS = """CREATE TABLE items (
     id           INT PRIMARY KEY,
     name         VARCHAR(50) UNIQUE NOT NULL,
@@ -181,19 +198,53 @@ ITEMS = """CREATE TABLE items (
     category     VARCHAR(50),
     fling_power  INT,
     description  TEXT,
-    effect       TEXT,
-
-    -- 포챔스에서 지니게 할 수 있는가. PokeAPI 는 이 구분을 주지 않아서
-    -- 일단 전부 TRUE 로 두고 사람이 확인한다. (annotator/items.py)
-    -- 확정값은 overrides/item_usable.json 에 쌓이고 get_items.py 가 덮어씌운다.
-    usable      BOOLEAN NOT NULL DEFAULT TRUE,
-    reviewed    BOOLEAN NOT NULL DEFAULT FALSE   -- 사람이 usable 을 확인했는가
+    effect       TEXT
 );
 """
 
+# 포켓몬이 가질 수 있는 특성. 03 단계에서 pokemons 와 같이 만든다.
+#
+# 전에는 pokemons 에 ability1 / ability2 / ability3 세 칸으로 있었다. 같은
+# 속성이 색인만 달고 반복하는 모양이라(1NF 위반) 읽는 쪽이 매번 가로로
+# 펼쳐야 했다 — repositories 다섯 군데가 CROSS JOIN LATERAL (VALUES ...) 나
+# 3중 UNION 을 손으로 적고 있었다.
+#
+# 숨은 특성 여부는 칸으로 두지 않는다. slot = 3 이 곧 그것이다.
+#
+# slot 2 가 비고 slot 3 만 있는 포켓몬이 86마리다. 특성이 둘인데 하나가
+# 숨은 특성인 경우라, 번호에 구멍이 나는 것이 정상이다. 그래서 slot 을
+# "몇 번째" 가 아니라 PokeAPI 의 slot 값 그대로 둔다.
+#
+# abilities(name) 로 가는 외래키는 여기서 못 건다 — 그 표가 05 단계라
+# 이 파일보다 뒤에 선다. get_abilities 가 자기 파일 끝에서 ALTER 로 붙인다.
+POKEMON_ABILITIES = """CREATE TABLE pokemon_abilities (
+    pokemon_name  VARCHAR(50) NOT NULL
+        REFERENCES pokemons(name) ON UPDATE CASCADE ON DELETE CASCADE,
+    ability_name  VARCHAR(50) NOT NULL,
+    slot          SMALLINT NOT NULL CHECK (slot BETWEEN 1 AND 3),
+    PRIMARY KEY (pokemon_name, slot),
+    UNIQUE (pokemon_name, ability_name)
+);
+"""
+
+# 위 표가 abilities 를 가리키게 만드는 마지막 한 줄. 05_abilities.sql 끝에
+# 붙는다 — 그때가 두 표가 모두 서 있는 첫 시점이다.
+POKEMON_ABILITIES_FK = """ALTER TABLE pokemon_abilities
+    ADD CONSTRAINT pokemon_abilities_ability_fkey
+    FOREIGN KEY (ability_name) REFERENCES abilities(name) ON UPDATE CASCADE;
+"""
+
+# 습득 정보(레벨업/기술머신/유전)는 아직 없다. 포챔스가 그 구분을 룰로
+# 쓰는지 정한 뒤에 넣는다 — PokeAPI 의 version_group_details 에 값은 있다.
+#
+# ON DELETE CASCADE 는 migrate_roster 때문이다. 로스터에서 빠진 포켓몬을
+# DELETE 하는데, 기본값(RESTRICT)이면 기술이 연결된 포켓몬은 안 지워져
+# 그 스크립트가 통째로 롤백된다.
 POKEMON_MOVES = """CREATE TABLE pokemon_moves (
-    pokemon_name  VARCHAR(50) NOT NULL,
-    move_name     VARCHAR(50) NOT NULL,
+    pokemon_name  VARCHAR(50) NOT NULL
+        REFERENCES pokemons(name) ON UPDATE CASCADE ON DELETE CASCADE,
+    move_name     VARCHAR(50) NOT NULL
+        REFERENCES moves(name) ON UPDATE CASCADE,
     PRIMARY KEY (pokemon_name, move_name)
 );
 """
@@ -201,16 +252,6 @@ POKEMON_MOVES = """CREATE TABLE pokemon_moves (
 # ─────────────────────────────────────────────────────────────
 # 계산용 고정값. API 없이 만든다.
 # ─────────────────────────────────────────────────────────────
-
-# 랭크 변화 배수. 공격·방어 계열과 명중·회피는 계산식이 다르다.
-#   공방   stage >= 0 : (2 + stage) / 2      stage < 0 : 2 / (2 - stage)
-#   명중회피 stage >= 0 : (3 + stage) / 3      stage < 0 : 3 / (3 - stage)
-STAT_STAGES = """CREATE TABLE stat_stages (
-    stage          INT PRIMARY KEY,   -- -6 ~ +6
-    battle_mult    REAL NOT NULL,     -- a b c d s 에 적용
-    accuracy_mult  REAL NOT NULL      -- 명중률·회피율에 적용
-);
-"""
 
 # 상태이상 상수. 9세대 본가 기준값이므로 포챔스 룰이 다르면 여기만 고친다.
 STATUS_CONDITIONS = """CREATE TABLE status_conditions (
@@ -244,10 +285,13 @@ STATUS_CONDITIONS = """CREATE TABLE status_conditions (
 
 # 메가진화 관계. 한 포켓몬이 X/Y 두 개를 가질 수 있어서 mega_name 이 PK다.
 # pokemons 와 items 가 DB에 올라간 뒤에 만든다.
+#
+# variant(x/y)는 칸으로 두지 않는다. 스톤 이름이 그것을 담고 있다 —
+# charizardite-x / charizardite-y. 지금 76행 중 x·y 가 붙는 것은 리자몽과
+# 라이츄 넷뿐이고, 나머지는 단일 메가라 구분할 것이 없다.
 MEGA_EVOLUTIONS = """CREATE TABLE mega_evolutions (
     mega_name  VARCHAR(50) PRIMARY KEY REFERENCES pokemons(name),
     base_name  VARCHAR(50) NOT NULL REFERENCES pokemons(name),
-    variant    CHAR(1),      -- x / y, 단일 메가면 NULL
     item_name  VARCHAR(50) REFERENCES items(name)  -- 매칭 실패 시 NULL
 );
 """
@@ -310,22 +354,34 @@ TERRAINS = f"""CREATE TABLE terrains (
 #   옛 표기로 남는다.
 # ─────────────────────────────────────────────────────────────
 
+# 저쪽 표기 -> 우리 이름. 한 벌만 둔다.
+#
+# 전에는 usage_snapshots 와 usage_rankings 가 각자 pokemon_name 을 들고
+# 있었다. 그런데 battle_name 이 정해지면 pokemon_name 도 정해진다 —
+# 4,220행이 236개짜리 대응표를 반복해 보관하던 셈이고, 두 표의 값이
+# 갈라지면 어느 쪽이 맞는지 판별할 방법이 없었다. (이행 종속)
+#
+# 저쪽 표기를 키로 삼는 이유는 그것이 자료의 자연키이기 때문이다.
+# pokemon_name 은 로스터에 없는 이름이면 NULL 이라 키가 될 수 없고,
+# usage_rankings 의 기본키 구성 요소이기도 하다.
+#
+# ON DELETE SET NULL 은 migrate_roster 때문이다. 로스터에서 빠진 포켓몬을
+# DELETE 해도 기록은 지난 일이라 사실로 남아야 한다. battle_name 이
+# 남으므로 그 포켓몬이 다시 들어오면 이 표 한 행만 고치면 도로 이어붙는다
+# — 전에는 4,220행을 훑어야 했다.
+BATTLE_NAMES = """CREATE TABLE battle_names (
+    battle_name   VARCHAR(50) PRIMARY KEY,   -- 저쪽 표기 (Garchomp, Alolan Raichu)
+    pokemon_name  VARCHAR(50) REFERENCES pokemons(name) ON DELETE SET NULL
+);
+"""
+
 USAGE_SNAPSHOTS = """CREATE TABLE usage_snapshots (
     id             SERIAL PRIMARY KEY,
     season         VARCHAR(10) NOT NULL,   -- M4
     snapshot_date  DATE NOT NULL,          -- 저쪽 폴더명 DD_MM_YYYY 를 날짜로
     format         VARCHAR(10) NOT NULL,   -- Singles / Doubles
-    battle_name    VARCHAR(50) NOT NULL,   -- 저쪽 표기 (Garchomp, Alolan Raichu)
-
-    -- 우리 pokemons.name. 저쪽에만 있는 이름이면 NULL 이다 — 못 붙였다고
-    -- 스냅샷을 버리면 나중에 로스터가 늘었을 때 그 날짜만 구멍이 난다.
-    --
-    -- ON DELETE SET NULL 인 이유: migrate_roster 가 로스터에서 빠진 포켓몬을
-    -- DELETE 한다. 기본값(RESTRICT)이면 채용률을 한 번이라도 받아둔 포켓몬은
-    -- 지워지지 않아 그 스크립트가 통째로 롤백된다. 기록은 지난 일이라 로스터가
-    -- 바뀌어도 사실로 남아야 하고, battle_name 이 남아 있으므로 그 포켓몬이
-    -- 다시 들어오면 UPDATE 한 번으로 도로 이어붙일 수 있다.
-    pokemon_name   VARCHAR(50) REFERENCES pokemons(name) ON DELETE SET NULL,
+    battle_name    VARCHAR(50) NOT NULL REFERENCES battle_names(battle_name)
+                       ON UPDATE CASCADE,   -- 우리 이름은 그쪽에 있다
 
     source         TEXT,                  -- 받아온 CSV 경로. 어디서 왔는지 되짚을 때
 
@@ -343,7 +399,7 @@ USAGE_SNAPSHOTS = """CREATE TABLE usage_snapshots (
 
 -- 한 마리의 추세를 훑는 질의용. UNIQUE 는 (시즌,일자,...) 순이라 이쪽으로 못 쓴다.
 CREATE INDEX usage_snapshots_pokemon_idx
-    ON usage_snapshots (pokemon_name, format, snapshot_date);
+    ON usage_snapshots (battle_name, format, snapshot_date);
 """
 
 # 한 스냅샷의 본문. category 마다 채우는 칸이 다르다.
@@ -420,8 +476,8 @@ USAGE_RANKINGS = """CREATE TABLE usage_rankings (
     format        VARCHAR(10) NOT NULL,
     season        VARCHAR(10) NOT NULL,
     position      INT NOT NULL,           -- 1 이 1위
-    battle_name   VARCHAR(50) NOT NULL,   -- 저쪽 표기 (Garchomp)
-    pokemon_name  VARCHAR(50) REFERENCES pokemons(name) ON DELETE SET NULL,
+    battle_name   VARCHAR(50) NOT NULL REFERENCES battle_names(battle_name)
+                      ON UPDATE CASCADE,   -- 우리 이름은 battle_names 에 있다
     fetched_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (taken_on, format, battle_name)
 );
@@ -431,10 +487,10 @@ CREATE UNIQUE INDEX usage_rankings_position_idx
 """
 
 ALL_TABLES = [
-    "usage_rankings", "usage_rows", "usage_snapshots",
-    "pokemon_moves", "move_stat_changes", "mega_evolutions",
+    "usage_rankings", "usage_rows", "usage_snapshots", "battle_names",
+    "pokemon_moves", "pokemon_abilities", "move_stat_changes", "mega_evolutions",
     "items", "abilities", "moves", "pokemons",
     "pokemon_type_names", "pokemon_types", "pokemon_natures",
-    "stat_stages", "status_conditions", "weathers", "terrains",
+    "status_conditions", "weathers", "terrains",
 ]
 ALL_ENUMS = [TYPES_ENUM, NATURES_ENUM, "pokemon_type", "nature_name"]

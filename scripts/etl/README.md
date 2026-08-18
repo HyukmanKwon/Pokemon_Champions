@@ -77,7 +77,6 @@ scripts/etl/
 ├── get_items.py          06_items.sql
 ├── get_pokemon_moves.py  07_pokemon_moves.sql
 │
-├── get_stat_stages.py        08_stat_stages.sql
 ├── get_status_conditions.py  09_status_conditions.sql
 ├── get_mega_evolutions.py    10_mega_evolutions.sql
 ├── get_weathers.py           11_weathers.sql
@@ -123,13 +122,21 @@ python -m scripts.etl.sync_usage --date 30_07_2026 --format Doubles
 python -m scripts.etl.sync_usage --fill-missing   # 처음 보는 기술·도구를 채운다
 ```
 
-쌓이는 곳은 `usage_snapshots` · `usage_rows` 두 표다. 둘 다 `build.py` 의
-STEPS 에 없어서 **재구축이 다시 만들어 주지 않는다.** §7 로 전부 지우면
-기록도 함께 사라지므로, 지우기 전에 따로 떠 둔다.
+쌓이는 곳은 `battle_names` · `usage_snapshots` · `usage_rows` 세 표다. 전부
+`build.py` 의 STEPS 에 없어서 **재구축이 다시 만들어 주지 않는다.** §7 로
+전부 지우면 기록도 함께 사라지므로, 지우기 전에 따로 떠 둔다.
 
 ```bash
-pg_dump -d pokemon -t usage_snapshots -t usage_rows > usage_backup.sql
+pg_dump -d pokemon -t battle_names -t usage_snapshots -t usage_rows \
+        -t usage_rankings > usage_backup.sql
 ```
+
+`battle_names` 는 저쪽 표기(`Garchomp`)와 우리 이름(`garchomp`)의 대응표
+236행이다. 전에는 이 대응이 `usage_snapshots` 와 `usage_rankings` 양쪽에
+칸으로 들어 있어서 4,220행이 236개짜리 표를 반복 보관했고, 두 표의 값이
+갈라지면 판별할 방법이 없었다. 이제 한 벌만 있고 양쪽이 외래키로 가리킨다.
+
+로스터가 늘어 새 포켓몬이 붙을 때 고칠 곳도 이 표 한 행이다.
 
 접속 설정(`connect()`, `DB_CONFIG`)은 여기 없다. `pokemon_champions.db` 와
 `pokemon_champions.config` 에 있고 ETL 이 그것을 import 한다 — 앱과 ETL 이 서로 다른
@@ -142,7 +149,6 @@ data/
 ├── sql/         build.py 가 만든 SQL. 실행할 때마다 덮어쓴다 (git 제외)
 ├── overrides/   사람이 확정한 값. 재구축해도 살아남는다 (git 커밋 대상)
 │   ├── move_flags.json      기술 플래그
-│   ├── item_usable.json     포챔스에서 지닐 수 있는 도구인가
 │   └── *_ko_names.json      한국어 이름·설명 (특성·도구·기술)
 └── cache/       내려받은 PokeAPI CSV. 재생성 가능 (git 제외)
     └── move_flag_map.csv
@@ -165,7 +171,6 @@ data/
 | 05 | `05_abilities.sql` | `abilities` | 200 | 200 |
 | 06 | `06_items.sql` | `items` | 284 | 296 |
 | 07 | `07_pokemon_moves.sql` | `pokemon_moves` | 21,295 | 313 |
-| 08 | `08_stat_stages.sql` | `stat_stages` | 13 | 0 (고정값) |
 | 09 | `09_status_conditions.sql` | `status_conditions` | 7 | 0 (고정값) |
 | 10 | `10_mega_evolutions.sql` | `mega_evolutions` | 75 | 0 (DB에서 계산) |
 | 11 | `11_weathers.sql` | `weathers` | 4 | 0 (고정값) |
@@ -173,7 +178,8 @@ data/
 
 **생성과 실행을 번갈아 하는 이유**는 뒤 단계가 앞 단계의 테이블을 읽기 때문이다.
 
-- `05_abilities` 는 `pokemons` 의 `ability1/2/3` 을 훑어 대상 특성 목록을 만든다
+- `05_abilities` 는 `pokemon_abilities`(03 단계가 같이 만든다)를 훑어 대상
+  특성 목록을 만들고, 파일 끝에서 그 표의 외래키를 `ALTER` 로 붙인다
 - `07_pokemon_moves` 는 `pokemons` 와 `moves` 를 읽어 교집합만 저장한다
 - `10_mega_evolutions` 는 `pokemons` 의 메가폼과 `items` 의 메가스톤을 맞춘다
 
@@ -262,8 +268,6 @@ python -m scripts.etl.annotator.moves              # 기술 플래그 (8765)
 python -m scripts.etl.annotator.ko_names abilities # 특성 한국어 이름 (8766)
 python -m scripts.etl.annotator.ko_names items     # 도구 한국어 이름 (8767)
 python -m scripts.etl.annotator.ko_names moves     # 기술 한국어 이름 (8768)
-
-python -m scripts.etl.annotator.items              # 도구 사용 가능 여부 (8769)
 ```
 
 도구가 여러 개가 되므로 `annotator/` 폴더에 모아 둔다. 화면·서버·저장 흐름은
@@ -326,35 +330,25 @@ text_columns = [
 > JSON 파일 이름이 `*_ko_names` 인 것은 설명 지원 이전에 붙은 이름이다. 이미 손으로
 > 채운 값이 들어 있는 파일이라 굳이 바꾸지 않았다.
 
-### `items` — 지닐 수 있는 도구인가
+### `items` — 거르는 자리는 수집할 때 하나뿐이다
 
-도구 목록은 `ITEM_CATEGORIES` 의 카테고리를 합집합으로 긁어 만든다(§9). 카테고리
-단위라 대전에서 쓸 수 없는 것이 섞여 들어오는데, PokeAPI 에는 그 구분이 없다.
-그래서 **일단 전부 `usable = TRUE` 로 두고 X 만 찍는다.**
+"포챔스에서 지닐 수 있는가" 를 표의 칸으로 두지 않는다. 그 판단은 `get_items.py` 의
+`ITEM_CATEGORIES` 3개 + `EXTRA_ITEMS` 낱개 지정이 전부 한다(§9). 여기까지 들어온
+168개는 이미 지닐 수 있는 도구다.
 
-```bash
-python -m scripts.etl.annotator.items    # 8769
-```
+전에는 `usable` 칸과 그것을 확인했는지 적는 `reviewed` 칸이 더 있었고
+`annotator.items` 로 찍게 되어 있었다. 그런데 앞에서 이미 좁혀 놓은 탓에 168개가
+전부 `true` 였다 — 아무것도 거르지 않으면서 읽는 쪽마다 "이 행을 써도 되나" 를
+묻게 만들었다. 그래서 칸과 애노테이터를 함께 지웠다.
 
-분류(`category`)가 가장 큰 단서라 분류 순으로 정렬해 둔다. 한 분류는 대개 판정이
-같아서 몰아서 보는 편이 빠르고, 애매하면 오른쪽의 한국어 설명을 본다. 검색창은
-분류로도 걸려서 `mega-stones` 를 치면 메가스톤만 남는다.
+카테고리를 넓힐 일이 생기면 **넓히는 그 자리에서** 좁힌다. 거르는 자리가 둘이면
+어느 쪽이 진짜인지 판단할 근거가 없어진다.
 
-기술 플래그와 같이 **추측과 결론이 다른 것만** `values` 에 들어간다. 추측이 "전부
-사용 가능" 이므로, 파일에는 사실상 "쓸 수 없다고 찍은 것" 만 모인다.
-
-```json
-{ "reviewed": ["flame-orb"], "values": { "master-ball": {"usable": false} } }
-```
-
-`get_items.py` 가 `overrides.apply("item_usable", ...)` 로 이 값을 덮어씌운다.
-**이게 빠지면 재구축 한 번에 판정이 전부 날아간다.**
-
-엔트리 화면은 `items.usable` 을 두 곳에서 쓴다 — 도구 선택 목록
-(`item_repo.fetch_usable`)과 입력 검증(`usecases/team.py` 의 `validate_spec`)이다.
-메가스톤은 선택 목록에서만 빠진다. 92개를 통째로 올리면 쓸 수 있는 한두 개가
-묻히기 때문이고, 그 포켓몬 것만 따로 보여준다. 검증은 통과시킨다 — 남의 스톤을
-지니는 것은 잘못이 아니라 그냥 메가진화가 안 되는 것뿐이다.
+엔트리 화면의 도구 선택 목록(`item_repo.fetch_selectable`)과 입력 검증
+(`usecases/team.py` 의 `validate_spec`)은 이제 `ko_name` 유무만 본다. 메가스톤은
+선택 목록에서만 빠진다 — 92개를 통째로 올리면 쓸 수 있는 한두 개가 묻히기
+때문이고, 그 포켓몬 것만 따로 보여준다. 검증은 통과시킨다. 남의 스톤을 지니는
+것은 잘못이 아니라 그냥 메가진화가 안 되는 것뿐이다.
 
 ---
 
@@ -559,7 +553,6 @@ python -m scripts.etl.dump_sql 04_moves     # 한 파일만
 | `pokemons` | 314 | 317 |
 | `pokemon_moves` | 21,296 | 21,609 |
 
-게다가 그때 `06_items.sql` 은 INSERT 칼럼에 `usable`·`reviewed` 가 없었다.
 스키마가 바뀌기 전에 만든 파일이라 지금 DB 에는 실행조차 안 된다.
 
 **DDL 은 여전히 `schema.py` 에서 온다.** DB 에서 `CREATE TABLE` 을 역으로
@@ -586,7 +579,7 @@ python -m scripts.etl.dump_sql 04_moves     # 한 파일만
 ```sql
 DROP TABLE IF EXISTS pokemon_moves, move_stat_changes, mega_evolutions,
     items, abilities, moves, pokemons, pokemon_types, pokemon_natures,
-    stat_stages, status_conditions, weathers, terrains CASCADE;
+    status_conditions, weathers, terrains CASCADE;
 DROP TYPE IF EXISTS pokemon_types_enum, pokemon_natures_enum CASCADE;
 ```
 
@@ -628,15 +621,18 @@ WHERE datname = 'pokemon' AND pid <> pg_backend_pid();
 | `name` | VARCHAR(50) | **PK**. `charizard-mega-x` 형식 |
 | `ko_name` | VARCHAR(50) | 메가리자몽X |
 | `type1` `type2` | `pokemon_types_enum` | 단일 타입이면 `type2`는 NULL |
-| `ability1~3` | VARCHAR(50) | `abilities.name` 과 대응 |
 | `height` `weight` | REAL | m, kg |
 | `h a b c d s` | INT | 종족값 |
-| `can_mega` | BOOLEAN | 이 폼에서 메가진화가 가능한가 |
-| `is_mega` | BOOLEAN | 이 폼 자체가 메가폼인가 |
 
-`can_mega` / `is_mega` 는 API 값이 아니라 `pokemon_M_B` 안에서 계산한다.
-`gengar-mega` 가 목록에 있으면 `gengar` 의 `can_mega` 가 TRUE 가 된다.
-포챔스에서 못 쓰는 메가는 목록에서 빼는 것만으로 반영된다.
+메가 관련 칸은 없다. `can_mega` / `is_mega` 는 `mega_evolutions` 에서 그대로
+나온다 — 그 표에 `base_name` 으로 있으면 메가가 가능하고, `mega_name` 으로
+있으면 그 자체가 메가폼이다. 읽는 쪽은 `pokemon_repo` 가 `EXISTS` 로 만들어
+주므로 API 응답 모양은 예전과 같다.
+
+전에는 두 칸이 실제로 있었고, 관계표와 갈라지지 않게 `migrate_roster` 가
+`sync_can_mega()` 로 매번 전부 껐다 켰다. **다시 칠해야 하는 값이라면 애초에
+저장할 값이 아니다.** 포챔스에서 못 쓰는 메가는 `pokemon_M_B` 목록에서 빼는
+것만으로 반영되는 것도 그대로다.
 
 ### `moves` — 기술
 `id`(PK), `name`(UNIQUE), `ko_name`, `type`, `power`, `accuracy`, `pp`,
@@ -677,7 +673,6 @@ CSV 덤프**에서 가져오고, CSV 가 커버하지 않는 것만 이름 규�
 | `is_wind` | 바람 | 바람타기 무효 + 공격 1랭크↑, 풍력발전 충전 | **추측** |
 | `is_slicing` | 베기 | 예리함 위력 1.5배 | **추측** |
 | `is_press` | 압박 | 작아지기 상대에게 필중 + 피해 2배 | **추측** |
-| `reviewed` | | 사람이 이 기술의 플래그를 확인했는가 | |
 
 나무위키 13개 성질 중 개요를 뺀 12개가 그대로 들어갔다.
 
@@ -740,28 +735,11 @@ CSV 를 쓰는 효과는 분명하다. 예를 들어 이름 규칙으로는 `sup
 `id`(PK), `name`(UNIQUE), `ko_name`, `category`, `fling_power`,
 `description`(한글), `effect`(영문)
 
-| 컬럼 | 설명 |
-|---|---|
-| `usable` | 포챔스에서 지닐 수 있는가. 기본 TRUE, 사람이 X 를 찍는다 |
-| `reviewed` | 사람이 `usable` 을 확인했는가 |
-
-목록을 카테고리 단위로 긁어오는 탓에 대전에서 쓸 수 없는 것이 섞인다. PokeAPI 가
-그 구분을 주지 않아서 `annotator/items.py` 로 확인하고, 결과는
-`overrides/item_usable.json` 에 쌓인다. 엔트리 화면의 도구 선택 목록과 입력 검증이
-이 칸을 본다.
+"지닐 수 있는가" 를 적는 칸은 없다. `ITEM_CATEGORIES` + `EXTRA_ITEMS` 가 수집할 때
+이미 좁히므로 이 표에 들어온 것은 전부 지닐 수 있는 도구다 (§5).
 
 ### `pokemon_moves` — 포켓몬-기술 연결
 `pokemon_name`, `move_name` (둘이 합쳐 PK)
-
-### `stat_stages` — 랭크 변화 배수 (13행, 고정값)
-`stage`(PK, -6~+6), `battle_mult`, `accuracy_mult`
-
-공방과 명중·회피는 계산식이 다르다. 같은 +1이라도 공격은 1.5배, 명중은 1.333배다.
-
-```
-공방      stage >= 0 : (2 + stage) / 2      stage < 0 : 2 / (2 - stage)
-명중회피   stage >= 0 : (3 + stage) / 3      stage < 0 : 3 / (3 - stage)
-```
 
 ### `status_conditions` — 상태이상 상수 (7행, 고정값)
 `name`(PK), `ko_name`, `attack_mult`, `speed_mult`, `turn_damage`,
@@ -778,8 +756,13 @@ FROM moves m JOIN status_conditions s ON m.ailment = s.name;
 마비 스피드 1/4→1/2) 포챔스가 다르면 `get_status_conditions.py` 의
 `CONDITIONS` 만 고치면 된다.
 
-### `mega_evolutions` — 메가진화 관계 (75행)
-`mega_name`(PK), `base_name`, `variant`(x/y/NULL), `item_name`
+### `mega_evolutions` — 메가진화 관계 (76행)
+`mega_name`(PK), `base_name`, `item_name`
+
+`variant`(x/y) 칸은 없다. 스톤 이름이 그것을 담고 있어서다 —
+`charizardite-x` / `charizardite-y`. 76행 중 x·y 가 갈리는 것은 리자몽과
+라이츄 넷뿐이고 나머지는 단일 메가라 구분할 것이 없다. 화면 배지와 정렬은
+`item_name` 의 접미사에서 뽑는다.
 
 베이스는 이름 규칙으로 자른다(`charizard-mega-x` → `charizard` + `x`).
 메가스톤은 규칙이 없어서 — `blastoisinite`(blastoise), `heracronite`(heracross),
@@ -838,8 +821,7 @@ PokeAPI 이름 형식(소문자, 하이픈)으로 적는다. 예: `charizard-meg
 같은 형식. `Fire Punch` → `fire-punch`
 
 ### 특성 — 목록을 적지 않는다
-`pokemons` 테이블의 `ability1/2/3` 에서 자동으로 뽑는다. 포켓몬을 추가하면
-특성도 따라온다.
+`pokemon_abilities` 에서 자동으로 뽑는다. 포켓몬을 추가하면 특성도 따라온다.
 
 ### 도구 — `get_items.py` 의 `ITEM_CATEGORIES`
 PokeAPI 카테고리 단위로 수집한다. 포챔스 룰에 따라 넣고 빼면 된다.
@@ -871,9 +853,14 @@ PokeAPI에 한국어가 아직 없는 항목이 있다.
 `schema.py` 의 DDL 은 순수한 `CREATE TYPE` / `CREATE TABLE` 이다. 그래서 SQL 파일을
 두 번 실행하면 `already exists` 로 실패한다. 삭제는 §7 의 psql 명령이 유일한 수단이다.
 
-### 외래키는 아직 없다
-`pokemons.ability1 → abilities.name`, `pokemon_moves.pokemon_name → pokemons.name`
-같은 FK를 걸 수 있지만 지금은 넣지 않았다.
+### 외래키
+지금 10개가 걸려 있다 — `pokemon_abilities` 의 둘, `mega_evolutions` 의 셋,
+`move_stat_changes` · `battle_names` · `usage_rows` · `usage_snapshots` ·
+`usage_rankings` 가 각각 하나씩.
+
+아직 없는 것은 `pokemon_moves` 의 두 칸이다. 21,609행이라 걸어도 고아가
+0건인 것은 확인했지만, 습득 정보(`learn_method` 등)를 넣을지 정한 뒤에
+한 번에 손대는 편이 낫다.
 
 ---
 

@@ -55,8 +55,10 @@ def fetch_selectable(conn):
     """
     cur = conn.cursor()
     cur.execute(
-        "SELECT ko_name FROM pokemons "
-        "WHERE NOT is_mega AND ko_name IS NOT NULL ORDER BY ko_name"
+        "SELECT ko_name FROM pokemons p "
+        "WHERE NOT EXISTS (SELECT 1 FROM mega_evolutions m"
+        "                  WHERE m.mega_name = p.name) "
+        "  AND ko_name IS NOT NULL ORDER BY ko_name"
     )
     return [r[0] for r in cur.fetchall()]
 
@@ -69,7 +71,10 @@ def fetch_meta(conn, ko_name):
     """
     cur = conn.cursor()
     cur.execute(
-        "SELECT id, type1, type2, is_mega FROM pokemons WHERE ko_name = %s",
+        "SELECT p.id, p.type1, p.type2, "
+        "       EXISTS (SELECT 1 FROM mega_evolutions m"
+        "               WHERE m.mega_name = p.name) AS is_mega "
+        "FROM pokemons p WHERE p.ko_name = %s",
         (normalize(ko_name),),
     )
     row = cur.fetchone()
@@ -85,9 +90,9 @@ def fetch_abilities(conn, ko_name):
 
         fetch_abilities(conn, "이상해꽃")  ->  ['심록', '엽록소']
 
-    ability1/2/3 은 영문 이름이라 abilities 와 조인해야 한국어가 나온다.
-    세 칸을 가로로 펼쳐 조인하는 이유는 슬롯 순서(1 · 2 · 숨은특성)를
-    그대로 유지하기 위해서다. 빈 칸(NULL)은 조인에서 저절로 빠진다.
+    pokemon_abilities 는 영문 이름을 들고 있어 abilities 와 조인해야
+    한국어가 나온다. slot 으로 정렬하는 이유는 순서(1 · 2 · 숨은특성)가
+    화면에서 의미를 갖기 때문이다.
 
     한국어 이름이 없는 신규 특성은 영문 이름으로 대신한다. 그마저 없으면
     화면에도 검증에도 쓸 이름이 없어진다.
@@ -97,12 +102,10 @@ def fetch_abilities(conn, ko_name):
         """
         SELECT COALESCE(ab.ko_name, ab.name)
         FROM pokemons p
-        CROSS JOIN LATERAL (
-            VALUES (1, p.ability1), (2, p.ability2), (3, p.ability3)
-        ) AS slot(pos, en_name)
-        JOIN abilities ab ON ab.name = slot.en_name
+        JOIN pokemon_abilities pa ON pa.pokemon_name = p.name
+        JOIN abilities ab         ON ab.name = pa.ability_name
         WHERE p.ko_name = %s
-        ORDER BY slot.pos
+        ORDER BY pa.slot
         """,
         (normalize(ko_name),),
     )
@@ -127,10 +130,12 @@ def fetch_list(conn):
     cur = conn.cursor()
     cur.execute(
         """
-        SELECT id, pokemon_id, name, ko_name, type1, type2,
-               height, weight, h, a, b, c, d, s, can_mega, is_mega
-        FROM pokemons
-        ORDER BY pokemon_id, id, name
+        SELECT p.id, p.pokemon_id, p.name, p.ko_name, p.type1, p.type2,
+               p.height, p.weight, p.h, p.a, p.b, p.c, p.d, p.s,
+               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.base_name = p.name) AS can_mega,
+               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.mega_name = p.name) AS is_mega
+        FROM pokemons p
+        ORDER BY p.pokemon_id, p.id, p.name
         """
     )
     return rows(cur)
@@ -145,9 +150,11 @@ def fetch_detail(conn, name):
     cur = conn.cursor()
     cur.execute(
         """
-        SELECT id, pokemon_id, name, ko_name, type1, type2,
-               height, weight, h, a, b, c, d, s, can_mega, is_mega
-        FROM pokemons WHERE name = %s
+        SELECT p.id, p.pokemon_id, p.name, p.ko_name, p.type1, p.type2,
+               p.height, p.weight, p.h, p.a, p.b, p.c, p.d, p.s,
+               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.base_name = p.name) AS can_mega,
+               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.mega_name = p.name) AS is_mega
+        FROM pokemons p WHERE p.name = %s
         """,
         (name,),
     )
@@ -158,15 +165,13 @@ def fetch_detail(conn, name):
     # 특성. 슬롯 3번이 숨은 특성이라 순서를 지켜야 한다.
     cur.execute(
         """
-        SELECT slot.pos, ab.name, ab.ko_name, ab.description,
-               slot.pos = 3 AS is_hidden
+        SELECT pa.slot AS pos, ab.name, ab.ko_name, ab.description,
+               pa.slot = 3 AS is_hidden
         FROM pokemons p
-        CROSS JOIN LATERAL (
-            VALUES (1, p.ability1), (2, p.ability2), (3, p.ability3)
-        ) AS slot(pos, en_name)
-        JOIN abilities ab ON ab.name = slot.en_name
+        JOIN pokemon_abilities pa ON pa.pokemon_name = p.name
+        JOIN abilities ab         ON ab.name = pa.ability_name
         WHERE p.name = %s
-        ORDER BY slot.pos
+        ORDER BY pa.slot
         """,
         (name,),
     )
@@ -190,12 +195,13 @@ def fetch_detail(conn, name):
     cur.execute(
         """
         SELECT mp.name AS mega_name, mp.ko_name AS mega_ko_name,
-               me.variant, i.name AS item_name, i.ko_name AS item_ko_name
+               CASE WHEN i.name LIKE '%%-x' THEN 'x'
+                    WHEN i.name LIKE '%%-y' THEN 'y' END AS variant, i.name AS item_name, i.ko_name AS item_ko_name
         FROM mega_evolutions me
         JOIN pokemons mp  ON mp.name = me.mega_name
         LEFT JOIN items i ON i.name  = me.item_name
         WHERE me.base_name = %s
-        ORDER BY me.variant NULLS FIRST, mp.name
+        ORDER BY i.name NULLS FIRST, mp.name
         """,
         (name,),
     )
@@ -204,7 +210,8 @@ def fetch_detail(conn, name):
     cur.execute(
         """
         SELECT bp.name AS base_name, bp.ko_name AS base_ko_name,
-               me.variant, i.name AS item_name, i.ko_name AS item_ko_name
+               CASE WHEN i.name LIKE '%%-x' THEN 'x'
+                    WHEN i.name LIKE '%%-y' THEN 'y' END AS variant, i.name AS item_name, i.ko_name AS item_ko_name
         FROM mega_evolutions me
         JOIN pokemons bp  ON bp.name = me.base_name
         LEFT JOIN items i ON i.name  = me.item_name

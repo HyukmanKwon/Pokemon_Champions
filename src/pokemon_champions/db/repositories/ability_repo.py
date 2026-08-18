@@ -42,8 +42,8 @@ def fetch_list(conn):
         SELECT ab.id, ab.name, ab.ko_name, ab.description,
                COUNT(p.name) AS pokemon_count
         FROM abilities ab
-        LEFT JOIN pokemons p
-               ON ab.name IN (p.ability1, p.ability2, p.ability3)
+        LEFT JOIN pokemon_abilities pa ON pa.ability_name = ab.name
+        LEFT JOIN pokemons p           ON p.name = pa.pokemon_name
         GROUP BY ab.id, ab.name, ab.ko_name, ab.description
         ORDER BY ab.ko_name NULLS LAST, ab.name
         """
@@ -70,12 +70,10 @@ def fetch_detail(conn, name):
     cur.execute(
         """
         SELECT p.id, p.name, p.ko_name, p.type1, p.type2,
-               slot.pos, slot.pos = 3 AS is_hidden
-        FROM pokemons p
-        CROSS JOIN LATERAL (
-            VALUES (1, p.ability1), (2, p.ability2), (3, p.ability3)
-        ) AS slot(pos, en_name)
-        WHERE slot.en_name = %s
+               pa.slot AS pos, pa.slot = 3 AS is_hidden
+        FROM pokemon_abilities pa
+        JOIN pokemons p ON p.name = pa.pokemon_name
+        WHERE pa.ability_name = %s
         ORDER BY p.id, p.name
         """,
         (name,),

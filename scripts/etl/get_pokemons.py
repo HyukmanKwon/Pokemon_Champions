@@ -106,8 +106,17 @@ POKEAPI_BASE = "https://pokeapi.co/api/v2/pokemon"
 FILENAME = "03_pokemons.sql"
 TABLE = "pokemons"
 COLUMNS = ["id", "pokemon_id", "name", "ko_name", "type1", "type2",
-           "ability1", "ability2", "ability3", "height", "weight",
-           "h", "a", "b", "c", "d", "s", "can_mega", "is_mega"]
+           "height", "weight",
+           "h", "a", "b", "c", "d", "s"]
+
+# 한 파일 안에 두 번째 표도 같이 만든다. 같은 응답에서 나오므로 API 를
+# 다시 부르지 않는다. (get_moves 의 move_stat_changes 와 같은 결)
+ABILITY_TABLE = "pokemon_abilities"
+ABILITY_COLUMNS = ["pokemon_name", "ability_name", "slot"]
+ABILITY_DDL = schema.POKEMON_ABILITIES
+
+# dump_sql 이 읽는 목록 — 이 파일에 표가 하나 더 있다는 뜻이다.
+EXTRA = [(ABILITY_DDL, ABILITY_TABLE, ABILITY_COLUMNS)]
 DDL = schema.POKEMONS
 
 # charizard-mega-x -> ("charizard", "x") / gengar-mega -> ("gengar", None)
@@ -156,10 +165,9 @@ def species_id(data):
     return int(data["species"]["url"].rstrip("/").rsplit("/", 1)[1])
 
 
-def parse_pokemon(data, bases=()):
+def parse_pokemon(data):
     """포켓몬 한 마리의 응답에서 pokemons 한 행을 뽑는다.
 
-    bases 는 '메가폼을 가진 베이스 이름들'. can_mega 를 켜는 데만 쓴다.
     """
     stats = {s["stat"]["name"]: s["base_stat"] for s in data["stats"]}
     types = {t["slot"]: t["type"]["name"] for t in data["types"]}
@@ -178,9 +186,6 @@ def parse_pokemon(data, bases=()):
         "ko_name": ko_name,
         "type1": types.get(1),
         "type2": types.get(2),
-        "ability1": abilities.get(1),
-        "ability2": abilities.get(2),
-        "ability3": abilities.get(3),
         "height": data["height"] / 10,   # 17 → 1.7 (m)
         "weight": data["weight"] / 10,   # 905 → 90.5 (kg)
         "h": stats["hp"],
@@ -189,8 +194,11 @@ def parse_pokemon(data, bases=()):
         "c": stats["special-attack"],
         "d": stats["special-defense"],
         "s": stats["speed"],
-        "can_mega": data["name"] in bases,
-        "is_mega": split_mega(data["name"])[0] is not None,
+
+        # 밑줄로 시작해서 COLUMNS 에 없다. pokemons 행에는 안 들어가지만
+        # 같은 응답에서만 나오는 값이라 여기서 같이 들고 나간다.
+        "_abilities": [(data["name"], en, slot)
+                       for slot, en in sorted(abilities.items())],
     }
 
 def build(conn):
@@ -198,12 +206,16 @@ def build(conn):
     cur = conn.cursor()
     bases = mega_bases(pokemon_M_B)        # 메가폼을 가진 베이스 이름들
 
-    # bases 를 닫아 넘긴다. collect 는 parse 에 응답 하나만 주기 때문이다.
-    rows = collect(pokemon_M_B, fetch_pokemon,
-                   lambda data: parse_pokemon(data, bases))
+
+    rows = collect(pokemon_M_B, fetch_pokemon, parse_pokemon)
+    ability_values = [a for r in rows for a in r["_abilities"]]
+    print(f"특성 {len(ability_values)}행")
 
     # 베이스가 목록에 없는 메가폼은 mega_evolutions(10단계)에서 빠진다
     orphans = sorted(bases - set(pokemon_M_B))
     if orphans:
         print(f"베이스가 목록에 없는 메가: {len(orphans)}개 - {orphans}")
-    return sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
+
+    sql = sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
+    return sql + "\n" + sql_of(cur, ABILITY_DDL, ABILITY_TABLE,
+                                ABILITY_COLUMNS, ability_values)

@@ -210,3 +210,7 @@ VALUES
     (311, 'spicy-spray', '하바네로분출', '기술로 대미지를 받으면 상대를 화상 상태로 만든다.', 'When the Pokémon takes damage from a move, it burns the attacker.'),
     (312, 'eelevate', '천정부지', '땅 타입 기술을 받지 않는다. 상대 포켓몬을 쓰러뜨릴 시, 가장 높은 능력이 1랭크 상승한다.', 'The Pokémon floats off the ground, making it immune to Ground-type moves, as well as the Spikes, Toxic Spikes, and Sticky Web statuses. When the Pokémon knocks out a target with an attack, its highest stat is boosted by 1 stage.'),
     (313, 'fire-mane', '불꽃의갈기', '불꽃 타입 기술의 위력이 1.5배 상승한다.', 'Boosts the power of the Pokémon''s Fire-type moves by 50%.');
+
+ALTER TABLE pokemon_abilities
+    ADD CONSTRAINT pokemon_abilities_ability_fkey
+    FOREIGN KEY (ability_name) REFERENCES abilities(name) ON UPDATE CASCADE;

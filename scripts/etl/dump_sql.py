@@ -19,8 +19,6 @@
       moves          502 -> 498      items   285 -> 166
       pokemons       314 -> 317      pokemon_moves  21,296 -> 21,609
 
-  게다가 그때 파일의 06_items.sql 은 INSERT 칼럼에 usable·reviewed 가 없다.
-  스키마가 바뀌기 전에 만든 파일이라 지금 DB 에는 실행조차 되지 않는다.
 
 ── DDL 은 여전히 schema.py 에서 온다 ──
   DB 에서 CREATE TABLE 을 역으로 만들어 내지 않는다. 그렇게 하면 주석이
@@ -109,6 +107,12 @@ def build_file(cur, step):
         extra, m = table_sql(cur, ddl, table, columns)
         sql += "\n" + extra
         counts.append((table, m))
+
+    # 행이 아니라 마지막에 한 번 실행되는 SQL. 파일 경계를 넘는 외래키가
+    # 여기로 온다 — pokemon_abilities(03) -> abilities(05) 가 그것이다.
+    post = getattr(step, "POST_SQL", "")
+    if post:
+        sql += "\n" + post
 
     return sql, counts
 

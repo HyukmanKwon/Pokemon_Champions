@@ -736,9 +736,7 @@
       "id": 252,
       "ko_name": "기합의띠",
       "mega": null,
-      "name": "focus-sash",
-      "reviewed": false,
-      "usable": true
+      "name": "focus-sash"
     },
     "status": 200
   },
@@ -3052,7 +3050,6 @@
       "power": 100,
       "pp": 10,
       "priority": 0,
-      "reviewed": true,
       "stat_chance": 0,
       "stat_changes": [],
       "target": "all-other-pokemon",
@@ -3943,6 +3940,11 @@
         "up": "공격"
       },
       {
+        "down": null,
+        "name": "노력",
+        "up": null
+      },
+      {
         "down": "공격",
         "name": "대담",
         "up": "방어"
@@ -3963,6 +3965,11 @@
         "up": "방어"
       },
       {
+        "down": null,
+        "name": "변덕",
+        "up": null
+      },
+      {
         "down": "방어",
         "name": "성급",
         "up": "스피드"
@@ -3970,6 +3977,11 @@
       {
         "down": null,
         "name": "성실",
+        "up": null
+      },
+      {
+        "down": null,
+        "name": "수줍음",
         "up": null
       },
       {
@@ -3983,9 +3995,9 @@
         "up": "특수방어"
       },
       {
-        "down": "공격",
+        "down": null,
         "name": "온순",
-        "up": "특수방어"
+        "up": null
       },
       {
         "down": "방어",
@@ -4026,6 +4038,11 @@
         "down": "특수방어",
         "name": "촐랑",
         "up": "방어"
+      },
+      {
+        "down": "공격",
+        "name": "침착",
+        "up": "특수방어"
       }
     ],
     "status": 200
@@ -5229,6 +5246,15 @@
           "percent": 1.1
         }
       ],
+      "base": {
+        "a": 130,
+        "b": 95,
+        "c": 80,
+        "d": 85,
+        "h": 108,
+        "s": 102,
+        "total": 600
+      },
       "date": "2026-08-04",
       "format": "Singles",
       "items": [
@@ -5601,7 +5627,7 @@
   "usage_ranking": {
     "body": {
       "compared_to": "2026-07-28",
-      "date": "2026-08-16",
+      "date": "2026-08-17",
       "format": "Singles",
       "ranking": [
         {

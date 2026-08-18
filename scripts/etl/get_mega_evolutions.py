@@ -23,7 +23,7 @@ from .parse_utils import sql_of
 
 FILENAME = "10_mega_evolutions.sql"
 TABLE = "mega_evolutions"
-COLUMNS = ["mega_name", "base_name", "variant", "item_name"]
+COLUMNS = ["mega_name", "base_name", "item_name"]
 DDL = schema.MEGA_EVOLUTIONS
 
 # 이름 규칙으로 베이스를 못 찾는 예외는 get_pokemons.MANUAL_BASE 에 있다.
@@ -48,9 +48,11 @@ def match_key(base):
 
 
 def select_pokemons(cur):
-    cur.execute("SELECT name, is_mega FROM pokemons ORDER BY name")
-    rows = cur.fetchall()
-    return {n for n, _ in rows}, [n for n, is_mega in rows if is_mega]
+    """(모든 이름, 메가폼 이름들). 메가폼 여부는 이름 규칙으로 가른다 —
+    pokemons 에 is_mega 칸이 없고, split_mega 가 그 판정의 단일 출처다."""
+    cur.execute("SELECT name FROM pokemons ORDER BY name")
+    names = [r[0] for r in cur.fetchall()]
+    return set(names), [n for n in names if split_mega(n)[0] is not None]
 
 
 def select_stones(cur):
@@ -111,7 +113,7 @@ def build(conn):
         stone = match_stone(base, variant, stones)
         if stone is None:
             no_stone.append(mega)
-        values.append((mega, base, variant, stone))
+        values.append((mega, base, stone))
         print(f"{mega} <- {base} / {stone}")
 
     print(f"\n연결 {len(values)}행")

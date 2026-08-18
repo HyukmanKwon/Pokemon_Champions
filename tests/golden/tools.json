@@ -253,8 +253,7 @@
     "category": "held-items",
     "description": "지니게 하면 HP가 꽉 찼을 때 기절할 듯한 기술을 당해도 HP 1로 한 번은 버틴다.",
     "ko_name": "기합의띠",
-    "name": "focus-sash",
-    "usable": true
+    "name": "focus-sash"
   },
   "find_move({\"name\": \"earthquake\"})": {
     "accuracy": 100,
@@ -1527,7 +1526,7 @@
     ]
   },
   "top_pokemon({\"limit\": 5})": {
-    "date": "2026-08-16",
+    "date": "2026-08-17",
     "format": "Singles",
     "note": "순위만 있고 사용률 %는 저쪽이 주지 않습니다.",
     "ranking": [
@@ -1670,7 +1669,7 @@
     ],
     "ko_name": "한카리아스",
     "meta_rank": {
-      "date": "2026-08-16",
+      "date": "2026-08-17",
       "of": 235,
       "position": 1
     },
