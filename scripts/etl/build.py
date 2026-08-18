@@ -13,7 +13,6 @@ data/sql/ 폴더를 만들고, 아래 순서대로
   05_abilities.sql      특성               PokeAPI    <- pokemons 필요
   06_items.sql          도구               PokeAPI
   07_pokemon_moves.sql  포켓몬-기술 연결   PokeAPI    <- pokemons, moves 필요
-  08_stat_stages.sql    랭크 변화 배수     고정값     API 0회
   09_status_conditions  상태이상 상수      고정값     API 0회
   10_mega_evolutions    메가진화 관계      고정값     <- pokemons, items 필요
   11_weathers.sql       날씨 상수          고정값     API 0회
@@ -56,7 +55,7 @@ from pokemon_champions.db import connect
 
 from . import paths
 from . import (get_abilities, get_items, get_mega_evolutions, get_moves,
-               get_natures, get_pokemon_moves, get_pokemons, get_stat_stages,
+               get_natures, get_pokemon_moves, get_pokemons,
                get_status_conditions, get_terrains, get_types, get_weathers)
 
 # 실행 순서. 앞 단계가 DB에 올라간 뒤에 뒤 단계가 생성된다.
@@ -68,7 +67,6 @@ STEPS = [
     get_abilities,
     get_items,
     get_pokemon_moves,
-    get_stat_stages,
     get_status_conditions,
     get_mega_evolutions,
     get_weathers,
