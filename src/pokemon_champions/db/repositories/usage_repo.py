@@ -11,12 +11,12 @@
 
 from ._rows import one, rows
 
-ROW_COLUMNS = [
-    "snapshot_id", "category", "rank", "name", "linked_name", "percent",
-    "stat_up", "stat_down",
-    "hp_points", "attack_points", "defense_points",
-    "sp_atk_points", "sp_def_points", "speed_points",
-]
+# usage_picks 는 이름이 있는 줄, usage_spreads 는 SP 배분이다. 한 표에
+# 두면 칸의 3분의 1이 늘 빈다 — 모양이 다른 두 갈래라 갈라 둔다.
+PICK_COLUMNS = ["category", "rank", "source_name", "percent"]
+SPREAD_COLUMNS = ["rank", "percent", "hp_points", "attack_points",
+                  "defense_points", "sp_atk_points", "sp_def_points",
+                  "speed_points"]
 
 
 def known_keys(conn, season, fmt):
@@ -46,25 +46,26 @@ def link_battle_name(conn, battle_name, pokemon_name):
     )
 
 
-def save(conn, meta, rows):
+def save(conn, meta, picks, spreads):
     """스냅샷 한 장을 넣거나 갈아끼운다. snapshot_id 를 돌려준다.
 
     meta 는 season · snapshot_date · format · battle_name · pokemon_name ·
-    source · usage_rank 일곱 개다. pokemon_name 은 usage_snapshots 가 아니라
-    battle_names 로 간다. rows 는 ROW_COLUMNS 에서 snapshot_id 를 뺀 dict 들.
+    source 여섯이다. pokemon_name 은 usage_snapshots 가 아니라 battle_names
+    로 간다.
+
+    순위(usage_rank)는 여기 없다. 그것은 usage_rankings 의 일이다 — 색인과
+    CSV 두 출처가 같은 사실을 말하므로 한 표에 모은다.
     """
     cur = conn.cursor()
     link_battle_name(conn, meta["battle_name"], meta.get("pokemon_name"))
     cur.execute(
         """
         INSERT INTO usage_snapshots
-            (season, snapshot_date, format, battle_name, source, usage_rank)
+            (season, snapshot_date, format, battle_name, source)
         VALUES (%(season)s, %(snapshot_date)s, %(format)s,
-                %(battle_name)s, %(source)s, %(usage_rank)s)
+                %(battle_name)s, %(source)s)
         ON CONFLICT (season, snapshot_date, format, battle_name) DO UPDATE
-            SET source     = EXCLUDED.source,
-                usage_rank = EXCLUDED.usage_rank,
-                fetched_at = now()
+            SET source = EXCLUDED.source, fetched_at = now()
         RETURNING id
         """,
         meta,
@@ -73,23 +74,52 @@ def save(conn, meta, rows):
 
     # 갈아끼우기다. 저쪽 순위가 바뀌면 없어진 줄이 생기는데, 지우지 않으면
     # 옛 줄이 남아 한 스냅샷에 두 시점이 섞인다.
-    cur.execute("DELETE FROM usage_rows WHERE snapshot_id = %s", (snapshot_id,))
+    cur.execute("DELETE FROM usage_picks WHERE snapshot_id = %s", (snapshot_id,))
+    cur.execute("DELETE FROM usage_spreads WHERE snapshot_id = %s", (snapshot_id,))
 
-    fields = ROW_COLUMNS[1:]
-    cur.executemany(
-        f"INSERT INTO usage_rows ({', '.join(ROW_COLUMNS)})"
-        f" VALUES (%(snapshot_id)s, {', '.join('%(' + f + ')s' for f in fields)})",
-        [{"snapshot_id": snapshot_id, **{f: r.get(f) for f in fields}}
-         for r in rows],
-    )
+    for table, columns, values in (("usage_picks", PICK_COLUMNS, picks),
+                                   ("usage_spreads", SPREAD_COLUMNS, spreads)):
+        if not values:
+            continue
+        marks = ", ".join(f"%({c})s" for c in columns)
+        cur.executemany(
+            f"INSERT INTO {table} (snapshot_id, {', '.join(columns)})"
+            f" VALUES (%(snapshot_id)s, {marks})",
+            [{"snapshot_id": snapshot_id, **{c: r.get(c) for c in columns}}
+             for r in values],
+        )
     return snapshot_id
+
+
+def link_names(conn, category, mapping):
+    """저쪽 표기 -> 우리 것 대응을 usage_names 에 올린다.
+
+    mapping 은 {저쪽 이름: 우리 id 또는 None}. 못 붙인 이름도 넣는다 —
+    원문이 남아야 저쪽 오타를 찾을 수 있고, 나중에 규칙이 좋아지면 이 표
+    한 행만 고치면 15만 줄이 한꺼번에 이어붙는다.
+
+    이미 있으면 우리 쪽만 갱신하되, NULL 로 덮지 않는다. 매칭이 하루
+    실패했다고 이미 붙은 것이 풀리면 안 된다.
+    """
+    column = {"move": "move_id", "held_item": "item_id",
+              "ability": "ability_id", "stat_alignment": "nature"}[category]
+    cur = conn.cursor()
+    cur.executemany(
+        f"""
+        INSERT INTO usage_names (category, source_name, {column})
+        VALUES (%s, %s, %s)
+        ON CONFLICT (category, source_name) DO UPDATE
+            SET {column} = COALESCE(EXCLUDED.{column}, usage_names.{column})
+        """,
+        [(category, name, ref) for name, ref in mapping.items()],
+    )
 
 
 def distinct_names(conn, category, season=None, snapshot_date=None, fmt=None):
     """그 갈래에 등장한 영문 이름 전부. 우리 표에 없는 것을 찾을 때 쓴다."""
-    sql = ["SELECT DISTINCT r.name FROM usage_rows r",
+    sql = ["SELECT DISTINCT r.source_name FROM usage_picks r",
            "JOIN usage_snapshots s ON s.id = r.snapshot_id",
-           "WHERE r.category = %s AND r.name IS NOT NULL"]
+           "WHERE r.category = %s"]
     args = [category]
     for column, value in (("s.season", season), ("s.snapshot_date", snapshot_date),
                           ("s.format", fmt)):
@@ -107,7 +137,8 @@ def counts(conn):
     cur = conn.cursor()
     cur.execute(
         "SELECT (SELECT count(*) FROM usage_snapshots),"
-        "       (SELECT count(*) FROM usage_rows),"
+        "       (SELECT count(*) FROM usage_picks)"
+        "        + (SELECT count(*) FROM usage_spreads),"
         "       (SELECT min(snapshot_date) FROM usage_snapshots),"
         "       (SELECT max(snapshot_date) FROM usage_snapshots)")
     return cur.fetchone()
@@ -141,14 +172,22 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
             ORDER BY snapshot_date DESC, id DESC
             LIMIT 1
         )
-        SELECT r.category, r.rank, r.name, r.linked_name, r.percent,
-               r.stat_up, r.stat_down,
-               r.hp_points, r.attack_points, r.defense_points,
-               r.sp_atk_points, r.sp_def_points, r.speed_points,
+        SELECT r.category, r.rank, r.source_name AS name, r.percent,
+               COALESCE(m.name, i.name, ab.name, n.nature::text,
+                        tp.name) AS linked_name,
+               m.type AS move_type, tp.id AS teammate_id,
                s.snapshot_date, s.season
-        FROM usage_rows r
+        FROM usage_picks r
         JOIN latest l ON l.id = r.snapshot_id
         JOIN usage_snapshots s ON s.id = r.snapshot_id
+        LEFT JOIN usage_names  n  ON n.category = r.category
+                              AND n.source_name = r.source_name
+        LEFT JOIN moves        m  ON m.id = n.move_id
+        LEFT JOIN items        i  ON i.id = n.item_id
+        LEFT JOIN abilities    ab ON ab.id = n.ability_id
+        LEFT JOIN battle_names bn ON r.category = 'teammate'
+                              AND bn.battle_name = r.source_name
+        LEFT JOIN pokemons     tp ON tp.id = bn.pokemon_id
         WHERE (r.category = 'move' AND r.rank <= %s) OR r.rank = 1
         ORDER BY r.category, r.rank
         """,
@@ -168,16 +207,18 @@ def save_rankings(conn, taken_on, fmt, rows):
     cur = conn.cursor()
     for r in rows:
         link_battle_name(conn, r["battle_name"], r.get("pokemon_name"))
-    cur.execute("DELETE FROM usage_rankings WHERE taken_on = %s AND format = %s",
-                (taken_on, fmt))
     cur.executemany(
         """
         INSERT INTO usage_rankings
-            (taken_on, format, season, position, battle_name)
+            (taken_on, format, season, position, battle_name, source)
         VALUES (%(taken_on)s, %(format)s, %(season)s, %(position)s,
-                %(battle_name)s)
+                %(battle_name)s, %(source)s)
+        ON CONFLICT (taken_on, format, battle_name) DO UPDATE
+            SET position = EXCLUDED.position, source = EXCLUDED.source,
+                fetched_at = now()
         """,
-        [{"taken_on": taken_on, "format": fmt, **r} for r in rows],
+        [{"taken_on": taken_on, "format": fmt,
+          "source": r.get("source", "index"), **r} for r in rows],
     )
     return len(rows)
 
@@ -185,7 +226,7 @@ def save_rankings(conn, taken_on, fmt, rows):
 def fetch_ranking(conn, fmt="Singles", limit=20):
     """가장 최근에 받은 전체 순위. 1위부터.
 
-    "가장 많이 쓰이는 포켓몬" 에 답하는 유일한 자료다. usage_rows 의
+    "가장 많이 쓰이는 포켓몬" 에 답하는 유일한 자료다. usage_picks 의
     percent 는 전부 그 포켓몬 안에서의 비율이라 이 질문에 못 쓴다.
     """
     cur = conn.cursor()
@@ -242,41 +283,72 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
     저쪽 원본이 갈래마다 주는 개수가 다르다 — 기술·도구·팀원·성격은 10개,
     SP 배분은 8개, 특성은 2개다. top 으로 자르되 없는 것을 만들지 않는다.
 
+    ── 두 번 조회한다 ──
+      이름이 있는 줄(usage_picks)과 SP 배분(usage_spreads)은 모양이 달라
+      표가 갈려 있다. 한 질의로 합치려면 한쪽에 빈 칸을 만들어야 하는데,
+      그 빈 칸을 없애려고 가른 표다.
+
     linked_name 을 같이 준다. 화면이 그 이름을 눌러 도감으로 건너뛰려면
     우리 DB 의 키가 필요한데, 저쪽 표기(Focus Sash)로는 못 찾는다.
     """
     cur = conn.cursor()
     cur.execute(
         """
-        WITH latest AS (
-            SELECT s.id, s.snapshot_date, s.season, s.usage_rank
-            FROM usage_snapshots s
-            JOIN battle_names b ON b.battle_name = s.battle_name
-            JOIN pokemons pk ON pk.id = b.pokemon_id
-            WHERE pk.name = %s AND s.format = %s
-            ORDER BY s.snapshot_date DESC, s.id DESC
-            LIMIT 1
-        )
-        SELECT r.category, r.rank, r.name, r.linked_name, r.percent,
-               r.stat_up, r.stat_down,
-               r.hp_points, r.attack_points, r.defense_points,
-               r.sp_atk_points, r.sp_def_points, r.speed_points,
-               l.snapshot_date, l.season, l.usage_rank,
-               -- 화면에 그림을 붙이는 데 쓴다. 기술은 타입 배지, 팀원은
-               -- 아이콘이라 각자 다른 표에서 온다. linked_name 을 굳혀
-               -- 둔 덕에 조인 한 번으로 끝난다.
-               m.type AS move_type,
-               tp.id  AS teammate_id
-        FROM usage_rows r
-        JOIN latest l ON l.id = r.snapshot_id
-        LEFT JOIN moves    m  ON r.category = 'move'     AND m.name  = r.linked_name
-        LEFT JOIN pokemons tp ON r.category = 'teammate' AND tp.name = r.linked_name
-        WHERE r.rank <= %s
+        SELECT s.id, s.snapshot_date, s.season,
+               (SELECT position FROM usage_rankings k
+                WHERE k.taken_on = s.snapshot_date AND k.format = s.format
+                  AND k.battle_name = s.battle_name) AS usage_rank
+        FROM usage_snapshots s
+        JOIN battle_names b ON b.battle_name = s.battle_name
+        JOIN pokemons pk ON pk.id = b.pokemon_id
+        WHERE pk.name = %s AND s.format = %s
+        ORDER BY s.snapshot_date DESC, s.id DESC
+        LIMIT 1
+        """,
+        (pokemon_name, fmt),
+    )
+    head = one(cur)
+    if head is None:
+        return []
+
+    cur.execute(
+        """
+        SELECT r.category, r.rank, r.source_name AS name, r.percent,
+               COALESCE(m.name, i.name, ab.name, n.nature::text,
+                        tp.name) AS linked_name,
+               m.type AS move_type, tp.id AS teammate_id
+        FROM usage_picks r
+        LEFT JOIN usage_names  n  ON n.category = r.category
+                              AND n.source_name = r.source_name
+        LEFT JOIN moves        m  ON m.id = n.move_id
+        LEFT JOIN items        i  ON i.id = n.item_id
+        LEFT JOIN abilities    ab ON ab.id = n.ability_id
+        LEFT JOIN battle_names bn ON r.category = 'teammate'
+                              AND bn.battle_name = r.source_name
+        LEFT JOIN pokemons     tp ON tp.id = bn.pokemon_id
+        WHERE r.snapshot_id = %s AND r.rank <= %s
         ORDER BY r.category, r.rank
         """,
-        (pokemon_name, fmt, top),
+        (head["id"], top),
     )
-    return rows(cur)
+    out = rows(cur)
+
+    cur.execute(
+        """
+        SELECT 'stat_points' AS category, rank, NULL AS name, percent,
+               NULL AS linked_name, NULL AS move_type, NULL AS teammate_id,
+               hp_points, attack_points, defense_points,
+               sp_atk_points, sp_def_points, speed_points
+        FROM usage_spreads WHERE snapshot_id = %s AND rank <= %s ORDER BY rank
+        """,
+        (head["id"], top),
+    )
+    out += rows(cur)
+
+    meta = {k: head[k] for k in ("snapshot_date", "season", "usage_rank")}
+    for r in out:
+        r.update(meta)
+    return out
 
 
 def fetch_rank_delta(conn, fmt="Singles", days=7):
@@ -286,42 +358,38 @@ def fetch_rank_delta(conn, fmt="Singles", days=7):
     "두 계단 올랐다" 이므로 부호를 뒤집어 둔다 — 화면에서 다시 뒤집게
     하면 한쪽은 반드시 틀린다.
 
-    ── 왜 직전 스냅샷과 안 견주나 ──
+    ── 왜 직전 날과 안 견주나 ──
       저쪽이 매일 갱신하지 않는다. 실제로 07-30 과 08-04 는 235마리 순위가
       한 마리도 안 달랐다. 직전과만 견주면 화면이 늘 "변화 없음" 이 되어
-      쓸모가 없다.
+      쓸모가 없다. 대신 days 일 전과 견준다.
 
-      대신 days 일 전과 견준다. 16일을 통틀어 보면 235마리 중 225마리의
-      순위가 움직였다 — 그 정도 간격이어야 신호가 보인다.
-
-    비교할 앞날이 없으면 delta 가 None 이다. 자료가 days 일보다 짧거나
-    새로 올라온 포켓몬이 그렇다.
+    비교할 앞날이 없으면 delta 가 None 이다.
     """
     cur = conn.cursor()
     cur.execute(
         """
         WITH latest AS (
-            SELECT max(snapshot_date) AS d FROM usage_snapshots
-            WHERE format = %(fmt)s AND usage_rank IS NOT NULL
+            SELECT max(taken_on) AS d FROM usage_rankings WHERE format = %(fmt)s
         ),
         base AS (
-            -- days 일 전에 가장 가까운 스냅샷. 그날이 없으면 그 앞의 것.
-            SELECT max(snapshot_date) AS d FROM usage_snapshots
-            WHERE format = %(fmt)s AND usage_rank IS NOT NULL
-              AND snapshot_date <= (SELECT d FROM latest) - %(days)s::int
+            -- days 일 전에 가장 가까운 날. 그날이 없으면 그 앞의 것.
+            SELECT max(taken_on) AS d FROM usage_rankings
+            WHERE format = %(fmt)s
+              AND taken_on <= (SELECT d FROM latest) - %(days)s::int
         )
         SELECT now.battle_name, p.name AS pokemon_name,
-               now.usage_rank, was.usage_rank - now.usage_rank AS delta,
-               now.snapshot_date, was.snapshot_date AS compared_to
-        FROM usage_snapshots now
+               now.position AS usage_rank,
+               was.position - now.position AS delta,
+               now.taken_on AS snapshot_date, was.taken_on AS compared_to
+        FROM usage_rankings now
         JOIN battle_names b ON b.battle_name = now.battle_name
         LEFT JOIN pokemons p ON p.id = b.pokemon_id
-        LEFT JOIN usage_snapshots was
+        LEFT JOIN usage_rankings was
                ON was.battle_name = now.battle_name
               AND was.format = now.format
-              AND was.snapshot_date = (SELECT d FROM base)
+              AND was.taken_on = (SELECT d FROM base)
         WHERE now.format = %(fmt)s
-          AND now.snapshot_date = (SELECT d FROM latest)
+          AND now.taken_on = (SELECT d FROM latest)
         """,
         {"fmt": fmt, "days": days},
     )

@@ -54,7 +54,7 @@ from ..get.moves import (STAT_COLUMNS, STAT_TABLE, fetch_move, parse_move,
 FILLABLE = {"move": ("moves", "name"), "held_item": ("items", "name")}
 
 
-# 갈래별로 이름을 맞춰볼 우리 표. usage_rows.linked_name 이 이 결과다.
+# 갈래별로 이름을 맞춰볼 우리 표. usage_names 가 이 결과를 담는다.
 # teammate 만 따로인 이유는 이름 규칙이 달라서다 (raichu-alola vs
 # Alolan Raichu) — resolve_pokemon 이 토큰으로 맞춘다.
 #
@@ -64,38 +64,55 @@ FILLABLE = {"move": ("moves", "name"), "held_item": ("items", "name")}
 LINK_TABLE = {"move": "moves", "held_item": "items", "ability": "abilities",
               "stat_alignment": "pokemon_natures"}
 
+# 성격만 id 가 아니라 enum 값이다. pokemon_natures 의 기본키가 en_name 이라
+# 정수 id 가 아예 없다 — usage_names.nature 도 같은 enum 이다.
 
-def to_row(raw, maps, index):
-    """usage_csv 의 rows 한 줄 -> usage_rows 한 줄.
 
-    maps 와 index 는 이름을 우리 것으로 맞추는 데 쓴다. 한 마리에 50줄이
-    붙으므로 줄마다 새로 만들면 235배가 된다 — 부르는 쪽이 한 번 만들어
-    넘긴다.
+def split_rows(raw_rows):
+    """usage_csv 의 rows 를 (picks, spreads) 로 가른다.
+
+    저쪽이 한 CSV 에 여섯 갈래를 섞어 준다. 모양이 둘이라 표도 둘이다 —
+    이름이 있는 줄과, 이름 없이 여섯 칸이 한 벌로 오는 SP 배분.
+
+    우리 것으로 옮기는 일은 여기서 안 한다. 그 대응은 usage_names 가
+    한 벌만 들고 있고(link_names), 이 줄들은 저쪽 표기를 그대로 담는다.
+    stat_up / stat_down 도 안 담는다 — 성격이 정해지면 따라오는 값이라
+    pokemon_natures 에서 읽으면 된다.
     """
-    cat, en = raw["category"], raw["name"] or None
-    if en is None:
-        linked = None
-    elif cat == "teammate":
-        linked = usage.resolve_pokemon(index, en)
-    elif cat in LINK_TABLE:
-        # 슬러그를 넣는다. 한국어가 아니다 — maps 는 {슬러그: 한국어} 라
-        # .get() 의 결과를 그대로 쓰면 한국어가 들어가고, teammate 만
-        # 슬러그라 한 칸에 두 종류가 섞인다. 실제로 그렇게 넣었었다.
-        slug = usage.slugify(en)
-        linked = slug if slug in maps[LINK_TABLE[cat]] else None
-    else:
-        linked = None                     # stat_alignment · stat_points
+    picks, spreads = [], []
+    for raw in raw_rows:
+        cat, en = raw["category"], raw["name"] or None
+        if cat == "stat_points":
+            spreads.append({"rank": raw["rank"],
+                            "percent": raw["percentage_value"],
+                            **{c: raw.get(c) for c in usage_csv.SP_COLUMNS}})
+        elif en is not None:
+            picks.append({"category": cat, "rank": raw["rank"],
+                          "source_name": en,
+                          "percent": raw["percentage_value"]})
+    return picks, spreads
 
-    return {
-        "category": cat,
-        "rank": raw["rank"],
-        "name": en,                       # SP 배분 줄은 이름이 없다
-        "linked_name": linked,
-        "percent": raw["percentage_value"],
-        "stat_up": usage.STAT_KEY.get(raw["stat_up"]),
-        "stat_down": usage.STAT_KEY.get(raw["stat_down"]),
-        **{c: raw.get(c) for c in usage_csv.SP_COLUMNS},
-    }
+
+def resolve_names(conn, picks, maps, index):
+    """이번에 처음 보는 이름을 usage_names · battle_names 에 올린다.
+
+    행마다 붙이지 않는다. 이름 726개가 15만 줄에 흩어져 있어서, 대응을
+    줄마다 적으면 같은 것을 1,389번까지 되풀이한다. (성격 27개 / 37,500줄)
+    """
+    by_cat = {}
+    for p in picks:
+        by_cat.setdefault(p["category"], set()).add(p["source_name"])
+
+    for cat, names in by_cat.items():
+        if cat == "teammate":
+            # 팀원은 포켓몬이라 battle_names 가 이미 그 역할이다.
+            for name in names:
+                usage_repo.link_battle_name(
+                    conn, name, usage.resolve_pokemon(index, name))
+        elif cat in LINK_TABLE:
+            table = LINK_TABLE[cat]
+            usage_repo.link_names(conn, cat, {
+                name: maps[table].get(usage.slugify(name)) for name in names})
 
 
 def collect(conn, fmt, season, date, sleep, limit, dry_run, refetch=False):
@@ -115,7 +132,7 @@ def collect(conn, fmt, season, date, sleep, limit, dry_run, refetch=False):
     index = usage.pokemon_index(pokemon_repo.fetch_list(conn))
     # 이름을 우리 것으로 맞추는 표. 한 마리에 50줄이 붙으므로 여기서 한 번만
     # 만든다 — 줄마다 만들면 235마리 × 50줄이 전부 DB 를 다시 읽는다.
-    maps = {t: lookup_repo.fetch_ko_map(conn, t)
+    maps = {t: lookup_repo.fetch_id_map(conn, t)
             for t in set(LINK_TABLE.values())}
 
     saved = skipped = failed = 0
@@ -137,16 +154,22 @@ def collect(conn, fmt, season, date, sleep, limit, dry_run, refetch=False):
             unlinked.append(name)
 
         if not dry_run:
+            picks, spreads = split_rows(rows)
+            resolve_names(conn, picks, maps, index)
             usage_repo.save(
                 conn,
                 {"season": season, "snapshot_date": day, "format": fmt,
                  "battle_name": name, "pokemon_name": ours,
-                 "source": entry["path"],
-                 # 줄마다 같은 값이 오므로 첫 줄에서 집는다. 그 포켓몬의
-                 # 메타 순위이지 줄의 성질이 아니라서 스냅샷 쪽에 둔다.
-                 "usage_rank": rows[0].get("column_position")},
-                [to_row(r, maps, index) for r in rows],
+                 "source": entry["path"]},
+                picks, spreads,
             )
+            # 순위도 같이 넣는다. 줄마다 같은 값이 오므로 첫 줄에서 집는다.
+            # 색인이 주는 것과 같은 사실이라 한 표로 모은다 (source 로 구분).
+            position = rows[0].get("column_position")
+            if position is not None:
+                usage_repo.save_rankings(conn, day, fmt, [{
+                    "season": season, "position": position,
+                    "battle_name": name, "source": "csv"}])
             conn.commit()      # 한 마리씩 확정한다. 끊겨도 앞의 것은 남는다
         saved += 1
 
@@ -252,6 +275,8 @@ def sync_rankings(conn, fmt, season="Current", dry_run=False):
 
     if dry_run:
         return 0
+    for r in got:
+        r["source"] = "index"
     n = usage_repo.save_rankings(conn, date.today(), fmt, got)
     conn.commit()
     return n

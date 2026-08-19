@@ -138,97 +138,73 @@ CREATE TABLE mega_evolutions (
 );
 
 CREATE TABLE battle_names (
-    -- 저쪽 표기가 기본키다. 저쪽 자료의 자연키이고, 우리 로스터에 없는
-    -- 이름도 기록으로 남아야 하므로 이쪽이 NULL 이 될 수 없는 쪽이다.
     battle_name  VARCHAR(50) PRIMARY KEY,   -- Garchomp, Alolan Raichu
     pokemon_id   INT REFERENCES pokemons(id) ON DELETE SET NULL
 );
 
+CREATE TABLE usage_names (
+    category     VARCHAR(20) NOT NULL,   -- move · held_item · ability · stat_alignment
+    source_name  VARCHAR(50) NOT NULL,   -- 저쪽 표기 그대로 (Focus Sash)
+    move_id      INT REFERENCES moves(id),
+    item_id      INT REFERENCES items(id),
+    ability_id   INT REFERENCES abilities(id),
+    nature       pokemon_natures_enum REFERENCES pokemon_natures(en_name),
+    PRIMARY KEY (category, source_name),
+    CHECK (num_nonnulls(move_id, item_id, ability_id, nature) <= 1)
+);
+
+CREATE TABLE usage_rankings (
+    taken_on     DATE NOT NULL,          -- 그 순위가 가리키는 날
+    format       VARCHAR(10) NOT NULL,
+    season       VARCHAR(10) NOT NULL,
+    battle_name  VARCHAR(50) NOT NULL REFERENCES battle_names(battle_name)
+                     ON UPDATE CASCADE,
+    position     INT NOT NULL,           -- 1 이 1위
+    source       VARCHAR(10) NOT NULL,   -- index · csv
+    fetched_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (taken_on, format, battle_name)
+);
+
+CREATE UNIQUE INDEX usage_rankings_position_idx
+    ON usage_rankings (taken_on, format, position);
+
 CREATE TABLE usage_snapshots (
     id             SERIAL PRIMARY KEY,
-    season         VARCHAR(10) NOT NULL,   -- M4
+    season         VARCHAR(10) NOT NULL,   -- M5
     snapshot_date  DATE NOT NULL,          -- 저쪽 폴더명 DD_MM_YYYY 를 날짜로
     format         VARCHAR(10) NOT NULL,   -- Singles / Doubles
     battle_name    VARCHAR(50) NOT NULL REFERENCES battle_names(battle_name)
-                       ON UPDATE CASCADE,   -- 우리 이름은 그쪽에 있다
-
-    source         TEXT,                  -- 받아온 CSV 경로. 어디서 왔는지 되짚을 때
-
-    -- 그날 그 포켓몬의 메타 순위. CSV 의 column_position 이다.
-    -- 1 이 가장 많이 쓰인 포켓몬이고, 없으면 NULL(옛 자료).
-    --
-    -- 이 칸이 없어서 도우미가 헛소리를 했다. "가장 많이 쓰이는 포켓몬" 을
-    -- 물으면 답할 자료가 없으니, 기술 채용률(지진 99.3%)을 포켓몬 사용률로
-    -- 읽고 줄을 세웠다. 빈칸이 있으면 모델은 채운다.
-    usage_rank     INT,
+                       ON UPDATE CASCADE,
+    source         TEXT,                   -- 받아온 CSV 경로
     fetched_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-
     UNIQUE (season, snapshot_date, format, battle_name)
 );
 
--- 한 마리의 추세를 훑는 질의용. UNIQUE 는 (시즌,일자,...) 순이라 이쪽으로 못 쓴다.
-CREATE INDEX usage_snapshots_pokemon_idx
+-- 한 마리의 추세를 훑는 질의용. UNIQUE 는 (시즌,일자,...) 순이라 못 쓴다.
+CREATE INDEX usage_snapshots_battle_idx
     ON usage_snapshots (battle_name, format, snapshot_date);
 
-CREATE TABLE usage_rows (
+CREATE TABLE usage_picks (
     snapshot_id  INT NOT NULL REFERENCES usage_snapshots(id) ON DELETE CASCADE,
     category     VARCHAR(20) NOT NULL,
     rank         INT NOT NULL,
-    name         VARCHAR(50),   -- 영문 표기 그대로. stat_points 는 NULL
+    source_name  VARCHAR(50) NOT NULL,   -- 저쪽 표기 그대로
+    percent      NUMERIC(4,1),           -- teammate 는 NULL (저쪽이 안 준다)
+    PRIMARY KEY (snapshot_id, category, rank)
+);
 
-    -- 그 이름을 우리 DB 에서 찾은 결과. 못 찾았거나 이름이 없는 줄(stat_points)
-    -- 이면 NULL 이다. 어느 표를 가리키는지는 category 가 정한다.
-    --
-    --     move       -> moves.name          held_item -> items.name
-    --     ability    -> abilities.name      teammate  -> pokemons.name
-    --
-    -- 외래키를 안 거는 이유는 한 칸이 네 표를 가리키기 때문이다. 대신
-    -- category 로 조인한다.
-    --
-    -- ── 왜 저장하나 ──
-    --   name 이 "Mimikyu" 로만 있으면 "한카리아스와 같이 쓰는 포켓몬의 타입
-    --   분포" 를 SQL 로 못 낸다. 매번 파이썬에서 슬러그를 다시 맞춰야 하고,
-    --   그 맞추기가 실패해도 조용히 빈 결과가 된다.
-    --
-    --   맞추는 규칙 자체는 usecases/usage.py 에 그대로 둔다. 여기 있는 것은
-    --   그 결과를 굳혀 둔 것이라, 규칙이 좋아지면 다시 채우면 된다.
-    linked_name  VARCHAR(50),
+-- "지진을 쓰는 비율이 어떻게 변했나" 는 이름으로 먼저 좁힌다.
+CREATE INDEX usage_picks_name_idx ON usage_picks (category, source_name);
 
-    -- teammate 는 NULL (저쪽이 비율을 안 준다).
-    --
-    -- REAL 이 아니라 NUMERIC 인 이유: 원본이 "99.4%" 처럼 소수 한 자리로
-    -- 떨어지는데 REAL 은 그 값을 정확히 담지 못한다. 다른 표의 REAL 은
-    -- 배수(1.5배)라 오차가 묻히지만, 이 표는 존재 이유가 두 날짜를 빼서
-    -- 추세를 보는 것이다. 99.4 - 99.3 이 -0.099998474 로 나오면 곤란하다.
+CREATE TABLE usage_spreads (
+    snapshot_id  INT NOT NULL REFERENCES usage_snapshots(id) ON DELETE CASCADE,
+    rank         INT NOT NULL,
     percent      NUMERIC(4,1),
-    stat_up      VARCHAR(3),    -- stat_alignment 만. 우리 키(spa)로 접어서 넣는다
-    stat_down    VARCHAR(3),
-
-    -- stat_points 만. 이름을 pokemons 의 h/a/b/c/d/s 가 아니라 저쪽 컬럼명
-    -- 그대로 두는 것은, 이 표가 남의 자료를 받아 적은 것이기 때문이다.
     hp_points       INT,
     attack_points   INT,
     defense_points  INT,
     sp_atk_points   INT,
     sp_def_points   INT,
     speed_points    INT,
-
-    PRIMARY KEY (snapshot_id, category, rank)
+    PRIMARY KEY (snapshot_id, rank)
 );
-
--- "지진을 쓰는 비율이 어떻게 변했나" 는 이름으로 먼저 좁힌다.
-CREATE INDEX usage_rows_name_idx ON usage_rows (category, name);
-
-CREATE TABLE usage_rankings (
-    taken_on      DATE NOT NULL,          -- 받은 날. 저쪽은 날짜를 안 준다
-    format        VARCHAR(10) NOT NULL,
-    season        VARCHAR(10) NOT NULL,
-    position      INT NOT NULL,           -- 1 이 1위
-    battle_name   VARCHAR(50) NOT NULL REFERENCES battle_names(battle_name)
-                      ON UPDATE CASCADE,   -- 우리 이름은 battle_names 에 있다
-    fetched_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (taken_on, format, battle_name)
-);
-
-CREATE UNIQUE INDEX usage_rankings_position_idx
-    ON usage_rankings (taken_on, format, position);

@@ -24,6 +24,21 @@ TABLES = {
 }
 
 
+def fetch_id_map(conn, table):
+    """{영문 이름: 기본키}. 채용률이 저쪽 이름을 우리 것으로 옮길 때 쓴다.
+
+    성격만 값이 정수가 아니라 enum 문자열이다 — pokemon_natures 의
+    기본키가 en_name 이라 정수 id 가 아예 없다.
+    """
+    column = TABLES.get(table)
+    if column is None:
+        raise ValueError(f"허용되지 않은 테이블입니다: {table}")
+    key = "en_name" if table == "pokemon_natures" else "id"
+    cur = conn.cursor()
+    cur.execute(f"SELECT {column}, {key} FROM {table}")
+    return dict(cur.fetchall())
+
+
 def fetch_ko_map(conn, table):
     """{영문 이름: 한국어 ko_name}. 한국어가 없는 행은 뺀다."""
     column = TABLES.get(table)

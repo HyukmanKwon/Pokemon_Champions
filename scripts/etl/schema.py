@@ -299,138 +299,159 @@ MEGA_EVOLUTIONS = """CREATE TABLE mega_evolutions (
 #   옛 표기로 남는다.
 # ─────────────────────────────────────────────────────────────
 
-# 저쪽 표기 -> 우리 이름. 한 벌만 둔다.
+# ─────────────────────────────────────────────────────────────
+# 채용률 (championsbattledata.com)
 #
-# 전에는 usage_snapshots 와 usage_rankings 가 각자 우리 이름을 들고
-# 있었다. 그런데 battle_name 이 정해지면 pokemon_name 도 정해진다 —
-# 4,220행이 236개짜리 대응표를 반복해 보관하던 셈이고, 두 표의 값이
-# 갈라지면 어느 쪽이 맞는지 판별할 방법이 없었다. (이행 종속)
+# 저쪽에서 필요한 것은 둘뿐이다.
+#   ① 포켓몬별 통계   usage_snapshots + usage_picks + usage_spreads
+#   ② 전체 순위       usage_rankings
 #
-# 저쪽 표기를 키로 삼는 이유는 그것이 자료의 자연키이기 때문이다.
-# 우리 쪽 키는 로스터에 없는 이름이면 NULL 이라 키가 될 수 없고,
-# usage_rankings 의 기본키 구성 요소이기도 하다.
+# 다른 표와 달리 PokeAPI 가 아니라 저쪽에서 오고, 한 번 만들고 끝이 아니라
+# 하루 한 벌씩 쌓인다. 그래서 data/sql/ 에도 build.py 에도 안 들어간다.
+# (scripts/etl/sync/usage.py)
+#
+# ── 왜 DB 에 쌓나 ──
+#   저쪽은 일자별 자료를 16일치만 남긴다. 그보다 오래된 날짜는 색인에서
+#   사라지고 다시 받을 방법이 없다. 오늘 값을 보는 데는 캐시한 JSON 이면
+#   충분하지만, 지난 달과 비교하려면 사라지기 전에 옮겨 두는 수밖에 없다.
+# ─────────────────────────────────────────────────────────────
+
+# 저쪽 표기 -> 우리 포켓몬. 한 벌만 둔다.
+#
+# battle_name 이 정해지면 우리 이름도 정해진다. 칸으로 들고 다니면 그
+# 대응이 행마다 반복되고, 두 표의 값이 갈라져도 판별할 방법이 없다.
+#
+# 저쪽 표기를 키로 삼는 이유는 그것이 저쪽 자료의 자연키이기 때문이다.
+# 우리 쪽은 로스터에 없는 이름이면 NULL 이라 키가 될 수 없다.
 #
 # ON DELETE SET NULL 은 migrate_roster 때문이다. 로스터에서 빠진 포켓몬을
 # DELETE 해도 기록은 지난 일이라 사실로 남아야 한다. battle_name 이
-# 남으므로 그 포켓몬이 다시 들어오면 이 표 한 행만 고치면 도로 이어붙는다
-# — 전에는 4,220행을 훑어야 했다.
+# 남으므로 다시 들어오면 이 표 한 행만 고치면 도로 이어붙는다.
 BATTLE_NAMES = """CREATE TABLE battle_names (
-    -- 저쪽 표기가 기본키다. 저쪽 자료의 자연키이고, 우리 로스터에 없는
-    -- 이름도 기록으로 남아야 하므로 이쪽이 NULL 이 될 수 없는 쪽이다.
     battle_name  VARCHAR(50) PRIMARY KEY,   -- Garchomp, Alolan Raichu
     pokemon_id   INT REFERENCES pokemons(id) ON DELETE SET NULL
 );
 """
 
+# 저쪽 표기 -> 우리 것. 포켓몬 말고 나머지 (기술·도구·특성·성격).
+#
+# ── 왜 표로 빼나 ──
+#   이름 726개가 15만 줄에 흩어져 있었다. 성격은 27개가 37,500줄에 —
+#   같은 대응을 1,389번 되풀이해 적은 셈이다. 오타 하나를 고치려면 그
+#   15만 줄을 훑어야 했고(lron Fist -> Iron Fist), 안 붙은 이름이 무엇인지
+#   보려면 매번 GROUP BY 를 해야 했다.
+#
+#   빼 놓으면 고치는 것이 1행 UPDATE 가 되고, 못 붙인 이름은 이 표를
+#   그냥 보면 된다.
+#
+# ── 왜 갈래마다 칸이 다른가 ──
+#   가리키는 표가 갈래마다 다르다. 한 칸으로 두면(옛 linked_name) 외래키를
+#   못 건다. 726행짜리라 칸을 넷 두고 CHECK 로 묶는 값이 싸다.
+#
+# ── 왜 = 1 이 아니라 <= 1 인가 ──
+#   못 붙인 이름도 들어가야 한다. 크롤링 자료라 외래키로 INSERT 를 막으면
+#   그 줄을 통째로 잃는다. 원문을 남겨 두어야 저쪽 오타를 찾을 수 있다.
+USAGE_NAMES = """CREATE TABLE usage_names (
+    category     VARCHAR(20) NOT NULL,   -- move · held_item · ability · stat_alignment
+    source_name  VARCHAR(50) NOT NULL,   -- 저쪽 표기 그대로 (Focus Sash)
+    move_id      INT REFERENCES moves(id),
+    item_id      INT REFERENCES items(id),
+    ability_id   INT REFERENCES abilities(id),
+    nature       pokemon_natures_enum REFERENCES pokemon_natures(en_name),
+    PRIMARY KEY (category, source_name),
+    CHECK (num_nonnulls(move_id, item_id, ability_id, nature) <= 1)
+);
+"""
+
+# ② 전체 순위. "가장 많이 쓰이는 포켓몬" 에 답하는 유일한 자료다.
+#
+# usage_picks 의 percent 는 전부 그 포켓몬 안에서의 비율이라 이 질문에
+# 못 쓴다. 지진 99.3% 는 한카리아스가 지진을 채용하는 비율이지 한카리아스가
+# 얼마나 쓰이는지가 아니다.
+#
+# ── 두 출처가 한 표로 들어온다 ──
+#   index   색인 한 번에 235마리가 온다. 날짜를 안 줘서 받은 날을 찍는다
+#   csv     포켓몬별 CSV 의 column_position. 날짜는 저쪽 폴더명이라 정확하다
+#
+#   같은 사실(그날 그 포켓몬의 순위)이라 한 표에 담되, 날짜의 뜻이 달라서
+#   source 로 구분한다. 전에는 색인은 이 표에, CSV 는 usage_snapshots 의
+#   칸에 들어가 서로 대조되지 않은 채 갈라져 있었다.
+USAGE_RANKINGS = """CREATE TABLE usage_rankings (
+    taken_on     DATE NOT NULL,          -- 그 순위가 가리키는 날
+    format       VARCHAR(10) NOT NULL,
+    season       VARCHAR(10) NOT NULL,
+    battle_name  VARCHAR(50) NOT NULL REFERENCES battle_names(battle_name)
+                     ON UPDATE CASCADE,
+    position     INT NOT NULL,           -- 1 이 1위
+    source       VARCHAR(10) NOT NULL,   -- index · csv
+    fetched_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (taken_on, format, battle_name)
+);
+
+CREATE UNIQUE INDEX usage_rankings_position_idx
+    ON usage_rankings (taken_on, format, position);
+"""
+
+# ① 포켓몬별 통계의 머리. 하루 한 마리에 한 줄.
+#
+# 본문이 50줄쯤 되므로 시즌·일자·포맷·이름을 여기 한 번만 적는다. 그리고
+# 백필은 3,750번 받는 동안 언제든 끊기는데, 이어받을 때 "어느 날짜를 이미
+# 받았나" 를 이 표 한 줄 세기로 답할 수 있어야 한다.
 USAGE_SNAPSHOTS = """CREATE TABLE usage_snapshots (
     id             SERIAL PRIMARY KEY,
-    season         VARCHAR(10) NOT NULL,   -- M4
+    season         VARCHAR(10) NOT NULL,   -- M5
     snapshot_date  DATE NOT NULL,          -- 저쪽 폴더명 DD_MM_YYYY 를 날짜로
     format         VARCHAR(10) NOT NULL,   -- Singles / Doubles
     battle_name    VARCHAR(50) NOT NULL REFERENCES battle_names(battle_name)
-                       ON UPDATE CASCADE,   -- 우리 이름은 그쪽에 있다
-
-    source         TEXT,                  -- 받아온 CSV 경로. 어디서 왔는지 되짚을 때
-
-    -- 그날 그 포켓몬의 메타 순위. CSV 의 column_position 이다.
-    -- 1 이 가장 많이 쓰인 포켓몬이고, 없으면 NULL(옛 자료).
-    --
-    -- 이 칸이 없어서 도우미가 헛소리를 했다. "가장 많이 쓰이는 포켓몬" 을
-    -- 물으면 답할 자료가 없으니, 기술 채용률(지진 99.3%)을 포켓몬 사용률로
-    -- 읽고 줄을 세웠다. 빈칸이 있으면 모델은 채운다.
-    usage_rank     INT,
+                       ON UPDATE CASCADE,
+    source         TEXT,                   -- 받아온 CSV 경로
     fetched_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-
     UNIQUE (season, snapshot_date, format, battle_name)
 );
 
--- 한 마리의 추세를 훑는 질의용. UNIQUE 는 (시즌,일자,...) 순이라 이쪽으로 못 쓴다.
-CREATE INDEX usage_snapshots_pokemon_idx
+-- 한 마리의 추세를 훑는 질의용. UNIQUE 는 (시즌,일자,...) 순이라 못 쓴다.
+CREATE INDEX usage_snapshots_battle_idx
     ON usage_snapshots (battle_name, format, snapshot_date);
 """
 
-# 한 스냅샷의 본문. category 마다 채우는 칸이 다르다.
-#   move · held_item · ability   name + percent
-#   teammate                     name 만 (저쪽이 비율을 안 준다)
-#   stat_alignment               name(성격) + percent + stat_up/down
-#   stat_points                  percent + SP 여섯 칸 (name 은 NULL)
-USAGE_ROWS = """CREATE TABLE usage_rows (
+# ① 본문 그 하나 — 이름이 있는 줄.
+#
+# 기술·도구·특성·팀원·성격 다섯 갈래가 모양이 같다. (이름, 비율)
+# 우리 것으로 옮기는 일은 여기서 안 한다 — usage_names(그리고 팀원은
+# battle_names)를 조인한다.
+#
+# 전에는 SP 배분까지 한 표에 있어서 칸의 3분의 1이 늘 비어 있었다.
+# stat_up / stat_down 도 있었는데, 성격이 정해지면 그 둘도 정해지므로
+# (pokemon_natures.up/down) 파생 중복이었다.
+USAGE_PICKS = """CREATE TABLE usage_picks (
     snapshot_id  INT NOT NULL REFERENCES usage_snapshots(id) ON DELETE CASCADE,
     category     VARCHAR(20) NOT NULL,
     rank         INT NOT NULL,
-    name         VARCHAR(50),   -- 영문 표기 그대로. stat_points 는 NULL
+    source_name  VARCHAR(50) NOT NULL,   -- 저쪽 표기 그대로
+    percent      NUMERIC(4,1),           -- teammate 는 NULL (저쪽이 안 준다)
+    PRIMARY KEY (snapshot_id, category, rank)
+);
 
-    -- 그 이름을 우리 DB 에서 찾은 결과. 못 찾았거나 이름이 없는 줄(stat_points)
-    -- 이면 NULL 이다. 어느 표를 가리키는지는 category 가 정한다.
-    --
-    --     move       -> moves.name          held_item -> items.name
-    --     ability    -> abilities.name      teammate  -> pokemons.name
-    --
-    -- 외래키를 안 거는 이유는 한 칸이 네 표를 가리키기 때문이다. 대신
-    -- category 로 조인한다.
-    --
-    -- ── 왜 저장하나 ──
-    --   name 이 "Mimikyu" 로만 있으면 "한카리아스와 같이 쓰는 포켓몬의 타입
-    --   분포" 를 SQL 로 못 낸다. 매번 파이썬에서 슬러그를 다시 맞춰야 하고,
-    --   그 맞추기가 실패해도 조용히 빈 결과가 된다.
-    --
-    --   맞추는 규칙 자체는 usecases/usage.py 에 그대로 둔다. 여기 있는 것은
-    --   그 결과를 굳혀 둔 것이라, 규칙이 좋아지면 다시 채우면 된다.
-    linked_name  VARCHAR(50),
+-- "지진을 쓰는 비율이 어떻게 변했나" 는 이름으로 먼저 좁힌다.
+CREATE INDEX usage_picks_name_idx ON usage_picks (category, source_name);
+"""
 
-    -- teammate 는 NULL (저쪽이 비율을 안 준다).
-    --
-    -- REAL 이 아니라 NUMERIC 인 이유: 원본이 "99.4%" 처럼 소수 한 자리로
-    -- 떨어지는데 REAL 은 그 값을 정확히 담지 못한다. 다른 표의 REAL 은
-    -- 배수(1.5배)라 오차가 묻히지만, 이 표는 존재 이유가 두 날짜를 빼서
-    -- 추세를 보는 것이다. 99.4 - 99.3 이 -0.099998474 로 나오면 곤란하다.
+# ① 본문 그 둘 — SP 배분. 이름이 없고 여섯 칸이 한 벌로 움직인다.
+#
+# 칸 이름을 우리 키(h·a·b·c·d·s)가 아니라 저쪽 표기로 두는 것은, 이 표가
+# 남의 자료를 받아 적은 것이기 때문이다.
+USAGE_SPREADS = """CREATE TABLE usage_spreads (
+    snapshot_id  INT NOT NULL REFERENCES usage_snapshots(id) ON DELETE CASCADE,
+    rank         INT NOT NULL,
     percent      NUMERIC(4,1),
-    stat_up      VARCHAR(3),    -- stat_alignment 만. 우리 키(spa)로 접어서 넣는다
-    stat_down    VARCHAR(3),
-
-    -- stat_points 만. 이름을 pokemons 의 h/a/b/c/d/s 가 아니라 저쪽 컬럼명
-    -- 그대로 두는 것은, 이 표가 남의 자료를 받아 적은 것이기 때문이다.
     hp_points       INT,
     attack_points   INT,
     defense_points  INT,
     sp_atk_points   INT,
     sp_def_points   INT,
     speed_points    INT,
-
-    PRIMARY KEY (snapshot_id, category, rank)
+    PRIMARY KEY (snapshot_id, rank)
 );
-
--- "지진을 쓰는 비율이 어떻게 변했나" 는 이름으로 먼저 좁힌다.
-CREATE INDEX usage_rows_name_idx ON usage_rows (category, name);
-"""
-
-# ─────────────────────────────────────────────────────────────
-# 전체 순위. 색인(/api) 한 번이면 235마리가 다 온다.
-#
-# ── 왜 usage_snapshots 와 따로인가 ──
-#   저쪽이 주는 모양이 다르다. 스냅샷은 "그날 그 포켓몬의 CSV" 라 하루에
-#   235번 받아야 하지만, 이 순위는 색인 한 번에 전부 온다. 요청 수가
-#   235배 차이 나는 것을 한 표에 담으면 채우는 시점이 갈려 절반만 찬
-#   행이 생긴다.
-#
-#   그리고 색인 값에는 날짜가 안 붙어 온다. "오늘 순위" 로만 오므로 받은
-#   날짜를 우리가 찍는다. usage_snapshots.usage_rank 는 CSV 가 그날치로
-#   준 값이라 출처가 다르고, 둘을 따로 두면 서로 대조할 수 있다.
-# ─────────────────────────────────────────────────────────────
-
-USAGE_RANKINGS = """CREATE TABLE usage_rankings (
-    taken_on      DATE NOT NULL,          -- 받은 날. 저쪽은 날짜를 안 준다
-    format        VARCHAR(10) NOT NULL,
-    season        VARCHAR(10) NOT NULL,
-    position      INT NOT NULL,           -- 1 이 1위
-    battle_name   VARCHAR(50) NOT NULL REFERENCES battle_names(battle_name)
-                      ON UPDATE CASCADE,   -- 우리 이름은 battle_names 에 있다
-    fetched_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (taken_on, format, battle_name)
-);
-
-CREATE UNIQUE INDEX usage_rankings_position_idx
-    ON usage_rankings (taken_on, format, position);
 """
 
 # ─────────────────────────────────────────────────────────────
@@ -462,9 +483,11 @@ CREATE_ORDER = [
     ("mega_evolutions", MEGA_EVOLUTIONS),
     # 채용률 — 매일 쌓이는 것이라 01_content.sql 에는 안 들어간다
     ("battle_names", BATTLE_NAMES),
-    ("usage_snapshots", USAGE_SNAPSHOTS),
-    ("usage_rows", USAGE_ROWS),
+    ("usage_names", USAGE_NAMES),
     ("usage_rankings", USAGE_RANKINGS),
+    ("usage_snapshots", USAGE_SNAPSHOTS),
+    ("usage_picks", USAGE_PICKS),
+    ("usage_spreads", USAGE_SPREADS),
 ]
 
 SCHEMA_SQL = "\n".join(ddl for _, ddl in CREATE_ORDER)
