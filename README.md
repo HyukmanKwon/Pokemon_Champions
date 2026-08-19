@@ -22,14 +22,26 @@ python web.py                    # http://127.0.0.1:8000
 pytest                           # DB 없이 도는 계산 테스트
 ```
 
-로컬 LLM 도우미는 Ollama 가 따로 떠 있어야 한다.
+도우미는 기본이 API(`gpt-5.6-luna`)다. 키를 `.env` 에 넣는다.
 
 ```bash
-ollama serve                     # 한 번만, 별도 터미널
-ollama pull qwen3.5:9b
+pip install -e ".[llm]"          # openai 패키지
+echo 'OPENAI_API_KEY=sk-…' >> .env
 
 python -m scripts.chat --tools   # 어떤 도구를 불렀는지 보면서 대화
 python -m scripts.chat "메가갸라도스 지진이 한카리아스를 몇 방에 보내?"
+```
+
+회사를 바꿔 재 보려면 `--model` 만 바꾼다. 아는 이름은
+`agent/backends/__init__.py` 의 `MODELS` 에 있고, **표에 없는 이름은 전부
+로컬 Ollama 로 간다** — 오타로 유료 API 가 나가지 않게 하려는 것이다.
+
+```bash
+python -m scripts.chat --model gemini-3.7-flash "…"   # GEMINI_API_KEY 필요
+
+ollama serve                     # 로컬로 돌릴 때. 한 번만, 별도 터미널
+ollama pull qwen3.5:9b
+python -m scripts.chat --model qwen3.5:9b "…"
 ```
 
 접속 정보는 환경변수로 바꾼다. `.env.example` 참고.
@@ -103,7 +115,10 @@ Pokemon_Champions/
 │   │   ├── tools.py            도구 16개 (이름 찾고 아래층 호출)
 │   │   ├── schemas.py          도구 스키마
 │   │   ├── views.py            결과를 모델이 읽을 모양으로
-│   │   └── runner.py           Ollama 도구 호출 루프
+│   │   ├── runner.py           도구 호출 루프 (어느 회사인지는 모른다)
+│   │   └── backends/           어디에 물어볼지
+│   │       ├── ollama.py           로컬
+│   │       └── openai_compat.py    GPT · Gemini
 │   │
 │   ├── domain/                 "포켓몬이란 무엇인가"만 안다
 │   │   ├── stats.py            Stats — 능력치 6칸

@@ -50,10 +50,17 @@ number is a gap the model fills.
 put an `if model.startswith(...)` in the runner — that is the seam existing so
 you can A/B two providers on the same questions.
 
-Message shape belongs to the backend, all the way through. Providers differ in
-how a tool result is paired to its call — by id, or by name. Normalising both
-into one shape mispairs on the other side, and that does not raise: it produces
-an answer written against the wrong tool's output.
+Message shape belongs to the backend, all the way through. OpenAI pairs a tool
+result to its call by `tool_call_id`; Ollama pairs it by name. Normalising both
+into one shape mispairs on the other side, and that does not raise — it
+produces an answer written against the wrong tool's output.
+
+## Do not delete `reasoning_effort="none"`
+
+It is not a tuning knob. `gpt-5.6-*` returns 400 on `/v1/chat/completions` for
+any request carrying tools unless effort is explicitly `none`. Turning
+reasoning back on means writing a separate `/v1/responses` backend. The full
+reasoning is at the top of `backends/openai_compat.py`.
 
 ## Do not put the type-name table in the prompt
 

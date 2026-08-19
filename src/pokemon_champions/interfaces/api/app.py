@@ -255,7 +255,7 @@ def chat(req: ChatRequest):
     이벤트는 셋이다.
       tool    {name, args, result}   도구를 부를 때마다
       answer  {text, history}        다 끝났을 때
-      error   {message}              Ollama 가 없거나 죽었을 때
+      error   {message}              키가 없거나 저쪽이 죽었을 때
     """
     # ── 왜 스레드인가 ──
     #   runner.ask 는 블로킹이다. on_tool 은 그 안에서 불리므로, 같은

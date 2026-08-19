@@ -89,7 +89,8 @@ Pokemon_Champions/
     │   ├── tools.py             도구 16개
     │   ├── schemas.py           도구 스키마
     │   ├── views.py             결과를 모델이 읽을 모양으로
-    │   └── runner.py            Ollama 루프
+    │   ├── runner.py            도구 호출 루프
+    │   └── backends/            ollama · openai_compat(GPT·Gemini)
     │
     └── interfaces/          ▸ print · input · HTTP 는 여기서만
         ├── cli.py

@@ -1,11 +1,15 @@
-"""로컬 LLM 도우미와 대화한다.
-
-    ollama serve                       (한 번만, 따로 띄워둔다)
-    ollama pull qwen3.5:9b
+"""도우미와 대화한다.
 
     python -m scripts.chat                          대화 모드
     python -m scripts.chat "메가갸라도스 지진이 한카리아스를 몇 방에 보내?"
-    python -m scripts.chat --model qwen3.6:27b --tools  도구 호출을 같이 보기
+    python -m scripts.chat --model gemini-3.7-flash --tools   회사를 바꿔 재 보기
+
+기본은 API(gpt-5.6-luna)다. 로컬로 돌리려면 Ollama 를 띄우고 그 모델
+이름을 준다 — 표에 없는 이름은 전부 로컬로 간다.
+
+    ollama serve                       (한 번만, 따로 띄워둔다)
+    ollama pull qwen3.5:9b
+    python -m scripts.chat --model qwen3.5:9b
 
 ── 왜 웹이 아니라 CLI 부터인가 ──
   도구를 제대로 고르는지, 숫자를 지어내지 않는지를 먼저 봐야 한다. 화면을
@@ -29,7 +33,7 @@ def waiting():
     """기다리는 동안 초를 세어 보여준다.
 
     ── 왜 필요한가 ──
-      Ollama 응답을 통째로 받은 뒤에 찍으므로 그 사이 화면이 비어 있다.
+      응답을 통째로 받은 뒤에 찍으므로 그 사이 화면이 비어 있다.
       1분이 걸리면 멈춘 건지 도는 건지 알 수가 없다. 스트리밍을 붙이기
       전까지의 임시방편이다 — 실제 시간은 그대로지만 몇 초짜리인지는
       알 수 있다.
