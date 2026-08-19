@@ -1,44 +1,14 @@
-"""포켓몬 이름 한↔영 변환.
+"""포켓몬 폼 이름을 한국어로 조립한다.
 
-get_pokemons.py 가 폼 이름을 한국어로 조립할 때 쓴다.
+get/pokemons.py 만 쓴다. 이름을 한↔영으로 찾는 일은 여기가 아니라
+src 의 usecases/naming.py 가 한다 — 앱이 요청마다 하는 일이고, SQL 은
+db/repositories 에만 두는 것이 이 저장소의 규칙이다.
 
-- 모듈 로드 시점에 DB 커넥션을 열지 않는다. import 만 해도 접속이 일어나면
-  아직 테이블이 없는 구축 초기 단계에서 build.py 가 죽기 때문이다.
-- get_pokemons 를 import 하지 않는다. get_pokemons 가 이 모듈을 import 하고
-  있어서 서로 물고 도는 순환 import 가 된다.
+get/pokemons.py 를 import 하지 않는다. 그쪽이 이 모듈을 import 하고 있어서
+서로 물고 도는 순환 import 가 된다.
 """
 
 import requests
-
-from pokemon_champions.db import connect
-
-
-def ko_to_en(korean_name, conn=None):
-    """한국어 이름으로 영문 이름을 찾는다. 없으면 None."""
-    own = conn is None
-    conn = conn or connect()
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT name FROM pokemons WHERE ko_name = %s", (korean_name,))
-        row = cur.fetchone()
-        return row[0] if row else None
-    finally:
-        if own:
-            conn.close()
-
-
-def en_to_ko(english_name, conn=None):
-    """영문 이름으로 한국어 이름을 찾는다. 없으면 None."""
-    own = conn is None
-    conn = conn or connect()
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT ko_name FROM pokemons WHERE name = %s", (english_name,))
-        row = cur.fetchone()
-        return row[0] if row else None
-    finally:
-        if own:
-            conn.close()
 
 
 def fetch_korean_name(data):

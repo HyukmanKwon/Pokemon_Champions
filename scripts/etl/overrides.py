@@ -28,9 +28,6 @@ from . import paths
 
 OVERRIDE_DIR = paths.OVERRIDE_DIR
 
-EMPTY = {"reviewed": [], "values": {}}
-
-
 def path(name):
     """move_flags -> data/overrides/move_flags.json"""
     return OVERRIDE_DIR / f"{name}.json"
