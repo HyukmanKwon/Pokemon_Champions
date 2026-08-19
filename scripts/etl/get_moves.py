@@ -144,7 +144,7 @@ moves_M_B = [
 #   milk-drink   우유마시기 (208)
 #   power-shift  파워시프트 (LA 신기술)
 #
-# 되살릴 때는 이름만 위 목록에 옮기지 말고 sync_moves 로 pokemon_moves 까지
+# 되살릴 때는 이름만 위 목록에 옮기지 말고 fill_moves 로 pokemon_moves 까지
 # 같이 채워야 한다. moves 에만 있으면 아무도 못 배우는 기술이 된다.
 EXCLUDED_MOVES = ["spore", "soft-boiled", "milk-drink", "power-shift"]
 

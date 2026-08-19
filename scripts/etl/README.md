@@ -69,15 +69,17 @@ scripts/etl/
 ├── move_flags.py         기술 플래그 (PokeAPI CSV + 이름 규칙)
 ├── overrides.py          사람이 확정한 값 읽기/쓰기
 │
-├── get_types.py              pokemon_types + pokemon_type_names
-├── get_natures.py            pokemon_natures
-├── get_pokemons.py           pokemons + pokemon_abilities
-├── get_moves.py              moves + move_stat_changes
-├── get_abilities.py          abilities
-├── get_items.py              items
-├── get_pokemon_moves.py      pokemon_moves
+│  ── make_*.py : 값이 코드에 적혀 있다. API 0회 ──
+├── make_types.py         pokemon_types + pokemon_type_names
+├── make_natures.py       pokemon_natures
+├── make_mega_evolutions.py   mega_evolutions (DB 의 이름 규칙으로 계산)
 │
-├── get_mega_evolutions.py    mega_evolutions
+│  ── get_*.py : PokeAPI 에서 받는다 ──
+├── get_pokemons.py       pokemons
+├── get_moves.py          moves + move_stat_changes
+├── get_abilities.py      abilities + pokemon_abilities
+├── get_items.py          items
+├── get_pokemon_moves.py  pokemon_moves
 │
 └── annotator/            브라우저에서 손으로 고치는 도구들 (§5)
     ├── _common.py        서버·화면 뼈대 (도구마다 재사용)
@@ -86,18 +88,28 @@ scripts/etl/
     └── items.py          도구를 지닐 수 있는가
 ```
 
-`get_*.py` 는 직접 돌리지 않는다. 노출하는 것은 `TABLE`·`COLUMNS`·
-`DDL`·`build(conn)` 다섯 개뿐이고, 파일을 만들고 DB 에 올리는 일은 `build.py` 가
-한다. (§11)
+**접두사가 값의 출처를 말한다.** 파일을 열지 않고도 그 표가 어디서
+오는지 알 수 있어야 한다.
+
+| 접두사 | 출처 | 재구축 비용 |
+|---|---|---|
+| `make_*` | 코드에 적힌 고정값 · DB 에서 계산 | API 0회 |
+| `get_*` | PokeAPI | 표마다 다름, 전체 약 1,900회 |
+| `sync_*` | championsbattledata.com (채용률) | 하루 한 번 쌓인다 |
+
+`sync_usage.py` 만 셋째 갈래다. 다른 둘과 달리 한 번 만들고 끝이 아니라
+날마다 쌓이고, 그래서 `data/sql/` 에도 `build.py` 에도 들어가지 않는다.
+
+이 파일들은 직접 돌리지 않는다. 노출하는 것은 `TABLE`·`COLUMNS`·
+`build(conn)` 셋뿐이고, DB 에 올리는 일은 `build.py` 가 한다. (§11)
 
 **일회성·진단 도구** — 구축에 참여하지 않는다. 손으로 필요할 때만 돌린다.
 
 ```
 scripts/etl/
 ├── migrate_roster.py     로스터가 바뀐 것을 재구축 없이 DB 에 반영
-├── sync_moves.py         moves_M_B 에 있는데 DB 에 없는 기술만 채우기
+├── fill_moves.py         moves_M_B 에 있는데 DB 에 없는 기술만 채우기 (PokeAPI)
 ├── pin_ko_names.py       지금 DB 의 한국어 표기를 override 에 고정
-├── sync_usage.py         채용률 하루치를 받아 usage_snapshots 에 쌓기
 ├── check_moves.py        외부 목록과 기술 대조 (누락 찾기)
 └── dump_sql.py           지금 DB 를 data/sql/ 에 받아 적기 (build 의 반대 방향)
 ```
@@ -105,7 +117,7 @@ scripts/etl/
 앞의 셋은 **`build.py` 를 다시 못 돌리기 때문에** 있다. 스키마에
 `IF NOT EXISTS` 가 없어 빈 DB 여야 하고, 전체 재구축은 PokeAPI 를 1,900번
 부른다. 몇 마리 늘고 주는 일로 그 값을 치를 이유가 없어서 우회로를 냈다.
-`build.py` 가 멱등해지면 `sync_moves` 는 통째로, `migrate_roster` 는 INSERT
+`build.py` 가 멱등해지면 `fill_moves` 는 통째로, `migrate_roster` 는 INSERT
 쪽이 사라진다. (지우는 쪽은 UPSERT 로 대체되지 않으므로 남는다.)
 
 `sync_usage` 만 성질이 다르다. 우회로가 아니라 **매일 도는 것**이고, 받아오는
@@ -453,7 +465,7 @@ python -m scripts.etl.check_moves 목록.txt      # 한국어 이름 한 줄에 
 다시 넣지 않도록 `get_moves.py` 의 `EXCLUDED_MOVES` 에 적어 뒀고, 목록에
 도로 들어가면 import 시점에 `ValueError` 로 걸린다. 되살릴 때는 거기서도
 빼야 하고, `moves` 에만 넣으면 아무도 못 배우는 기술이 되므로
-`sync_moves` 로 `pokemon_moves` 까지 채워야 한다.
+`fill_moves` 로 `pokemon_moves` 까지 채워야 한다.
 
 **번역 차이 2개** — `overrides/move_ko_names.json` 에 넣었다.
 
@@ -482,7 +494,7 @@ python -m scripts.etl.check_moves 목록.txt      # 한국어 이름 한 줄에 
 점수가 거의 같아서 임계치를 어디에 두든 하나는 틀린다. 그래서 자동 판정하지
 않는다.
 
-### 목록에 추가한 뒤 — `sync_moves`
+### 목록에 추가한 뒤 — `fill_moves`
 
 **`moves_M_B` 를 고쳐도 DB 는 그대로다.** 재구축을 해야 반영되는데 그건 1,900회
 호출이라 기술 몇 개 때문에 돌리기엔 과하다. 실제로 위 4개를 목록에 넣고도
@@ -490,8 +502,8 @@ python -m scripts.etl.check_moves 목록.txt      # 한국어 이름 한 줄에 
 이어졌다. (그 4개는 지금은 제외됐다. 목록과 DB 둘 다 498개다.)
 
 ```bash
-python -m scripts.etl.sync_moves --dry-run   # 무엇이 들어갈지 먼저
-python -m scripts.etl.sync_moves             # 반영. API 는 빠진 기술 수만큼만
+python -m scripts.etl.fill_moves --dry-run   # 무엇이 들어갈지 먼저
+python -m scripts.etl.fill_moves             # 반영. API 는 빠진 기술 수만큼만
 ```
 
 `moves` 와 `move_stat_changes` 뿐 아니라 **`pokemon_moves` 도 같이 채운다.**
@@ -535,7 +547,7 @@ python -m scripts.etl.dump_sql              # 전체
 ```
 
 **왜 필요한가.** DB 는 빌드 이후로 계속 움직인다. 애노테이터로 플래그와
-한국어를 고치고, `sync_moves` 로 기술을 채우고, `migrate_roster` 로 로스터를
+한국어를 고치고, `fill_moves` 로 기술을 채우고, `migrate_roster` 로 로스터를
 갈아끼운다. 그래서 `data/sql/` 은 가만두면 빌드 당시의 화석이 된다. 실제로
 07/30 파일과 DB 는 이만큼 벌어져 있었다.
 

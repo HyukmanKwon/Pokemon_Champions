@@ -42,7 +42,7 @@ from .get_abilities import COLUMNS as ABILITY_COLUMNS
 from .get_abilities import fetch_ability, parse_ability
 from .get_items import COLUMNS as ITEM_COLUMNS
 from .get_items import collect_item_names, fetch_item, parse_item
-from .get_mega_evolutions import match_stone, select_stones
+from .make_mega_evolutions import match_stone, select_stones
 from .get_pokemons import (COLUMNS, base_of, fetch_pokemon,
                            parse_pokemon, pokemon_M_B, split_mega)
 from .get_pokemon_moves import fetch_pokemon as fetch_moves_source

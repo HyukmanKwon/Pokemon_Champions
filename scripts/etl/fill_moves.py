@@ -1,7 +1,7 @@
 """moves_M_B 에 있는데 DB 에 없는 기술을 채운다. 전체 재구축 없이.
 
-    python -m scripts.etl.sync_moves --dry-run   무엇이 들어갈지만 확인
-    python -m scripts.etl.sync_moves             실제 반영
+    python -m scripts.etl.fill_moves --dry-run   무엇이 들어갈지만 확인
+    python -m scripts.etl.fill_moves             실제 반영
 
 ── 왜 필요한가 ──
   get_moves.py 의 moves_M_B 를 고쳐도 DB 는 그대로다. 재구축을 해야 반영되는데

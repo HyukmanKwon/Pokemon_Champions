@@ -53,10 +53,22 @@ Two lists carry the order, and adding a table means adding it to both:
 - `CONTENT_ORDER` — table names in FK-safe insert order. Tables that ship
   empty (the `usage_*` family) are left out.
 
-## Generators
+## Generators — the prefix is the data source
 
-Each `get_*.py` exposes `TABLE`, `COLUMNS`, and `build(conn)`. A generator
-that fills a second table from the same API response declares
+| Prefix | Source | Cost |
+|---|---|---|
+| `make_*` | values written in the code, or derived from the DB | no API calls |
+| `get_*` | PokeAPI | ~1,900 calls for a full build |
+| `sync_*` | championsbattledata.com | accumulates daily |
+
+Name a new generator for where its values come from, not for what it builds.
+Reading the folder listing should answer "what does a rebuild cost?".
+
+`sync_*` is the odd one: it is not a build step and never enters `data/sql/`
+or `build.py`, because usage snapshots accumulate instead of being rebuilt.
+
+Each `make_*`/`get_*` exposes `TABLE`, `COLUMNS`, and `build(conn)`. A
+generator that fills a second table from the same API response declares
 `EXTRA = [(table, columns)]` so `dump_sql` knows its columns.
 
 `build(conn)` returns **`INSERT` statements only** — no DDL. Literal tables

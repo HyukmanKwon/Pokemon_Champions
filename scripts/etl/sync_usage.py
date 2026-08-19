@@ -10,7 +10,7 @@
 ── 왜 build.py 에 안 들어가나 ──
   PokeAPI 가 아니고, 한 번 만들고 끝이 아니다. build.py 는 빈 DB 에 한 번
   도는 물건이고 이것은 매일 도는 물건이다. 성질이 달라서 STEPS 에 넣지
-  않는다. migrate_roster · sync_moves 와 같은 자리다. (README §2)
+  않는다. migrate_roster · fill_moves 와 같은 자리다. (README §2)
 
 ── 왜 서두르나 ──
   저쪽은 일자별 자료를 16일치만 남긴다. 오늘 안 받은 날짜는 16일 뒤에

@@ -118,7 +118,7 @@ MEGA_RE = re.compile(r"^(.*)-mega(?:-([xy]))?$")
 #   pyroar-mega  -> 목록에 pyroar 가 아니라 pyroar-male 로 들어 있다
 #   floette-mega -> 메가가 되는 건 일반 플라엣테가 아니라 영원의 꽃 쪽이다.
 #                   일반 플라엣테를 목록에서 뺐으므로 여기서 이어줘야 한다.
-# get_mega_evolutions.py 도 이 표를 그대로 쓴다 — 베이스 판정이 두 곳에서
+# make_mega_evolutions.py 도 이 표를 그대로 쓴다 — 베이스 판정이 두 곳에서
 # 갈리면 can_mega 는 켜졌는데 관계표에는 없는 상태가 된다.
 MANUAL_BASE = {
     "pyroar-mega": "pyroar-male",

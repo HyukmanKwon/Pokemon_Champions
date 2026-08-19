@@ -61,25 +61,35 @@ from pokemon_champions.db import connect
 
 from . import paths
 from . import schema
-from . import (get_abilities, get_items, get_mega_evolutions, get_moves,
-               get_natures, get_pokemon_moves, get_pokemons, get_types)
+from . import (get_abilities, get_items, make_mega_evolutions, get_moves,
+               make_natures, get_pokemon_moves, get_pokemons, make_types)
 
 # 실행 순서. 앞 단계가 DB에 올라간 뒤에 뒤 단계가 생성된다.
 STEPS = [
-    get_types,
-    get_natures,
+    make_types,
+    make_natures,
     get_pokemons,
     get_moves,
     get_abilities,
     get_items,
     get_pokemon_moves,
-    get_mega_evolutions,
+    make_mega_evolutions,
 ]
 
 
 def step_name(step):
-    """모듈 이름 꼬리. scripts.etl.get_items -> items"""
-    return step.__name__.rsplit(".", 1)[-1].removeprefix("get_")
+    """모듈 이름에서 출처 접두사를 뗀 꼬리.
+
+        scripts.etl.get_items   -> items
+        scripts.etl.make_types  -> types
+
+    접두사는 값이 어디서 오는지를 말한다 — make_ 는 코드에 적힌 고정값,
+    get_ 는 PokeAPI. 고르는 이름에는 그 구분이 필요 없다.
+    """
+    tail = step.__name__.rsplit(".", 1)[-1]
+    for prefix in ("get_", "make_"):
+        tail = tail.removeprefix(prefix)
+    return tail
 
 
 def select(names):
