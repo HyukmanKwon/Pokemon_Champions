@@ -44,5 +44,10 @@ trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT
 echo "───── $(date '+%Y-%m-%d %H:%M:%S') ─────"
 # --backfill 이 순위(usage_rankings)도 같이 받는다. 요청 한 번이라 공짜에
 # 가깝고, 이게 없으면 "가장 많이 쓰이는 포켓몬" 에 답할 자료가 없다.
+# --live 가 기본 수집 경로다. 저쪽이 날짜별 보관을 거르므로(2026-08-05 ~
+# 08-17 이 통째로 없다) 오늘 값을 우리가 찍어 쌓는다.
+"$PYTHON" -m scripts.etl.sync.usage --live --format Singles
+
+# 저쪽이 보관해 둔 날짜가 있으면 그것도 받아 둔다. 이미 받은 날은 건너뛴다.
 "$PYTHON" -m scripts.etl.sync.usage --backfill --format Singles
 echo "끝: $(date '+%H:%M:%S')"

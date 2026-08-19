@@ -172,10 +172,19 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
             ORDER BY snapshot_date DESC, id DESC
             LIMIT 1
         )
-        SELECT r.category, r.rank, r.source_name AS name, r.percent,
+        SELECT r.snapshot_id, r.category, r.rank, r.source_name AS name,
+               r.percent,
                COALESCE(m.name, i.name, ab.name, n.nature::text,
                         tp.name) AS linked_name,
                m.type AS move_type, tp.id AS teammate_id,
+               -- 성격의 보정. 표에 안 담는다 — 성격이 정해지면 따라오는
+               -- 값이라 pokemon_natures 에서 읽는다. 무보정이면 NULL.
+               CASE pn.up WHEN 'a' THEN 'atk' WHEN 'b' THEN 'def'
+                          WHEN 'c' THEN 'spa' WHEN 'd' THEN 'spd'
+                          WHEN 's' THEN 'spe' END AS stat_up,
+               CASE pn.down WHEN 'a' THEN 'atk' WHEN 'b' THEN 'def'
+                            WHEN 'c' THEN 'spa' WHEN 'd' THEN 'spd'
+                            WHEN 's' THEN 'spe' END AS stat_down,
                s.snapshot_date, s.season
         FROM usage_picks r
         JOIN latest l ON l.id = r.snapshot_id
@@ -187,13 +196,29 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
         LEFT JOIN abilities    ab ON ab.id = n.ability_id
         LEFT JOIN battle_names bn ON r.category = 'teammate'
                               AND bn.battle_name = r.source_name
-        LEFT JOIN pokemons     tp ON tp.id = bn.pokemon_id
+        LEFT JOIN pokemons        tp ON tp.id = bn.pokemon_id
+        LEFT JOIN pokemon_natures pn ON pn.en_name = n.nature
         WHERE (r.category = 'move' AND r.rank <= %s) OR r.rank = 1
         ORDER BY r.category, r.rank
         """,
         (pokemon_name, fmt, moves),
     )
-    return rows(cur)
+    out = rows(cur)
+    if not out:
+        return out
+
+    # SP 배분은 표가 다르다. 계산기 기본값을 채우려면 이것이 있어야 한다 —
+    # 없으면 SP 0 으로 서고, "남들이 실제로 쓰는 그 포켓몬" 이 아니게 된다.
+    cur.execute(
+        """
+        SELECT 'stat_points' AS category, rank, NULL AS name, percent,
+               hp_points, attack_points, defense_points,
+               sp_atk_points, sp_def_points, speed_points
+        FROM usage_spreads WHERE snapshot_id = %s AND rank = 1
+        """,
+        (out[0]["snapshot_id"] if "snapshot_id" in out[0] else None,),
+    )
+    return out + rows(cur)
 
 
 def save_rankings(conn, taken_on, fmt, rows):
@@ -316,7 +341,15 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
         SELECT r.category, r.rank, r.source_name AS name, r.percent,
                COALESCE(m.name, i.name, ab.name, n.nature::text,
                         tp.name) AS linked_name,
-               m.type AS move_type, tp.id AS teammate_id
+               m.type AS move_type, tp.id AS teammate_id,
+               -- 성격의 보정. 표에 안 담는다 — 성격이 정해지면 따라오는
+               -- 값이라 pokemon_natures 에서 읽는다. 무보정이면 NULL.
+               CASE pn.up WHEN 'a' THEN 'atk' WHEN 'b' THEN 'def'
+                          WHEN 'c' THEN 'spa' WHEN 'd' THEN 'spd'
+                          WHEN 's' THEN 'spe' END AS stat_up,
+               CASE pn.down WHEN 'a' THEN 'atk' WHEN 'b' THEN 'def'
+                            WHEN 'c' THEN 'spa' WHEN 'd' THEN 'spd'
+                            WHEN 's' THEN 'spe' END AS stat_down
         FROM usage_picks r
         LEFT JOIN usage_names  n  ON n.category = r.category
                               AND n.source_name = r.source_name
@@ -325,7 +358,8 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
         LEFT JOIN abilities    ab ON ab.id = n.ability_id
         LEFT JOIN battle_names bn ON r.category = 'teammate'
                               AND bn.battle_name = r.source_name
-        LEFT JOIN pokemons     tp ON tp.id = bn.pokemon_id
+        LEFT JOIN pokemons        tp ON tp.id = bn.pokemon_id
+        LEFT JOIN pokemon_natures pn ON pn.en_name = n.nature
         WHERE r.snapshot_id = %s AND r.rank <= %s
         ORDER BY r.category, r.rank
         """,
@@ -337,6 +371,7 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
         """
         SELECT 'stat_points' AS category, rank, NULL AS name, percent,
                NULL AS linked_name, NULL AS move_type, NULL AS teammate_id,
+               NULL AS stat_up, NULL AS stat_down,
                hp_points, attack_points, defense_points,
                sp_atk_points, sp_def_points, speed_points
         FROM usage_spreads WHERE snapshot_id = %s AND rank <= %s ORDER BY rank

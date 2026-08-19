@@ -90,6 +90,9 @@ SOURCE_ALIASES = {
     "lron Ball": "Iron Ball",
     "Leat Guard": "Leaf Guard",
     "Boost": "Speed Boost",
+    # 단어 중간에 공백이 들어간 것. 위의 l/I 와는 다른 종류다.
+    "Tyra nitarite": "Tyranitarite",
+    "Mega niumite": "Meganiumite",
 }
 
 

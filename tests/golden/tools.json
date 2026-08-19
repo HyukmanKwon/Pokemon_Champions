@@ -1,9 +1,9 @@
 {
   "bulk_index({\"pokemon\": {\"name\": \"하마돈\"}})": {
-    "def": 187,
+    "def": 154,
     "divided_by": 0.411,
     "filled_from_usage": {
-      "date": "2026-08-04",
+      "date": "2026-08-19",
       "fields": [
         "ability",
         "item",
@@ -15,10 +15,10 @@
     },
     "hp": 215,
     "ko_name": "하마돈",
-    "physical_bulk": 97822,
+    "physical_bulk": 80560,
     "pokemon": "hippowdon",
-    "spd": 94,
-    "special_bulk": 49173
+    "spd": 124,
+    "special_bulk": 64866
   },
   "calc_damage({\"attacker\": {\"name\": \"맘모꾸리\"}, \"defender\": {\"condition\": \"toxic\", \"item\": \"먹다남은음식\", \"name\": \"한카리아스\"}, \"move\": \"고드름떨구기\", \"toxic_turn\": 2})": {
     "attacker": {
@@ -70,11 +70,10 @@
       "spd": 105
     },
     "filled_from_usage": {
-      "date": "2026-08-04",
+      "date": "2026-08-19",
       "fields": [
         "ability",
         "item",
-        "moves",
         "nature",
         "sp"
       ],
@@ -140,11 +139,10 @@
       "spd": 105
     },
     "filled_from_usage": {
-      "date": "2026-08-04",
+      "date": "2026-08-19",
       "fields": [
         "ability",
         "item",
-        "moves",
         "nature",
         "sp"
       ],
@@ -210,7 +208,7 @@
       "spd": 105
     },
     "filled_from_usage": {
-      "date": "2026-08-04",
+      "date": "2026-08-19",
       "fields": [
         "ability",
         "item",
@@ -1182,7 +1180,7 @@
   "power_index({\"moves\": [\"지진\", \"아이언헤드\", \"없는기술\"], \"pokemon\": {\"name\": \"메타그로스\", \"nature\": \"고집\"}})": {
     "atk": 205,
     "filled_from_usage": {
-      "date": "2026-08-04",
+      "date": "2026-08-19",
       "fields": [
         "ability",
         "item",
@@ -1526,7 +1524,7 @@
     ]
   },
   "top_pokemon({\"limit\": 5})": {
-    "date": "2026-08-17",
+    "date": "2026-08-19",
     "format": "Singles",
     "note": "순위만 있고 사용률 %는 저쪽이 주지 않습니다.",
     "ranking": [
@@ -1536,8 +1534,8 @@
         "position": 1
       },
       {
-        "ko_name": "따라큐",
-        "name": "mimikyu-disguised",
+        "ko_name": "누리레느",
+        "name": "primarina",
         "position": 2
       },
       {
@@ -1546,13 +1544,13 @@
         "position": 3
       },
       {
-        "ko_name": "하마돈",
-        "name": "hippowdon",
+        "ko_name": "브리두라스",
+        "name": "archaludon",
         "position": 4
       },
       {
-        "ko_name": "브리두라스",
-        "name": "archaludon",
+        "ko_name": "따라큐",
+        "name": "mimikyu-disguised",
         "position": 5
       }
     ]
@@ -1669,7 +1667,7 @@
     ],
     "ko_name": "한카리아스",
     "meta_rank": {
-      "date": "2026-08-17",
+      "date": "2026-08-19",
       "of": 235,
       "position": 1
     },

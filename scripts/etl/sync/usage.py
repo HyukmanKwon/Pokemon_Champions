@@ -61,6 +61,13 @@ FILLABLE = {"move": ("moves", "name"), "held_item": ("items", "name")}
 # stat_alignment 는 성격 이름(Jolly)이 오는데 오래 비워 두었었다. 그 줄이
 # 37,500개라 "어느 성격을 많이 쓰나" 를 SQL 로 못 냈다. 슬러그가 곧
 # pokemon_natures.en_name 이라 다른 갈래와 같은 방식으로 붙는다.
+# 지금 시즌과 그 시작일. 저쪽 폴더의 시즌 이름은 갱신되지 않아서
+# (2026-08-18 자료도 M4/ 아래 있다) 우리가 따로 적는다. 시즌이 바뀌면
+# 이 둘을 고친다.
+SEASON = "M5"
+SEASON_START = date(2026, 8, 5)
+
+
 LINK_TABLE = {"move": "moves", "held_item": "items", "ability": "abilities",
               "stat_alignment": "pokemon_natures"}
 
@@ -245,7 +252,7 @@ def fill_items(conn, gaps):
     return done
 
 
-def sync_rankings(conn, fmt, season="Current", dry_run=False):
+def sync_rankings(conn, fmt, season=SEASON, dry_run=False):
     """전체 메타 순위를 받아 usage_rankings 에 오늘치로 넣는다.
 
     요청 한 번이면 235마리가 다 온다. 포켓몬마다 CSV 를 받는 collect() 와
@@ -254,8 +261,11 @@ def sync_rankings(conn, fmt, season="Current", dry_run=False):
 
     저쪽이 날짜를 안 주므로 받은 날(오늘)로 찍는다. 같은 날 다시 받으면
     갈아끼운다.
+
+    시즌도 우리가 적는다. 저쪽 색인은 "Current" 라고만 하고 폴더 이름은
+    갱신되지 않아서, 둘 다 우리 시즌을 말해 주지 않는다. (SEASON)
     """
-    got = usage_source.rankings(fmt=fmt, season=season)
+    got = usage_source.rankings(fmt=fmt)
     if not got:
         print(f"{fmt}: 순위를 못 받았습니다.")
         return 0
@@ -282,10 +292,74 @@ def sync_rankings(conn, fmt, season="Current", dry_run=False):
     return n
 
 
-# 지금 시즌이 시작한 날. 저쪽 폴더의 시즌 이름은 갱신되지 않아서
-# (2026-08-18 자료도 M4/ 아래 있다) 기간은 날짜로 자를 수밖에 없다.
-# 시즌이 바뀌면 이 값을 고친다.
-SEASON_START = date(2026, 8, 5)
+def snapshot_live(conn, fmt, sleep, limit, dry_run, season=SEASON):
+    """저쪽 '오늘 값' 을 235마리 받아 오늘 날짜로 쌓는다.
+
+    ── 왜 필요한가 ──
+      저쪽은 오늘 값을 언제든 준다. 그런데 그것을 날짜별로 보관해 주지
+      않는다 — 2026-08-05 부터 8-17 까지 열사흘이 색인에 아예 없다.
+      지난 달과 비교하려면 우리가 찍어 두는 수밖에 없다.
+
+      backfill 은 저쪽이 보관한 날짜를 받아온다. 이쪽은 보관 여부와
+      무관하게 오늘 값을 우리 시계열에 넣는다. 저쪽이 하루를 거르든
+      말든 우리 쪽은 안 끊긴다.
+
+    ── 날짜와 시즌은 우리가 찍는다 ──
+      오늘 값에는 날짜가 안 붙어 온다. 받은 날로 찍는다. 시즌도 저쪽
+      폴더 이름이 갱신되지 않아 우리가 적는다 (SEASON).
+
+      같은 날 다시 돌리면 갈아끼운다. usage_snapshots 의 UNIQUE 가
+      (시즌·날짜·포맷·이름) 이라 두 벌이 되지 않는다.
+    """
+    got = usage_source.rankings(fmt=fmt)
+    if not got:
+        print(f"{fmt}: 순위를 못 받아 대상 목록을 만들 수 없습니다.")
+        return 0, 0, 0
+
+    today = date.today()
+    print(f"{SEASON} · {today} · {fmt} — 오늘 값 {len(got)}마리")
+
+    index = usage.pokemon_index(pokemon_repo.fetch_list(conn))
+    maps = {t: lookup_repo.fetch_id_map(conn, t)
+            for t in set(LINK_TABLE.values())}
+
+    saved = failed = 0
+    unlinked = []
+    for i, r in enumerate(got[:limit] if limit else got, 1):
+        name = r["battle_name"]
+        data = usage_source.fetch_battle(name, fmt)
+        if not data or not data.get("rows"):
+            failed += 1
+            print(f"  ✗ {name} — 못 받았습니다")
+            continue
+
+        ours = usage.resolve_pokemon(index, name)
+        if ours is None:
+            unlinked.append(name)
+
+        if not dry_run:
+            picks, spreads = split_rows(data["rows"])
+            resolve_names(conn, picks, maps, index)
+            usage_repo.save(
+                conn,
+                {"season": season, "snapshot_date": today, "format": fmt,
+                 "battle_name": name, "pokemon_name": ours, "source": "live"},
+                picks, spreads,
+            )
+            usage_repo.save_rankings(conn, today, fmt, [{
+                "season": season, "position": r["position"],
+                "battle_name": name, "source": "live"}])
+            conn.commit()      # 한 마리씩 확정한다. 끊겨도 앞의 것은 남는다
+        saved += 1
+
+        if i % 25 == 0 or i == len(got):
+            print(f"  {i}/{len(got)} …")
+        time.sleep(sleep)
+
+    if unlinked:
+        print(f"\n우리 로스터에 없는 이름 {len(unlinked)}개는 "
+              f"연결을 비워 두고 넣었습니다: {', '.join(unlinked[:8])}")
+    return saved, 0, failed
 
 
 def missing_dates(conn, fmt, season=None, since=None):
@@ -356,8 +430,11 @@ def main(argv=None):
     ap.add_argument("--rankings-only", action="store_true",
                     help="전체 순위만 받는다. 요청 1회, 몇 초")
     ap.add_argument("--backfill", action="store_true",
-                    help="안 받은 날짜를 오래된 것부터 전부 받는다. "
+                    help="저쪽이 보관한 날짜 중 안 받은 것을 전부 받는다. "
                          "--date 는 무시된다")
+    ap.add_argument("--live", action="store_true",
+                    help="저쪽 '오늘 값' 을 받아 오늘 날짜로 쌓는다. "
+                         "저쪽이 날짜별 보관을 거르므로 이쪽이 기본 수집 경로다")
     ap.add_argument("--dry-run", action="store_true",
                     help="받아만 보고 DB 를 건드리지 않는다")
     ap.add_argument("--fill-missing", action="store_true",
@@ -376,13 +453,17 @@ def main(argv=None):
             return 0
         print()
 
-        run = backfill if args.backfill else collect
-        saved, skipped, failed = (
-            run(conn, args.format, args.season, args.sleep,
+        if args.live:
+            saved, skipped, failed = snapshot_live(
+                conn, args.format, args.sleep, args.limit, args.dry_run)
+        elif args.backfill:
+            saved, skipped, failed = backfill(
+                conn, args.format, args.season, args.sleep,
                 args.limit, args.dry_run, args.refetch, args.since)
-            if args.backfill else
-            run(conn, args.format, args.season, args.date,
-                args.sleep, args.limit, args.dry_run, args.refetch))
+        else:
+            saved, skipped, failed = collect(
+                conn, args.format, args.season, args.date,
+                args.sleep, args.limit, args.dry_run, args.refetch)
         print(f"\n넣음 {saved} · 건너뜀(이미 있음) {skipped} · 못 받음 {failed}")
         if args.dry_run:
             print("--dry-run 이라 DB 는 그대로입니다.")
