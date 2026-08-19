@@ -39,7 +39,7 @@ import argparse
 from pokemon_champions.db import connect
 
 from .get_abilities import COLUMNS as ABILITY_COLUMNS
-from .get_abilities import fetch_ability, parse_ability, select_ability_names
+from .get_abilities import fetch_ability, parse_ability
 from .get_items import COLUMNS as ITEM_COLUMNS
 from .get_items import collect_item_names, fetch_item, parse_item
 from .get_mega_evolutions import match_stone, select_stones
@@ -180,17 +180,21 @@ def sync_items(cur):
     return added, to_drop, failed, unlinked
 
 
-def sync_abilities(cur, extra=()):
-    """pokemon_abilities 가 가리키는데 abilities 에 없는 특성을 받아 채운다.
+def sync_abilities(cur, wanted):
+    """wanted 중 abilities 에 없는 것을 받아 채운다.
 
-    extra 는 아직 표에 안 들어간 특성 이름들이다. 새로 추가되는 포켓몬의
-    특성이 여기로 온다 — 그 행을 넣으려면 abilities 가 먼저 있어야 하는데,
-    표를 보고 목록을 만들면 아직 없어서 안 보인다. (모르페코의 하라펠코)
+    wanted 는 새로 추가되는 포켓몬이 들고 온 특성 이름들이다. 그 연결 행을
+    넣으려면 abilities 가 먼저 있어야 하므로 여기가 먼저 돈다.
+    (모르페코의 하라펠코가 이 경우다)
+
+    DB 를 훑어 "가리키는데 없는 특성" 을 찾지 않는다. pokemon_abilities 에
+    외래키가 걸린 뒤로 그런 행은 애초에 들어갈 수 없다 — 찾아봐야 언제나
+    빈 결과다.
 
     삭제된 특성은 지우지 않는다. 어느 포켓몬도 안 가진 특성이 남아 있어도
     화면에 해로울 게 없고, 목록을 되돌릴 때 다시 받지 않아도 된다.
     """
-    wanted = set(select_ability_names(cur)) | set(extra)
+    wanted = set(wanted)
     cur.execute("SELECT name FROM abilities")
     have = {r[0] for r in cur.fetchall()}
 
@@ -330,7 +334,7 @@ def main():
         # 포켓몬을 다 넣고 뺀 뒤에 본다. 새로 들어온 폼이 처음 들고 오는
         # 특성(모르페코의 하라펠코 같은)이 여기서 채워진다.
         new_abilities, ability_failed = sync_abilities(
-            cur, extra={a for _, a, _ in pending_abilities})
+            cur, {a for _, a, _ in pending_abilities})
         for name, ko in new_abilities:
             print(f"  + 특성 {name} -> {ko}")
         if ability_failed:

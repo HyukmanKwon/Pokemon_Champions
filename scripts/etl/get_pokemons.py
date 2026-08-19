@@ -101,11 +101,15 @@ COLUMNS = ["id", "dex_no", "name", "ko_name", "type1", "type2",
 
 # 한 파일 안에 두 번째 표도 같이 만든다. 같은 응답에서 나오므로 API 를
 # 다시 부르지 않는다. (get_moves 의 move_stat_changes 와 같은 결)
-ABILITY_TABLE = "pokemon_abilities"
-ABILITY_COLUMNS = ["pokemon_id", "ability_id", "slot"]
-
-# dump_sql 이 읽는 목록 — 이 파일에 표가 하나 더 있다는 뜻이다.
-EXTRA = [(ABILITY_TABLE, ABILITY_COLUMNS)]
+# 특성 연결은 여기서 만들지 않는다.
+#
+# pokemon_abilities.ability_id 가 abilities(id) 를 참조하는데, 어느 특성을
+# 받아야 하는지는 포켓몬 응답을 봐야 알 수 있다. 즉 abilities 는 이 단계
+# 뒤에 오고, 그러면 이 단계에서 특성 행을 넣을 수 없다.
+#
+# 그래서 (포켓몬 id, 특성 이름, 슬롯) 을 여기 담아 두고, get_abilities 가
+# 자기 표를 넣은 뒤 같은 단계에서 이어서 넣는다.
+ABILITY_ROWS = []
 
 # charizard-mega-x -> ("charizard", "x") / gengar-mega -> ("gengar", None)
 MEGA_RE = re.compile(r"^(.*)-mega(?:-([xy]))?$")
@@ -199,14 +203,15 @@ def build(conn):
 
 
     rows = collect(pokemon_M_B, fetch_pokemon, parse_pokemon)
-    ability_values = [a for r in rows for a in r["_abilities"]]
-    print(f"특성 {len(ability_values)}행")
+
+    # 다음 단계(get_abilities)가 가져간다. 위 ABILITY_ROWS 주석 참고.
+    ABILITY_ROWS.clear()
+    ABILITY_ROWS.extend(a for r in rows for a in r["_abilities"])
+    print(f"특성 {len(ABILITY_ROWS)}행 (abilities 단계에서 넣는다)")
 
     # 베이스가 목록에 없는 메가폼은 mega_evolutions(10단계)에서 빠진다
     orphans = sorted(bases - set(pokemon_M_B))
     if orphans:
         print(f"베이스가 목록에 없는 메가: {len(orphans)}개 - {orphans}")
 
-    sql = sql_of(cur, TABLE, COLUMNS, to_values(rows, COLUMNS))
-    return sql + "\n" + sql_of(cur, ABILITY_TABLE,
-                                ABILITY_COLUMNS, ability_values)
+    return sql_of(cur, TABLE, COLUMNS, to_values(rows, COLUMNS))
