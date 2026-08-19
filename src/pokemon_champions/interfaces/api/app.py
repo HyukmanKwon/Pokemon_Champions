@@ -87,8 +87,27 @@ def index():
 
 # 화면을 이루는 css/js. 스프라이트와 달리 이쪽은 StaticFiles 로 건다 —
 # 없는 파일이 404 인 게 맞고(오타를 바로 알아야 한다), 받아올 곳도 없다.
-# ETag 를 붙여주므로 고칠 때마다 브라우저가 다시 받는다.
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+#
+# ── ETag 만으로는 안 됐다 ──
+#   StaticFiles 는 ETag 와 Last-Modified 를 붙이지만 Cache-Control 은 안
+#   붙인다. 그러면 브라우저가 물어보지도 않는다 — 캐시 지시가 없을 때
+#   쓰는 어림값이 "Last-Modified 로부터 흐른 시간의 10%" 라, 며칠 전에
+#   고친 파일은 몇 시간씩 그대로 쓰인다. ETag 는 다시 물어볼 때만 쓰이는
+#   것이라 아예 차례가 오지 않는다.
+#
+#   실제로 css 를 고치고 새로고침해도 옛 화면이 그대로 떴다. 파일도
+#   서버도 새것인데 화면만 낡아서, 고친 쪽을 의심하게 되는 종류의 함정이다.
+#
+#   no-cache 는 "받지 마라" 가 아니라 "쓰기 전에 물어봐라" 다. 그래서
+#   그때부터 ETag 가 제 일을 하고, 안 바뀌었으면 304 로 끝난다.
+class DevStatic(StaticFiles):
+    def file_response(self, *args, **kwargs):
+        res = super().file_response(*args, **kwargs)
+        res.headers["Cache-Control"] = "no-cache"
+        return res
+
+
+app.mount("/static", DevStatic(directory=STATIC_DIR), name="static")
 
 
 # ─────────────────────────────────────────────────────────────
