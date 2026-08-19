@@ -221,13 +221,18 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
     return out + rows(cur)
 
 
-def save_rankings(conn, taken_on, fmt, rows):
+def save_rankings(conn, taken_on, fmt, season, source, rows):
     """전체 순위 한 벌을 넣거나 갈아끼운다. 넣은 줄 수를 돌려준다.
 
-    rows 는 [{position, battle_name, season, pokemon_name}] 다.
+    rows 는 [{position, battle_name, pokemon_name}] 다.
 
-    같은 날을 다시 받으면 갈아끼운다. 저쪽 순위가 하루 안에 바뀌면 옛 줄이
-    남아 (taken_on, format, position) UNIQUE 에 걸리므로 먼저 지운다.
+    ── 시즌과 출처는 줄이 아니라 인자다 ──
+      한 벌이 통째로 같은 값이라 줄마다 실을 이유가 없다. 그리고 저쪽
+      응답에도 season 이 들어 있는데 그것은 "Current" 라고만 하지 우리
+      시즌을 말해 주지 않는다. 줄에서 받으면 그 값이 섞여 들어온다 —
+      실제로 usage_rankings 만 Current, usage_snapshots 는 M5 였다.
+
+    같은 날을 다시 받으면 갈아끼운다.
     """
     cur = conn.cursor()
     for r in rows:
@@ -239,11 +244,12 @@ def save_rankings(conn, taken_on, fmt, rows):
         VALUES (%(taken_on)s, %(format)s, %(season)s, %(position)s,
                 %(battle_name)s, %(source)s)
         ON CONFLICT (taken_on, format, battle_name) DO UPDATE
-            SET position = EXCLUDED.position, source = EXCLUDED.source,
-                fetched_at = now()
+            SET position = EXCLUDED.position, season = EXCLUDED.season,
+                source = EXCLUDED.source, fetched_at = now()
         """,
-        [{"taken_on": taken_on, "format": fmt,
-          "source": r.get("source", "index"), **r} for r in rows],
+        [{"taken_on": taken_on, "format": fmt, "season": season,
+          "source": source, "position": r["position"],
+          "battle_name": r["battle_name"]} for r in rows],
     )
     return len(rows)
 

@@ -174,9 +174,8 @@ def collect(conn, fmt, season, date, sleep, limit, dry_run, refetch=False):
             # 색인이 주는 것과 같은 사실이라 한 표로 모은다 (source 로 구분).
             position = rows[0].get("column_position")
             if position is not None:
-                usage_repo.save_rankings(conn, day, fmt, [{
-                    "season": season, "position": position,
-                    "battle_name": name, "source": "csv"}])
+                usage_repo.save_rankings(conn, day, fmt, season, "csv", [
+                    {"position": position, "battle_name": name}])
             conn.commit()      # 한 마리씩 확정한다. 끊겨도 앞의 것은 남는다
         saved += 1
 
@@ -285,9 +284,7 @@ def sync_rankings(conn, fmt, season=SEASON, dry_run=False):
 
     if dry_run:
         return 0
-    for r in got:
-        r["source"] = "index"
-    n = usage_repo.save_rankings(conn, date.today(), fmt, got)
+    n = usage_repo.save_rankings(conn, date.today(), fmt, season, "index", got)
     conn.commit()
     return n
 
@@ -346,9 +343,8 @@ def snapshot_live(conn, fmt, sleep, limit, dry_run, season=SEASON):
                  "battle_name": name, "pokemon_name": ours, "source": "live"},
                 picks, spreads,
             )
-            usage_repo.save_rankings(conn, today, fmt, [{
-                "season": season, "position": r["position"],
-                "battle_name": name, "source": "live"}])
+            usage_repo.save_rankings(conn, today, fmt, season, "live", [
+                {"position": r["position"], "battle_name": name}])
             conn.commit()      # 한 마리씩 확정한다. 끊겨도 앞의 것은 남는다
         saved += 1
 

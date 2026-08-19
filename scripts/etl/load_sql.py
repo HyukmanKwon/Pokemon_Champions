@@ -71,10 +71,17 @@ def sql_files():
 
 
 def drop_sql():
-    """전부 지우는 SQL. 찍어만 주고 실행하지 않는다."""
+    """전부 지우는 SQL. 찍어만 주고 실행하지 않는다.
+
+    뷰를 먼저 지운다. 표에 CASCADE 를 걸면 뷰도 같이 딸려 나가지만, 그러면
+    "무엇이 지워졌는지" 가 NOTICE 로만 남는다. 이름을 적어 두면 지우는
+    목록만 읽어도 무엇이 있었는지 보인다.
+    """
+    views = ", ".join(name for name, _ in schema.VIEWS)
     tables = ", ".join(schema.ALL_TABLES)
     enums = ", ".join(schema.ALL_ENUMS)
-    return (f"DROP TABLE IF EXISTS {tables} CASCADE;\n"
+    return (f"DROP VIEW  IF EXISTS {views} CASCADE;\n"
+            f"DROP TABLE IF EXISTS {tables} CASCADE;\n"
             f"DROP TYPE  IF EXISTS {enums} CASCADE;")
 
 

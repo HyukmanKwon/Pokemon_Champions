@@ -208,3 +208,44 @@ CREATE TABLE usage_spreads (
     speed_points    INT,
     PRIMARY KEY (snapshot_id, rank)
 );
+
+CREATE VIEW usage AS
+SELECT s.snapshot_date, s.season, s.format,
+       pk.ko_name   AS pokemon,
+       s.battle_name,
+       p.category, p.rank,
+       COALESCE(m.ko_name, i.ko_name, ab.ko_name,
+                nt.ko_name, tpk.ko_name) AS ko_name,
+       p.source_name,
+       p.percent
+FROM usage_picks p
+JOIN usage_snapshots s      ON s.id = p.snapshot_id
+JOIN battle_names b         ON b.battle_name = s.battle_name
+LEFT JOIN pokemons pk       ON pk.id = b.pokemon_id
+LEFT JOIN usage_names n     ON n.category = p.category
+                           AND n.source_name = p.source_name
+LEFT JOIN moves m           ON m.id = n.move_id
+LEFT JOIN items i           ON i.id = n.item_id
+LEFT JOIN abilities ab      ON ab.id = n.ability_id
+LEFT JOIN pokemon_natures nt ON nt.en_name = n.nature
+LEFT JOIN battle_names tb   ON p.category = 'teammate'
+                           AND tb.battle_name = p.source_name
+LEFT JOIN pokemons tpk      ON tpk.id = tb.pokemon_id;
+
+CREATE VIEW usage_sp AS
+SELECT s.snapshot_date, s.season, s.format,
+       pk.ko_name AS pokemon, s.battle_name,
+       sp.rank, sp.percent,
+       sp.hp_points, sp.attack_points, sp.defense_points,
+       sp.sp_atk_points, sp.sp_def_points, sp.speed_points
+FROM usage_spreads sp
+JOIN usage_snapshots s ON s.id = sp.snapshot_id
+JOIN battle_names b    ON b.battle_name = s.battle_name
+LEFT JOIN pokemons pk  ON pk.id = b.pokemon_id;
+
+CREATE VIEW usage_rank AS
+SELECT r.taken_on, r.season, r.format, r.position,
+       pk.ko_name AS pokemon, r.battle_name, r.source
+FROM usage_rankings r
+JOIN battle_names b   ON b.battle_name = r.battle_name
+LEFT JOIN pokemons pk ON pk.id = b.pokemon_id;

@@ -437,6 +437,70 @@ USAGE_SPREADS = """CREATE TABLE usage_spreads (
 """
 
 # ─────────────────────────────────────────────────────────────
+# 사람이 보는 창
+#
+# 정규화한 표는 기계가 읽기 좋지 사람이 읽기 좋지 않다. "한카리아스가 뭘
+# 들고 다니나" 하나에 표 여섯을 조인해야 하고, 갈래마다 조인 상대가 달라
+# 한 번 쓴 질의를 다시 쓰지도 못한다.
+#
+# 그 조인을 여기서 한 번만 치른다. 앱은 usage_repo 가 대신 해 주므로
+# 안 아팠고, 아픈 것은 psql 로 직접 들여다볼 때뿐이었다.
+#
+# 뷰라서 저장 공간을 안 쓰고 원본과 어긋날 일도 없다.
+# ─────────────────────────────────────────────────────────────
+
+# 채용 내역 한 줄 = 그 포켓몬이 그날 무엇을 얼마나 썼나.
+# 갈래(기술·도구·특성·성격·팀원)를 가리지 않고 한국어 이름까지 붙는다.
+USAGE_VIEW = """CREATE VIEW usage AS
+SELECT s.snapshot_date, s.season, s.format,
+       pk.ko_name   AS pokemon,
+       s.battle_name,
+       p.category, p.rank,
+       COALESCE(m.ko_name, i.ko_name, ab.ko_name,
+                nt.ko_name, tpk.ko_name) AS ko_name,
+       p.source_name,
+       p.percent
+FROM usage_picks p
+JOIN usage_snapshots s      ON s.id = p.snapshot_id
+JOIN battle_names b         ON b.battle_name = s.battle_name
+LEFT JOIN pokemons pk       ON pk.id = b.pokemon_id
+LEFT JOIN usage_names n     ON n.category = p.category
+                           AND n.source_name = p.source_name
+LEFT JOIN moves m           ON m.id = n.move_id
+LEFT JOIN items i           ON i.id = n.item_id
+LEFT JOIN abilities ab      ON ab.id = n.ability_id
+LEFT JOIN pokemon_natures nt ON nt.en_name = n.nature
+LEFT JOIN battle_names tb   ON p.category = 'teammate'
+                           AND tb.battle_name = p.source_name
+LEFT JOIN pokemons tpk      ON tpk.id = tb.pokemon_id;
+"""
+
+# SP 배분. 이름이 없어 위 뷰와 모양이 달라 따로 둔다.
+USAGE_SP_VIEW = """CREATE VIEW usage_sp AS
+SELECT s.snapshot_date, s.season, s.format,
+       pk.ko_name AS pokemon, s.battle_name,
+       sp.rank, sp.percent,
+       sp.hp_points, sp.attack_points, sp.defense_points,
+       sp.sp_atk_points, sp.sp_def_points, sp.speed_points
+FROM usage_spreads sp
+JOIN usage_snapshots s ON s.id = sp.snapshot_id
+JOIN battle_names b    ON b.battle_name = s.battle_name
+LEFT JOIN pokemons pk  ON pk.id = b.pokemon_id;
+"""
+
+# 전체 순위. 이쪽은 원래 조인이 하나뿐이라 창이 얇다.
+USAGE_RANK_VIEW = """CREATE VIEW usage_rank AS
+SELECT r.taken_on, r.season, r.format, r.position,
+       pk.ko_name AS pokemon, r.battle_name, r.source
+FROM usage_rankings r
+JOIN battle_names b   ON b.battle_name = r.battle_name
+LEFT JOIN pokemons pk ON pk.id = b.pokemon_id;
+"""
+
+VIEWS = [("usage", USAGE_VIEW), ("usage_sp", USAGE_SP_VIEW),
+         ("usage_rank", USAGE_RANK_VIEW)]
+
+# ─────────────────────────────────────────────────────────────
 # 순서
 #
 # CREATE_ORDER   00_schema.sql 에 적히는 순서. 부모가 먼저다.
@@ -472,7 +536,7 @@ CREATE_ORDER = [
     ("usage_spreads", USAGE_SPREADS),
 ]
 
-SCHEMA_SQL = "\n".join(ddl for _, ddl in CREATE_ORDER)
+SCHEMA_SQL = "\n".join(ddl for _, ddl in CREATE_ORDER + VIEWS)
 
 # INSERT 순서. 부모가 먼저다 — pokemon_abilities 는 abilities 뒤여야 한다.
 CONTENT_ORDER = [

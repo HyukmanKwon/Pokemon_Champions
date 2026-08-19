@@ -746,6 +746,29 @@ CSV 를 쓰는 효과는 분명하다. 예를 들어 이름 규칙으로는 `sup
 ### `pokemon_moves` — 포켓몬-기술 연결
 `pokemon_id`, `move_id` (둘이 합쳐 PK)
 
+### 채용률을 사람이 읽는 법 — 뷰 셋
+
+정규화한 표는 기계가 읽기 좋지 사람이 읽기 좋지 않다. "한카리아스가 뭘
+들고 다니나" 하나에 표 여섯을 조인해야 하고, 갈래마다 조인 상대가 달라
+한 번 쓴 질의를 다시 쓰지도 못한다. 그 조인을 뷰에서 한 번만 치른다.
+
+| 뷰 | 무엇 |
+|---|---|
+| `usage` | 채용 내역. 갈래를 가리지 않고 한국어 이름까지 붙는다 |
+| `usage_sp` | SP 배분. 이름이 없어 모양이 달라 따로 |
+| `usage_rank` | 전체 순위 |
+
+```sql
+SELECT rank, ko_name, percent FROM usage
+WHERE pokemon = '한카리아스' AND category = 'held_item' ORDER BY rank;
+
+SELECT pokemon, percent FROM usage
+WHERE ko_name = '지진' ORDER BY percent DESC LIMIT 5;
+```
+
+앱은 `usage_repo` 가 같은 조인을 해 주므로 이 뷰를 안 쓴다. 뷰는 psql 로
+직접 들여다볼 때를 위한 것이다.
+
 ### 날씨 · 필드 · 상태이상 — 표가 아니다
 
 `src/pokemon_champions/calc/rules.py` 의 상수다. 열다섯 줄인데 어느 표도
