@@ -2,35 +2,52 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>포켓몬 챔피언스 DB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>포케헬퍼</title>
 <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body>
-<h1>포켓몬 챔피언스 DB</h1>
+<h1>포케헬퍼 <span class="brand">Poke_helper</span></h1>
 
+<!-- 위 줄은 여섯이다. 도감 네 갈래(포켓몬·기술·특성·도구)는 안으로 접어
+     넣었다 — 여덟 개가 한 줄에 늘어서 있을 때는 "지금 무엇을 보고 있나"
+     보다 "어느 것을 눌러야 하나" 를 먼저 읽게 된다. -->
 <nav class="tabs" id="tabs">
-  <button data-tab="team" class="on">내 팀</button>
-  <button data-tab="pokemon">포켓몬</button>
-  <button data-tab="move">기술</button>
-  <button data-tab="ability">특성</button>
-  <button data-tab="item">도구</button>
+  <button data-tab="home" class="on">홈</button>
+  <button data-tab="team">내 팀</button>
+  <button data-tab="dex">도감</button>
   <button data-tab="usage">채용률</button>
   <button data-tab="calc">계산기</button>
   <button data-tab="agent">도우미</button>
 </nav>
 
+<section class="panel" id="panel-home"></section>
+
 <!-- 넓은 화면에서는 왼쪽이 덱 목록, 오른쪽이 포켓몬 3×2 다.
      좁아지면 .team-layout 이 한 줄로 접히고 덱 목록이 위로 간다. -->
-<section class="panel" id="panel-team">
+<section class="panel" id="panel-team" hidden>
   <div class="team-layout">
     <aside id="deckbar" class="deckbar"></aside>
     <div id="grid" class="grid"></div>
   </div>
 </section>
-<section class="panel" id="panel-pokemon" hidden></section>
-<section class="panel" id="panel-move" hidden></section>
-<section class="panel" id="panel-ability" hidden></section>
-<section class="panel" id="panel-item" hidden></section>
+
+<!-- 도감. 안쪽 칸의 id 는 panel-pokemon … 그대로다 — dex.js 가 그 이름으로
+     찾는다. 클래스만 subpanel 이라 showTab 의 일괄 숨김에 걸리지 않고,
+     여닫는 것은 showDex 가 따로 한다. -->
+<section class="panel" id="panel-dex" hidden>
+  <nav class="tabs sub" id="dex-kinds">
+    <button data-dex="pokemon" class="on">포켓몬</button>
+    <button data-dex="move">기술</button>
+    <button data-dex="ability">특성</button>
+    <button data-dex="item">도구</button>
+  </nav>
+  <section class="subpanel" id="panel-pokemon"></section>
+  <section class="subpanel" id="panel-move" hidden></section>
+  <section class="subpanel" id="panel-ability" hidden></section>
+  <section class="subpanel" id="panel-item" hidden></section>
+</section>
+
 <section class="panel" id="panel-usage" hidden></section>
 <section class="panel" id="panel-calc" hidden></section>
 <section class="panel" id="panel-agent" hidden>
@@ -45,7 +62,10 @@
 
 <!-- 순서가 곧 의존 순서다. common 이 먼저 오지 않으면 나머지가
      esc·typeKo 를 못 찾는다. type="module" 이 아니라 평범한
-     <script> 라서 최상단 const 를 서로 그대로 쓴다. -->
+     <script> 라서 최상단 const 를 서로 그대로 쓴다.
+
+     tabs 는 홈·도감을 부르므로 home 보다 먼저 정의될 필요가 없다 —
+     부르는 것은 사용자가 탭을 누른 뒤다. -->
 <script src="/static/js/common.js"></script>
 <script src="/static/js/tabs.js"></script>
 <script src="/static/js/dex.js"></script>
@@ -54,5 +74,6 @@
 <script src="/static/js/usage.js"></script>
 <script src="/static/js/calc.js"></script>
 <script src="/static/js/agent.js"></script>
+<script src="/static/js/home.js"></script>
 </body>
 </html>

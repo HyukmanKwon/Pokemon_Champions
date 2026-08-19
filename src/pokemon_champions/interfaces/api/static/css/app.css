@@ -7,6 +7,10 @@
     --muted: #6b6b70;
     --accent: #3b6fe0;
     --error: #d0342c;
+    /* 안내 카드 두 장. 배경·테두리·글자를 따로 두는 이유는, 배경만
+       옅게 깔면 다크에서 글자가 그 위에 뜨지 않기 때문이다. */
+    --ok-bg: #eaf6ec;   --ok-line: #c4e3ca;   --ok-ink: #1e7a34;
+    --info-bg: #e8f1fd; --info-line: #c2d9f7; --info-ink: #1b5fbf;
     --up: #d0342c;      /* 오르는 쪽은 빨강 */
     --down: #3b6fe0;    /* 내리는 쪽은 파랑 */
   }
@@ -19,6 +23,8 @@
       --muted: #a0a0a5;
       --up: #ff6b61;
       --down: #7aa2f7;
+      --ok-bg: #1b2c1f;   --ok-line: #2f4d36;   --ok-ink: #7fd394;
+      --info-bg: #182534; --info-line: #2b425c; --info-ink: #7aa2f7;
     }
   }
   * { box-sizing: border-box; }
@@ -30,6 +36,12 @@
     font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   }
   h1 { font-size: 1.3rem; margin: 0 0 14px; }
+  /* 라틴 표기는 제목 옆에 작게만 둔다. 두 이름을 같은 크기로 나란히
+     적으면 어느 쪽이 이 앱의 이름인지 읽는 쪽이 정해야 한다. */
+  h1 .brand {
+    font-size: 0.72rem; font-weight: normal; color: var(--muted);
+    letter-spacing: 0.02em; margin-left: 6px; vertical-align: 0.15em;
+  }
 
   /* ── 탭 ───────────────────────────────────────────────── */
   .tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -43,6 +55,10 @@
     font-weight: 600;
   }
   .panel[hidden] { display: none; }
+  /* 도감 안의 네 갈래. .panel 과 따로 두는 이유는 showTab 이 .panel 을
+     통째로 훑어 숨기기 때문이다 — 같은 클래스면 도감을 열자마자 안쪽이
+     전부 닫힌다. */
+  .subpanel[hidden] { display: none; }
 
   /* ── 내 팀 ───────────────────────────────────────────── */
   /* 왼쪽 덱 목록 · 오른쪽 포켓몬. 목록 폭을 고정하는 이유는 덱을 바꿔도
@@ -651,3 +667,143 @@
   margin: 12px 0 0; font-size: 0.7rem; color: var(--muted);
   border-top: 1px solid var(--border); padding-top: 8px;
 }
+
+/* ═════════════════════════════════════════════════════════════
+   홈
+
+   네 층이 세로로 쌓인다: 바로가기 · 안내 둘 · 엔트리와 순위.
+   각 층이 자기 안에서만 칸을 나누므로, 한 층을 빼도 나머지가 안 흔들린다.
+   ═════════════════════════════════════════════════════════════ */
+
+.home { display: grid; gap: 16px; }
+
+/* ── 바로가기 여섯 칸 ──────────────────────────────────── */
+/* 한 줄에 여섯. 좁아지면 셋, 더 좁아지면 둘로 접는다. auto-fit 으로
+   두면 폭에 따라 5개나 4개가 되는 줄이 생겨 마지막 칸만 덩그러니 남는다. */
+.home-tiles {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px;
+}
+@media (max-width: 1100px) { .home-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px)  { .home-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.home-tiles button {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 16px 8px;
+  background: var(--card-bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 12px;
+  font-family: inherit; cursor: pointer; text-align: center;
+}
+.home-tiles button:hover { border-color: var(--accent); }
+.home-tiles .ico { font-size: 1.5rem; line-height: 1.4; }
+.home-tiles .lb { font-size: 0.88rem; font-weight: 600; }
+/* 설명은 두 줄까지 늘어난다. 한 줄로 자르면 "어느 쪽이 더 단단한가" 처럼
+   긴 것이 잘려서, 무엇을 하는 칸인지가 오히려 안 보인다. */
+.home-tiles .sb { font-size: 0.68rem; color: var(--muted); line-height: 1.35; }
+
+/* ── 안내 카드 두 장 ───────────────────────────────────── */
+.home-guides {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) { .home-guides { grid-template-columns: minmax(0, 1fr); } }
+
+.guide { border: 1px solid; border-radius: 12px; padding: 14px 16px; }
+.guide h2 { margin: 0 0 6px; font-size: 0.95rem; }
+.guide p { margin: 0 0 8px; font-size: 0.83rem; line-height: 1.6; }
+.guide p:last-of-type { margin-bottom: 0; }
+.guide .fine { color: var(--muted); font-size: 0.75rem; }
+/* 문장 안의 링크. a 에 href 가 없어서 브라우저가 손모양을 안 준다 —
+   여기서 준다. */
+.guide a {
+  color: inherit; font-weight: 600; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.guide.ok   { background: var(--ok-bg);   border-color: var(--ok-line); }
+.guide.info { background: var(--info-bg); border-color: var(--info-line); }
+.guide.ok h2,   .guide.ok a   { color: var(--ok-ink); }
+.guide.info h2, .guide.info a { color: var(--info-ink); }
+
+.home-ask-form { display: flex; gap: 6px; margin-top: 10px; }
+.home-ask-form input {
+  flex: 1 1 auto; min-width: 0; padding: 7px 10px;
+  border: 1px solid var(--info-line); border-radius: 8px;
+  background: var(--card-bg); color: var(--text);
+  font-family: inherit; font-size: 0.85rem;
+}
+.home-ask-form button {
+  padding: 7px 14px; border: 0; border-radius: 8px;
+  background: var(--accent); color: #fff;
+  font-family: inherit; font-size: 0.85rem; cursor: pointer;
+}
+.home-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.home-chips .chip {
+  padding: 4px 10px; font-size: 0.75rem;
+  border: 1px solid var(--info-line); border-radius: 999px;
+  background: var(--card-bg); color: var(--muted);
+  font-family: inherit; cursor: pointer; text-align: left;
+}
+.home-chips .chip:hover { color: var(--text); border-color: var(--accent); }
+
+/* ── 엔트리와 순위 ─────────────────────────────────────── */
+/* 순위는 열 줄이라 폭이 좁아도 되고, 엔트리는 3×2 라 넓어야 한다. */
+.home-main {
+  display: grid; grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px; align-items: start;
+}
+@media (max-width: 900px) { .home-main { grid-template-columns: minmax(0, 1fr); } }
+
+.home-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.home-card > header {
+  display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px;
+}
+.home-card h2 { margin: 0; font-size: 0.95rem; }
+.home-card > header .sub { color: var(--muted); font-size: 0.75rem; }
+/* 오른쪽 끝으로 민다. 제목과 버튼 사이를 고정 여백으로 벌리면 덱 이름
+   길이에 따라 버튼이 좌우로 흔들린다. */
+.home-card > header button {
+  margin-left: auto; padding: 3px 10px; font-size: 0.75rem;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: transparent; color: var(--muted);
+  font-family: inherit; cursor: pointer;
+}
+.home-card > header button:hover { color: var(--text); }
+
+/* 여섯 마리를 3×2 로 못 박는다. auto-fill 로 두면 폭에 따라 2줄이 됐다
+   3줄이 됐다 해서, 내 팀 탭의 격자와 자리가 어긋난다. */
+.home-party {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+}
+@media (max-width: 620px) { .home-party { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.home-party li {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 4px; border-radius: 8px;
+  background: var(--bg); cursor: pointer;
+}
+.home-party li:hover { outline: 1px solid var(--accent); }
+.home-party .pic { height: 64px; width: 64px; object-fit: contain; }
+.home-party .nm { font-size: 0.8rem; }
+.home-party .type-badges img { height: 14px; }
+
+.home-rank { list-style: none; margin: 0; padding: 0; }
+.home-rank li {
+  display: flex; align-items: center; gap: 8px;
+  padding: 3px 4px; border-radius: 6px; cursor: pointer;
+}
+.home-rank li:hover { background: var(--bg); }
+/* 순위는 오른쪽 맞춤 · 고정폭이다. 왼쪽 맞춤이면 한 자리와 두 자리가
+   섞여 이름 시작점이 들쭉날쭉해진다. */
+.home-rank .pos {
+  width: 1.4rem; text-align: right; flex: 0 0 auto;
+  font-size: 0.78rem; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.home-rank .icon { height: 26px; width: 26px; object-fit: contain; }
+.home-rank .nm { font-size: 0.85rem; }
+.home-rank .type-badges { margin-left: auto; }
+.home-rank .type-badges img { height: 14px; }
