@@ -254,7 +254,7 @@ def fill_items(conn, gaps):
 
 
 def sync_rankings(conn, fmt, season=SEASON, dry_run=False):
-    """전체 메타 순위를 받아 usage_rankings 에 오늘치로 넣는다.
+    """전체 메타 순위를 받아 usage_snapshots 에 오늘치로 넣는다.
 
     요청 한 번이면 235마리가 다 온다. 포켓몬마다 CSV 를 받는 collect() 와
     견주면 235분의 1이라, 날짜별 CSV 를 다 받지 않아도 "지금 누가 제일

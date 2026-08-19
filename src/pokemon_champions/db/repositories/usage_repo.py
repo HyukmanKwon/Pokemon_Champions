@@ -17,11 +17,18 @@ ROW_COLUMNS = ["category", "rank", "source_name", "percent",
 
 
 def known_keys(conn, season, fmt):
-    """이미 받아둔 (날짜, 저쪽 이름) 집합. 이어받을 때 무엇을 건너뛸지 정한다."""
+    """이미 받아둔 (날짜, 저쪽 이름) 집합. 이어받을 때 무엇을 건너뛸지 정한다.
+
+    본문(usage_rows)이 있는 것만 "받았다" 로 센다. 순위만 받는 길이
+    있어서(--rankings-only) 스냅샷 줄만 있고 본문이 빈 경우가 생긴다 —
+    그것까지 받았다고 세면 백필이 안 받은 날짜를 건너뛴다.
+    """
     cur = conn.cursor()
     cur.execute(
-        "SELECT snapshot_date, battle_name FROM usage_snapshots"
-        " WHERE season = %s AND format = %s", (season, fmt))
+        "SELECT s.snapshot_date, s.battle_name FROM usage_snapshots s"
+        " WHERE s.season = %s AND s.format = %s"
+        "   AND EXISTS (SELECT 1 FROM usage_rows r WHERE r.snapshot_id = s.id)",
+        (season, fmt))
     return {(d, n) for d, n in cur.fetchall()}
 
 
@@ -50,19 +57,20 @@ def save(conn, meta, rows_):
     source 여섯이다. pokemon_name 은 usage_snapshots 가 아니라 usage_names
     로 간다.
 
-    순위(usage_rank)는 여기 없다. 그것은 usage_rankings 의 일이다 — 색인과
-    CSV 두 출처가 같은 사실을 말하므로 한 표에 모은다.
+    position 은 순위다. 본문 없이 순위만 아는 줄이 생길 수 있어서
+    NULL 이 허용된다. (save_rankings 참고)
     """
     cur = conn.cursor()
     link_battle_name(conn, meta["battle_name"], meta.get("pokemon_name"))
     cur.execute(
         """
         INSERT INTO usage_snapshots
-            (season, snapshot_date, format, battle_name, source)
+            (season, snapshot_date, format, battle_name, position, source)
         VALUES (%(season)s, %(snapshot_date)s, %(format)s,
-                %(battle_name)s, %(source)s)
+                %(battle_name)s, %(position)s, %(source)s)
         ON CONFLICT (season, snapshot_date, format, battle_name) DO UPDATE
-            SET source = EXCLUDED.source, fetched_at = now()
+            SET position = COALESCE(EXCLUDED.position, usage_snapshots.position),
+                source = EXCLUDED.source, fetched_at = now()
         RETURNING id
         """,
         meta,
@@ -198,30 +206,28 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
 
 
 def save_rankings(conn, taken_on, fmt, season, source, rows):
-    """전체 순위 한 벌을 넣거나 갈아끼운다. 넣은 줄 수를 돌려준다.
+    """순위 한 벌을 스냅샷에 넣거나 갈아끼운다. 넣은 줄 수를 돌려준다.
 
-    rows 는 [{position, battle_name, pokemon_name}] 다.
+    rows 는 [{position, battle_name, pokemon_name}] 다. 본문 없이 순위만
+    아는 줄이 생길 수 있다 — 색인은 235마리를 한 번에 주지만 CSV 는 하루
+    235번이라, 순위만 먼저 받아두는 길이 있다.
 
-    ── 시즌과 출처는 줄이 아니라 인자다 ──
-      한 벌이 통째로 같은 값이라 줄마다 실을 이유가 없다. 그리고 저쪽
-      응답에도 season 이 들어 있는데 그것은 "Current" 라고만 하지 우리
-      시즌을 말해 주지 않는다. 줄에서 받으면 그 값이 섞여 들어온다 —
-      실제로 usage_rankings 만 Current, usage_snapshots 는 M5 였다.
-
-    같은 날을 다시 받으면 갈아끼운다.
+    시즌과 출처는 한 벌이 통째로 같은 값이라 줄이 아니라 인자다. 저쪽
+    응답에도 season 이 있는데 "Current" 라고만 하지 우리 시즌을 말해 주지
+    않는다 — 줄에서 받았더니 그 값이 섞여 들어왔다.
     """
     cur = conn.cursor()
     for r in rows:
         link_battle_name(conn, r["battle_name"], r.get("pokemon_name"))
     cur.executemany(
         """
-        INSERT INTO usage_rankings
-            (taken_on, format, season, position, battle_name, source)
-        VALUES (%(taken_on)s, %(format)s, %(season)s, %(position)s,
-                %(battle_name)s, %(source)s)
-        ON CONFLICT (taken_on, format, battle_name) DO UPDATE
-            SET position = EXCLUDED.position, season = EXCLUDED.season,
-                source = EXCLUDED.source, fetched_at = now()
+        INSERT INTO usage_snapshots
+            (season, snapshot_date, format, battle_name, position, source)
+        VALUES (%(season)s, %(taken_on)s, %(format)s,
+                %(battle_name)s, %(position)s, %(source)s)
+        ON CONFLICT (season, snapshot_date, format, battle_name) DO UPDATE
+            SET position = EXCLUDED.position, source = EXCLUDED.source,
+                fetched_at = now()
         """,
         [{"taken_on": taken_on, "format": fmt, "season": season,
           "source": source, "position": r["position"],
@@ -241,13 +247,13 @@ def fetch_ranking(conn, fmt="Singles", limit=20):
         """
         SELECT r.position, r.battle_name, p.name AS pokemon_name, p.ko_name,
                p.id AS pokemon_id, p.type1, p.type2,
-               r.taken_on, r.season
-        FROM usage_rankings r
+               r.snapshot_date AS taken_on, r.season
+        FROM usage_snapshots r
         JOIN usage_names b ON b.source_name = r.battle_name
         LEFT JOIN pokemons p ON p.id = b.pokemon_id
-        WHERE r.format = %s
-          AND r.taken_on = (SELECT max(taken_on) FROM usage_rankings
-                            WHERE format = %s)
+        WHERE r.format = %s AND r.position IS NOT NULL
+          AND r.snapshot_date = (SELECT max(snapshot_date) FROM usage_snapshots
+                                 WHERE format = %s AND position IS NOT NULL)
         ORDER BY r.position
         LIMIT %s
         """,
@@ -266,14 +272,15 @@ def fetch_rank_of(conn, pokemon_name, fmt="Singles"):
     cur = conn.cursor()
     cur.execute(
         """
-        SELECT position, taken_on,
-               (SELECT count(*) FROM usage_rankings
-                WHERE format = r.format AND taken_on = r.taken_on) AS total
-        FROM usage_rankings r
+        SELECT r.position, r.snapshot_date AS taken_on,
+               (SELECT count(*) FROM usage_snapshots k
+                WHERE k.format = r.format AND k.snapshot_date = r.snapshot_date
+                  AND k.position IS NOT NULL) AS total
+        FROM usage_snapshots r
         JOIN usage_names b ON b.source_name = r.battle_name
         JOIN pokemons pk ON pk.id = b.pokemon_id
         WHERE pk.name = %s AND r.format = %s
-        ORDER BY r.taken_on DESC
+        ORDER BY r.snapshot_date DESC
         LIMIT 1
         """,
         (pokemon_name, fmt),
@@ -297,9 +304,7 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
     cur.execute(
         """
         SELECT s.id, s.snapshot_date, s.season,
-               (SELECT position FROM usage_rankings k
-                WHERE k.taken_on = s.snapshot_date AND k.format = s.format
-                  AND k.battle_name = s.battle_name) AS usage_rank
+               s.position AS usage_rank
         FROM usage_snapshots s
         JOIN usage_names b ON b.source_name = s.battle_name
         JOIN pokemons pk ON pk.id = b.pokemon_id
@@ -368,27 +373,27 @@ def fetch_rank_delta(conn, fmt="Singles", days=7):
     cur.execute(
         """
         WITH latest AS (
-            SELECT max(taken_on) AS d FROM usage_rankings WHERE format = %(fmt)s
+            SELECT max(snapshot_date) AS d FROM usage_snapshots WHERE format = %(fmt)s
         ),
         base AS (
             -- days 일 전에 가장 가까운 날. 그날이 없으면 그 앞의 것.
-            SELECT max(taken_on) AS d FROM usage_rankings
+            SELECT max(snapshot_date) AS d FROM usage_snapshots
             WHERE format = %(fmt)s
-              AND taken_on <= (SELECT d FROM latest) - %(days)s::int
+              AND snapshot_date <= (SELECT d FROM latest) - %(days)s::int
         )
         SELECT now.battle_name, p.name AS pokemon_name,
                now.position AS usage_rank,
                was.position - now.position AS delta,
-               now.taken_on AS snapshot_date, was.taken_on AS compared_to
-        FROM usage_rankings now
+               now.snapshot_date, was.snapshot_date AS compared_to
+        FROM usage_snapshots now
         JOIN usage_names b ON b.source_name = now.battle_name
         LEFT JOIN pokemons p ON p.id = b.pokemon_id
-        LEFT JOIN usage_rankings was
+        LEFT JOIN usage_snapshots was
                ON was.battle_name = now.battle_name
               AND was.format = now.format
-              AND was.taken_on = (SELECT d FROM base)
+              AND was.snapshot_date = (SELECT d FROM base)
         WHERE now.format = %(fmt)s
-          AND now.taken_on = (SELECT d FROM latest)
+          AND now.snapshot_date = (SELECT d FROM latest)
         """,
         {"fmt": fmt, "days": days},
     )

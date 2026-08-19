@@ -369,7 +369,7 @@ def ranking_from_db(conn, fmt="Singles", days=7):
     """전체 메타 순위 + 며칠 전 대비 변화. 1위부터.
 
     usage_repo 가 준 것에 한국어 이름과 타입을 붙인다. 화면이 순위표를
-    그리려면 타입 배지가 필요한데 usage_rankings 에는 이름밖에 없다.
+    그리려면 타입 배지가 필요한데 순위 조회에는 이름밖에 없다.
     """
     got = usage_repo.fetch_ranking(conn, fmt=fmt, limit=None)
     if not got:

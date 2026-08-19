@@ -132,18 +132,17 @@ python -m scripts.etl.sync.usage --date 30_07_2026 --format Doubles
 python -m scripts.etl.sync.usage --fill-missing   # 처음 보는 기술·도구를 채운다
 ```
 
-쌓이는 곳은 `usage_names` · `usage_snapshots` · `usage_rows` · `usage_rankings`
-네 표다. 전부
+쌓이는 곳은 `usage_names` · `usage_snapshots` · `usage_rows` 세 표다. 전부
 `build.py` 의 STEPS 에 없어서 **재구축이 다시 만들어 주지 않는다.** §7 로
 전부 지우면 기록도 함께 사라지므로, 지우기 전에 따로 떠 둔다.
 
 ```bash
 pg_dump -d pokemon -t usage_names -t usage_snapshots -t usage_rows \
-        -t usage_rankings > usage_backup.sql
+        > usage_backup.sql
 ```
 
 `usage_names` 는 저쪽 표기(`Garchomp`·`Focus Sash`)와 우리 것의 대응표
-935행이다. 전에는 이 대응이 `usage_snapshots` 와 `usage_rankings` 양쪽에
+935행이다. 전에는 이 대응이 `usage_snapshots` 와 순위 표 양쪽에
 칸으로 들어 있어서 4,220행이 236개짜리 표를 반복 보관했고, 두 표의 값이
 갈라지면 판별할 방법이 없었다. 이제 한 벌만 있고 양쪽이 외래키로 가리킨다.
 
@@ -830,7 +829,7 @@ PokeAPI에 한국어가 아직 없는 항목이 있다.
 ### 외래키
 지금 10개가 걸려 있다 — `pokemon_abilities` 의 둘, `mega_evolutions` 의 셋,
 `move_stat_changes` · `usage_names` · `usage_rows` · `usage_snapshots` ·
-`usage_rankings` 가 각각 하나씩.
+가 각각 하나씩.
 
 아직 없는 것은 `pokemon_moves` 의 두 칸이다. 21,609행이라 걸어도 고아가
 0건인 것은 확인했지만, 습득 정보(`learn_method` 등)를 넣을지 정한 뒤에

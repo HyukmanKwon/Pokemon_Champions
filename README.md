@@ -173,7 +173,7 @@ Pokemon_Champions/
 `dump_sql.py` 는 행을 기본키순으로 정렬하므로 두 번 돌리면 같은 파일이 나온다.
 그래서 커밋해 두면 diff 로 "무엇이 달라졌나" 가 그대로 보인다.
 
-채용률 세 표(`usage_snapshots` · `usage_rows` · `usage_rankings`)는 `data/sql/`
+채용률 세 표(`usage_names` · `usage_snapshots` · `usage_rows`)는 `data/sql/`
 에 없다. PokeAPI 가 아니라 하루 한 벌씩 쌓이는 것이라 배포할 내용이 없다.
 `load_sql.py` 가 빈 표만 만들고, `sync/usage.py` 가 채운다.
 
@@ -182,12 +182,12 @@ Pokemon_Champions/
 | 표 | 답하는 것 | 받는 비용 |
 |---|---|---|
 | `usage_snapshots` · `usage_rows` | "한카리아스는 무엇을 들고 나오나" | 하루 235회 |
-| `usage_rankings` | "지금 뭐가 제일 많이 쓰이나" | 하루 **1회** |
+| `usage_snapshots.position` | "지금 뭐가 제일 많이 쓰이나" | 하루 **1회** |
 
 가르는 이유가 있다. `usage_rows` 의 `percent` 는 전부 **그 포켓몬 안에서의
 비율**이다 — 지진 99.3% 는 한카리아스가 지진을 채용하는 비율이지 한카리아스가
 얼마나 쓰이는지가 아니다. 두 포켓몬의 그 숫자를 견주면 뜻이 없다. 포켓몬끼리
-견줄 수 있는 것은 `usage_rankings` 의 순위뿐이다.
+견줄 수 있는 것은 `usage_snapshots.position` 뿐이다.
 
 실제로 이 구분이 없을 때 도우미가 기술 채용률로 포켓몬 순위를 매겨 답했다.
 거북왕을 2위라고 했는데 실제로는 50위다.

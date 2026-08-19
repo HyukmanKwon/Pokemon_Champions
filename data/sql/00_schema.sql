@@ -149,21 +149,6 @@ CREATE TABLE usage_names (
         num_nonnulls(move_id, item_id, ability_id, nature, pokemon_id) <= 1)
 );
 
-CREATE TABLE usage_rankings (
-    taken_on     DATE NOT NULL,          -- 그 순위가 가리키는 날
-    format       VARCHAR(10) NOT NULL,
-    season       VARCHAR(10) NOT NULL,
-    battle_name  VARCHAR(50) NOT NULL REFERENCES usage_names(source_name)
-                     ON UPDATE CASCADE,
-    position     INT NOT NULL,           -- 1 이 1위
-    source       VARCHAR(10) NOT NULL,   -- live · index · csv
-    fetched_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (taken_on, format, battle_name)
-);
-
-CREATE UNIQUE INDEX usage_rankings_position_idx
-    ON usage_rankings (taken_on, format, position);
-
 CREATE TABLE usage_snapshots (
     id             SERIAL PRIMARY KEY,
     season         VARCHAR(10) NOT NULL,   -- M5
@@ -171,10 +156,17 @@ CREATE TABLE usage_snapshots (
     format         VARCHAR(10) NOT NULL,   -- Singles / Doubles
     battle_name    VARCHAR(50) NOT NULL REFERENCES usage_names(source_name)
                        ON UPDATE CASCADE,
-    source         TEXT,                   -- live · 받아온 CSV 경로
+    position       INT,                    -- 1 이 1위. 순위를 못 받았으면 NULL
+    source         VARCHAR(10) NOT NULL,   -- live · index · csv
     fetched_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (season, snapshot_date, format, battle_name)
 );
+
+-- 순위는 하루·포맷 안에서 유일하다. 순위 없이 본문만 있는 줄이 있을 수
+-- 있어서(상위 밖) 부분 UNIQUE 다.
+CREATE UNIQUE INDEX usage_snapshots_position_idx
+    ON usage_snapshots (snapshot_date, format, position)
+    WHERE position IS NOT NULL;
 
 -- 한 마리의 추세를 훑는 질의용. UNIQUE 는 (시즌,일자,...) 순이라 못 쓴다.
 CREATE INDEX usage_snapshots_battle_idx
@@ -226,8 +218,9 @@ LEFT JOIN pokemons tpk       ON tpk.id = n.pokemon_id
                              AND r.category = 'teammate';
 
 CREATE VIEW usage_rank AS
-SELECT r.taken_on, r.season, r.format, r.position,
-       pk.ko_name AS pokemon, r.battle_name, r.source
-FROM usage_rankings r
-JOIN usage_names b    ON b.source_name = r.battle_name
-LEFT JOIN pokemons pk ON pk.id = b.pokemon_id;
+SELECT s.snapshot_date, s.season, s.format, s.position,
+       pk.ko_name AS pokemon, s.battle_name, s.source
+FROM usage_snapshots s
+JOIN usage_names b    ON b.source_name = s.battle_name
+LEFT JOIN pokemons pk ON pk.id = b.pokemon_id
+WHERE s.position IS NOT NULL;

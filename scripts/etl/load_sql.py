@@ -27,7 +27,7 @@
   돌아야 하기 때문이다. 생성기는 배포판에 없을 수도 있다.
 
 ── 채용률 두 표는 여기서 만든다 ──
-  usage_snapshots · usage_rows · usage_rankings 는 SQL 파일에 없다.
+  usage_names · usage_snapshots · usage_rows 는 SQL 파일에 없다.
   PokeAPI 가 아니라 championsbattledata.com 에서 하루 한 벌씩 쌓이는
   것이라, 배포할 내용이 아니라 빈 표만 있으면 된다. DDL 은 schema.py
   에서 가져온다.

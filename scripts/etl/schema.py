@@ -282,7 +282,7 @@ MEGA_EVOLUTIONS = """CREATE TABLE mega_evolutions (
 #
 # 저쪽에서 필요한 것은 둘뿐이다.
 #   ① 포켓몬별 통계   usage_snapshots + usage_rows
-#   ② 전체 순위       usage_rankings
+#   ② 전체 순위       usage_snapshots.position
 #
 # 다른 표와 달리 PokeAPI 가 아니라 저쪽에서 오고, 한 번 만들고 끝이 아니라
 # 하루 한 벌씩 쌓인다. 그래서 data/sql/ 에도 build.py 에도 안 들어간다.
@@ -334,45 +334,27 @@ USAGE_NAMES = """CREATE TABLE usage_names (
 );
 """
 
-# ② 전체 순위. "가장 많이 쓰이는 포켓몬" 에 답하는 유일한 자료다.
+# ① 한 관측 = 그날 그 포켓몬. 순위도 여기 있다.
 #
-# usage_rows 의 percent 는 전부 그 포켓몬 안에서의 비율이라 이 질문에
-# 못 쓴다. 지진 99.3% 는 한카리아스가 지진을 채용하는 비율이지 한카리아스가
-# 얼마나 쓰이는지가 아니다.
+# ── 왜 순위가 따로가 아닌가 ──
+#   한때 usage_rankings 를 따로 두었다. "색인은 한 번에 235마리가 오고
+#   CSV 는 하루 235번이라 채우는 시점이 갈린다" 가 이유였는데, 재보니
+#   두 표가 같은 알갱이(날짜 × 포맷 × 이름)에 235행씩이고 한쪽에만 있는
+#   줄이 0이었다. 한 표를 둘로 쪼갠 것이었다.
 #
-# ── 두 출처가 한 표로 들어온다 ──
-#   live · index  저쪽 오늘 값. 날짜를 안 줘서 받은 날을 찍는다
-#   csv           저쪽이 보관한 날짜. 폴더명이라 날짜가 정확하다
+#   순위만 받고 본문을 안 받는 길은 남아 있다(--rankings-only). 그때는
+#   position 만 찬 줄이 생긴다. "어느 날짜를 이미 받았나" 는 그래서
+#   이 표가 아니라 usage_rows 가 있는지로 답한다. (known_keys)
 #
-#   시즌과 출처는 한 벌이 통째로 같은 값이라 줄이 아니라 인자로 받는다.
-#   저쪽 응답에도 season 이 있는데 "Current" 라고만 하지 우리 시즌을
-#   말해 주지 않는다 — 줄에서 받았더니 그 값이 섞여 들어왔다.
-USAGE_RANKINGS = """CREATE TABLE usage_rankings (
-    taken_on     DATE NOT NULL,          -- 그 순위가 가리키는 날
-    format       VARCHAR(10) NOT NULL,
-    season       VARCHAR(10) NOT NULL,
-    battle_name  VARCHAR(50) NOT NULL REFERENCES usage_names(source_name)
-                     ON UPDATE CASCADE,
-    position     INT NOT NULL,           -- 1 이 1위
-    source       VARCHAR(10) NOT NULL,   -- live · index · csv
-    fetched_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (taken_on, format, battle_name)
-);
-
-CREATE UNIQUE INDEX usage_rankings_position_idx
-    ON usage_rankings (taken_on, format, position);
-"""
-
-# ① 포켓몬별 통계의 머리. 하루 한 마리에 한 줄.
-#
-# ── 왜 본문과 따로인가 ──
-#   본문이 한 마리에 50줄쯤 된다. 머리를 없애면 시즌·날짜·포맷·이름·출처
-#   다섯 칸이 235줄이 아니라 12,076줄에 따라붙고(하루치), 기본키가
+# ── 왜 본문과는 따로인가 ──
+#   본문이 한 마리에 50줄쯤 된다. 이 머리를 없애면 시즌·날짜·포맷·이름·
+#   출처 다섯 칸이 235줄이 아니라 12,076줄에 따라붙고(하루치), 기본키가
 #   28바이트에서 94바이트가 된다. 색인이 세 배로 뛴다.
 #
-#   그리고 백필은 받는 동안 언제든 끊긴다. 이어받을 때 "어느 날짜를 이미
-#   받았나" 를 이 표 235줄 세기로 답할 수 있어야 한다 — 없으면 36만 줄
-#   DISTINCT 다.
+# ── percent 와 position 을 헷갈리면 안 된다 ──
+#   usage_rows 의 percent 는 전부 그 포켓몬 안에서의 비율이다. 지진 99.3%
+#   는 한카리아스가 지진을 채용하는 비율이지 한카리아스가 얼마나 쓰이는지가
+#   아니다. 포켓몬끼리 견줄 수 있는 것은 position 뿐이다.
 USAGE_SNAPSHOTS = """CREATE TABLE usage_snapshots (
     id             SERIAL PRIMARY KEY,
     season         VARCHAR(10) NOT NULL,   -- M5
@@ -380,10 +362,17 @@ USAGE_SNAPSHOTS = """CREATE TABLE usage_snapshots (
     format         VARCHAR(10) NOT NULL,   -- Singles / Doubles
     battle_name    VARCHAR(50) NOT NULL REFERENCES usage_names(source_name)
                        ON UPDATE CASCADE,
-    source         TEXT,                   -- live · 받아온 CSV 경로
+    position       INT,                    -- 1 이 1위. 순위를 못 받았으면 NULL
+    source         VARCHAR(10) NOT NULL,   -- live · index · csv
     fetched_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (season, snapshot_date, format, battle_name)
 );
+
+-- 순위는 하루·포맷 안에서 유일하다. 순위 없이 본문만 있는 줄이 있을 수
+-- 있어서(상위 밖) 부분 UNIQUE 다.
+CREATE UNIQUE INDEX usage_snapshots_position_idx
+    ON usage_snapshots (snapshot_date, format, position)
+    WHERE position IS NOT NULL;
 
 -- 한 마리의 추세를 훑는 질의용. UNIQUE 는 (시즌,일자,...) 순이라 못 쓴다.
 CREATE INDEX usage_snapshots_battle_idx
@@ -460,13 +449,14 @@ LEFT JOIN pokemons tpk       ON tpk.id = n.pokemon_id
                              AND r.category = 'teammate';
 """
 
-# 전체 순위. 이쪽은 조인이 하나뿐이라 창이 얇다.
+# 전체 순위. 조인이 하나뿐이라 창이 얇다.
 USAGE_RANK_VIEW = """CREATE VIEW usage_rank AS
-SELECT r.taken_on, r.season, r.format, r.position,
-       pk.ko_name AS pokemon, r.battle_name, r.source
-FROM usage_rankings r
-JOIN usage_names b    ON b.source_name = r.battle_name
-LEFT JOIN pokemons pk ON pk.id = b.pokemon_id;
+SELECT s.snapshot_date, s.season, s.format, s.position,
+       pk.ko_name AS pokemon, s.battle_name, s.source
+FROM usage_snapshots s
+JOIN usage_names b    ON b.source_name = s.battle_name
+LEFT JOIN pokemons pk ON pk.id = b.pokemon_id
+WHERE s.position IS NOT NULL;
 """
 
 VIEWS = [("usage", USAGE_VIEW), ("usage_rank", USAGE_RANK_VIEW)]
@@ -500,7 +490,6 @@ CREATE_ORDER = [
     ("mega_evolutions", MEGA_EVOLUTIONS),
     # 채용률 — 매일 쌓이는 것이라 01_content.sql 에는 안 들어간다
     ("usage_names", USAGE_NAMES),
-    ("usage_rankings", USAGE_RANKINGS),
     ("usage_snapshots", USAGE_SNAPSHOTS),
     ("usage_rows", USAGE_ROWS),
 ]
