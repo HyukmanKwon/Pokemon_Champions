@@ -32,7 +32,7 @@
   것이라, 배포할 내용이 아니라 빈 표만 있으면 된다. DDL 은 schema.py
   에서 가져온다.
 
-  받은 사람은 python -m scripts.etl.sync_usage --backfill 로 채운다.
+  받은 사람은 python -m scripts.etl.sync.usage --backfill 로 채운다.
 
 ── 이미 있는 DB 에는 넣지 않는다 ──
   DDL 에 IF NOT EXISTS 가 없어서 두 번째 실행은 "already exists" 로

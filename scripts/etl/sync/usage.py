@@ -1,11 +1,12 @@
 """채용률 하루치를 받아 DB 에 쌓는다.
 
-    python -m scripts.etl.sync_usage                  최신 하루, Singles
-    python -m scripts.etl.sync_usage --dry-run        받아만 보고 넣지 않는다
-    python -m scripts.etl.sync_usage --date 30_07_2026
-    python -m scripts.etl.sync_usage --format Doubles
-    python -m scripts.etl.sync_usage --fill-missing   처음 보는 기술·도구를 채운다
-    python -m scripts.etl.sync_usage --backfill       안 받은 날짜를 전부 (자동 실행용)
+    python -m scripts.etl.sync.usage --live           저쪽 오늘 값 (기본 수집 경로)
+    python -m scripts.etl.sync.usage --rankings-only  순위만. 요청 1회, 몇 초
+    python -m scripts.etl.sync.usage --dry-run        받아만 보고 넣지 않는다
+    python -m scripts.etl.sync.usage --date 30_07_2026
+    python -m scripts.etl.sync.usage --format Doubles
+    python -m scripts.etl.sync.usage --fill-missing   처음 보는 기술·도구를 채운다
+    python -m scripts.etl.sync.usage --backfill       안 받은 날짜를 전부 (자동 실행용)
 
 ── 왜 build.py 에 안 들어가나 ──
   PokeAPI 가 아니고, 한 번 만들고 끝이 아니다. build.py 는 빈 DB 에 한 번

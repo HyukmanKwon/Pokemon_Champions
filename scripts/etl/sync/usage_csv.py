@@ -1,6 +1,6 @@
 """지난 날짜의 채용률을 CSV 로 받아온다. ETL 전용이다.
 
-    scripts/etl/sync_usage.py 만 쓴다.
+    scripts/etl/sync/usage.py 만 쓴다.
 
 ── 왜 src/ 가 아니라 여기인가 ──
   앱은 "오늘 이 포켓몬이 얼마나 쓰이나" 만 묻고, 그건
@@ -17,7 +17,7 @@
 
   저쪽은 일자별 폴더를 16일치만 남긴다. 그보다 오래된 것은 색인에서
   사라지고 다시 받을 방법이 없어서, 받아둔 것을 DB 에 옮기는 것이 유일한
-  보관이다. (sync_usage.py -> usage_snapshots)
+  보관이다. (sync/usage.py -> usage_snapshots)
 
 ── 모양은 fetch_battle() 과 같게 ──
   돌려주는 rows 를 usage_source.fetch_battle() 과 맞춘다. 같은 자료를 읽는

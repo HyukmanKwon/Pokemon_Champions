@@ -35,7 +35,7 @@ recovery, CI):
 After any change that alters DB contents, run `dump_sql.py` and commit the
 result, or a rebuild will not match your database.
 
-`sync_usage.py` is the exception: usage snapshots accumulate daily and are
+`sync/usage.py` is the exception: usage snapshots accumulate daily and are
 **not** part of `data/sql/`. `daily_usage.sh` runs it under launchd.
 Always use `--backfill`, never "today only" — a missed day is gone once the
 source drops it. Already-fetched dates are skipped, so running it daily

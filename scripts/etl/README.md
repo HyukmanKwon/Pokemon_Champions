@@ -121,7 +121,7 @@ scripts/etl/
 `build.py` 가 멱등해지면 `fill_moves` 는 통째로, `migrate_roster` 는 INSERT
 쪽이 사라진다. (지우는 쪽은 UPSERT 로 대체되지 않으므로 남는다.)
 
-`sync_usage` 만 성질이 다르다. 우회로가 아니라 **매일 도는 것**이고, 받아오는
+`sync/usage.py` 만 성질이 다르다. 우회로가 아니라 **매일 도는 것**이고, 받아오는
 곳도 PokeAPI 가 아니라 championsbattledata.com 이다. 저쪽이 일자별 자료를
 저쪽이 지난 날짜를 언젠가 지우므로, 오늘 안 받은 날짜는 나중에 사라진다.
 

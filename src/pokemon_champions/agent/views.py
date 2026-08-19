@@ -263,7 +263,7 @@ def ranking(rows, fmt):
     """
     if not rows:
         return {"error": "순위 자료가 아직 없습니다. "
-                         "python -m scripts.etl.sync_usage --rankings-only"}
+                         "python -m scripts.etl.sync.usage --rankings-only"}
     return {
         "format": fmt,
         "date": rows[0]["taken_on"].isoformat(),

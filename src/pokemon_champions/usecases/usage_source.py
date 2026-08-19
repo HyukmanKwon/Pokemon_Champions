@@ -113,7 +113,7 @@ def rankings(fmt="Singles", season="Current"):
 
     ── 날짜가 안 붙어 온다 ──
       저쪽은 "지금 순위" 로만 준다. 받은 날을 우리가 찍어야 하므로
-      여기서는 날짜를 넣지 않는다 — 넣는 쪽(sync_usage)이 정한다.
+      여기서는 날짜를 넣지 않는다 — 넣는 쪽(sync/usage.py)이 정한다.
     """
     index = fetch_index()
     if not index:

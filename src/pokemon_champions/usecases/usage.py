@@ -326,7 +326,7 @@ def popular_spec(conn, en_name, fmt="Singles"):
             if ko is None:
                 # 옛 스냅샷은 linked_name 이 비어 있다. 그때는 보정으로 찾는다.
                 # DB 의 stat_up/stat_down 은 이미 우리 키다(spe · spa).
-                # sync_usage.to_row 가 넣을 때 STAT_KEY 로 옮겨 두었으므로
+                # sync/usage.py 의 to_rows 가 넣을 때 STAT_KEY 로 옮겨 두었으므로
                 # 여기서 또 옮기면 None 이 되어 전부 성실로 떨어진다.
                 ko = nature_repo.fetch_by_mods(
                     conn, NATURE_STAT.get(r["stat_up"]),
@@ -419,7 +419,7 @@ def detail_from_db(conn, en_name, ko_name=None, fmt="Singles", top=10):
     if not got:
         return {"error": f"'{ko_name or en_name}' 의 {fmt} 채용률이 "
                          "DB 에 아직 없습니다. "
-                         "python -m scripts.etl.sync_usage --backfill"}
+                         "python -m scripts.etl.sync.usage --backfill"}
 
     # 그 포켓몬 자신의 그림과 타입과 종족값. 상세 머리에 크게 건다.
     # 채용률은 "무엇을 들려 어떻게 굴리나" 인데, 그 선택의 이유가 대개
