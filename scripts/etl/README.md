@@ -132,17 +132,18 @@ python -m scripts.etl.sync.usage --date 30_07_2026 --format Doubles
 python -m scripts.etl.sync.usage --fill-missing   # 처음 보는 기술·도구를 채운다
 ```
 
-쌓이는 곳은 `battle_names` · `usage_snapshots` · `usage_rows` 세 표다. 전부
+쌓이는 곳은 `usage_names` · `usage_snapshots` · `usage_rows` · `usage_rankings`
+네 표다. 전부
 `build.py` 의 STEPS 에 없어서 **재구축이 다시 만들어 주지 않는다.** §7 로
 전부 지우면 기록도 함께 사라지므로, 지우기 전에 따로 떠 둔다.
 
 ```bash
-pg_dump -d pokemon -t battle_names -t usage_snapshots -t usage_rows \
+pg_dump -d pokemon -t usage_names -t usage_snapshots -t usage_rows \
         -t usage_rankings > usage_backup.sql
 ```
 
-`battle_names` 는 저쪽 표기(`Garchomp`)와 우리 이름(`garchomp`)의 대응표
-236행이다. 전에는 이 대응이 `usage_snapshots` 와 `usage_rankings` 양쪽에
+`usage_names` 는 저쪽 표기(`Garchomp`·`Focus Sash`)와 우리 것의 대응표
+935행이다. 전에는 이 대응이 `usage_snapshots` 와 `usage_rankings` 양쪽에
 칸으로 들어 있어서 4,220행이 236개짜리 표를 반복 보관했고, 두 표의 값이
 갈라지면 판별할 방법이 없었다. 이제 한 벌만 있고 양쪽이 외래키로 가리킨다.
 
@@ -584,7 +585,7 @@ python -m scripts.etl.dump_sql              # 전체
 ```sql
 DROP TABLE IF EXISTS pokemon_moves, move_stat_changes, mega_evolutions,
     items, abilities, moves, pokemons, pokemon_types, pokemon_natures,
-    battle_names CASCADE;
+    usage_names CASCADE;
 DROP TYPE IF EXISTS pokemon_types_enum, pokemon_natures_enum CASCADE;
 ```
 
@@ -749,13 +750,12 @@ CSV 를 쓰는 효과는 분명하다. 예를 들어 이름 규칙으로는 `sup
 ### 채용률을 사람이 읽는 법 — 뷰 셋
 
 정규화한 표는 기계가 읽기 좋지 사람이 읽기 좋지 않다. "한카리아스가 뭘
-들고 다니나" 하나에 표 여섯을 조인해야 하고, 갈래마다 조인 상대가 달라
+들고 다니나" 하나에 표 넷을 조인해야 하고, 갈래마다 조인 상대가 달라
 한 번 쓴 질의를 다시 쓰지도 못한다. 그 조인을 뷰에서 한 번만 치른다.
 
 | 뷰 | 무엇 |
 |---|---|
 | `usage` | 채용 내역. 갈래를 가리지 않고 한국어 이름까지 붙는다 |
-| `usage_sp` | SP 배분. 이름이 없어 모양이 달라 따로 |
 | `usage_rank` | 전체 순위 |
 
 ```sql
@@ -829,7 +829,7 @@ PokeAPI에 한국어가 아직 없는 항목이 있다.
 
 ### 외래키
 지금 10개가 걸려 있다 — `pokemon_abilities` 의 둘, `mega_evolutions` 의 셋,
-`move_stat_changes` · `battle_names` · `usage_rows` · `usage_snapshots` ·
+`move_stat_changes` · `usage_names` · `usage_rows` · `usage_snapshots` ·
 `usage_rankings` 가 각각 하나씩.
 
 아직 없는 것은 `pokemon_moves` 의 두 칸이다. 21,609행이라 걸어도 고아가

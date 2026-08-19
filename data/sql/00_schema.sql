@@ -137,30 +137,26 @@ CREATE TABLE mega_evolutions (
     item_id  INT REFERENCES items(id)   -- 매칭 실패 시 NULL
 );
 
-CREATE TABLE battle_names (
-    battle_name  VARCHAR(50) PRIMARY KEY,   -- Garchomp, Alolan Raichu
-    pokemon_id   INT REFERENCES pokemons(id) ON DELETE SET NULL
-);
-
 CREATE TABLE usage_names (
-    category     VARCHAR(20) NOT NULL,   -- move · held_item · ability · stat_alignment
-    source_name  VARCHAR(50) NOT NULL,   -- 저쪽 표기 그대로 (Focus Sash)
+    source_name  VARCHAR(50) PRIMARY KEY,   -- 저쪽 표기 그대로 (Focus Sash)
+    category     VARCHAR(20) NOT NULL,      -- pokemon · move · held_item ...
+    pokemon_id   INT REFERENCES pokemons(id) ON DELETE SET NULL,
     move_id      INT REFERENCES moves(id),
     item_id      INT REFERENCES items(id),
     ability_id   INT REFERENCES abilities(id),
     nature       pokemon_natures_enum REFERENCES pokemon_natures(en_name),
-    PRIMARY KEY (category, source_name),
-    CHECK (num_nonnulls(move_id, item_id, ability_id, nature) <= 1)
+    CONSTRAINT usage_names_one_ref CHECK (
+        num_nonnulls(move_id, item_id, ability_id, nature, pokemon_id) <= 1)
 );
 
 CREATE TABLE usage_rankings (
     taken_on     DATE NOT NULL,          -- 그 순위가 가리키는 날
     format       VARCHAR(10) NOT NULL,
     season       VARCHAR(10) NOT NULL,
-    battle_name  VARCHAR(50) NOT NULL REFERENCES battle_names(battle_name)
+    battle_name  VARCHAR(50) NOT NULL REFERENCES usage_names(source_name)
                      ON UPDATE CASCADE,
     position     INT NOT NULL,           -- 1 이 1위
-    source       VARCHAR(10) NOT NULL,   -- index · csv
+    source       VARCHAR(10) NOT NULL,   -- live · index · csv
     fetched_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (taken_on, format, battle_name)
 );
@@ -173,9 +169,9 @@ CREATE TABLE usage_snapshots (
     season         VARCHAR(10) NOT NULL,   -- M5
     snapshot_date  DATE NOT NULL,          -- 저쪽 폴더명 DD_MM_YYYY 를 날짜로
     format         VARCHAR(10) NOT NULL,   -- Singles / Doubles
-    battle_name    VARCHAR(50) NOT NULL REFERENCES battle_names(battle_name)
+    battle_name    VARCHAR(50) NOT NULL REFERENCES usage_names(source_name)
                        ON UPDATE CASCADE,
-    source         TEXT,                   -- 받아온 CSV 경로
+    source         TEXT,                   -- live · 받아온 CSV 경로
     fetched_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (season, snapshot_date, format, battle_name)
 );
@@ -184,68 +180,54 @@ CREATE TABLE usage_snapshots (
 CREATE INDEX usage_snapshots_battle_idx
     ON usage_snapshots (battle_name, format, snapshot_date);
 
-CREATE TABLE usage_picks (
+CREATE TABLE usage_rows (
     snapshot_id  INT NOT NULL REFERENCES usage_snapshots(id) ON DELETE CASCADE,
     category     VARCHAR(20) NOT NULL,
     rank         INT NOT NULL,
-    source_name  VARCHAR(50) NOT NULL,   -- 저쪽 표기 그대로
+    source_name  VARCHAR(50),            -- 저쪽 표기. stat_points 는 NULL
     percent      NUMERIC(4,1),           -- teammate 는 NULL (저쪽이 안 준다)
-    PRIMARY KEY (snapshot_id, category, rank)
-);
 
--- "지진을 쓰는 비율이 어떻게 변했나" 는 이름으로 먼저 좁힌다.
-CREATE INDEX usage_picks_name_idx ON usage_picks (category, source_name);
-
-CREATE TABLE usage_spreads (
-    snapshot_id  INT NOT NULL REFERENCES usage_snapshots(id) ON DELETE CASCADE,
-    rank         INT NOT NULL,
-    percent      NUMERIC(4,1),
+    -- stat_points 만. 칸 이름을 우리 키(h·a·b·c·d·s)가 아니라 저쪽 표기로
+    -- 두는 것은, 이 표가 남의 자료를 받아 적은 것이기 때문이다.
     hp_points       INT,
     attack_points   INT,
     defense_points  INT,
     sp_atk_points   INT,
     sp_def_points   INT,
     speed_points    INT,
-    PRIMARY KEY (snapshot_id, rank)
+
+    PRIMARY KEY (snapshot_id, category, rank)
 );
+
+-- "지진을 쓰는 비율이 어떻게 변했나" 는 이름으로 먼저 좁힌다.
+CREATE INDEX usage_rows_name_idx ON usage_rows (category, source_name);
 
 CREATE VIEW usage AS
 SELECT s.snapshot_date, s.season, s.format,
-       pk.ko_name   AS pokemon,
+       pk.ko_name AS pokemon,
        s.battle_name,
-       p.category, p.rank,
+       r.category, r.rank,
        COALESCE(m.ko_name, i.ko_name, ab.ko_name,
                 nt.ko_name, tpk.ko_name) AS ko_name,
-       p.source_name,
-       p.percent
-FROM usage_picks p
-JOIN usage_snapshots s      ON s.id = p.snapshot_id
-JOIN battle_names b         ON b.battle_name = s.battle_name
-LEFT JOIN pokemons pk       ON pk.id = b.pokemon_id
-LEFT JOIN usage_names n     ON n.category = p.category
-                           AND n.source_name = p.source_name
-LEFT JOIN moves m           ON m.id = n.move_id
-LEFT JOIN items i           ON i.id = n.item_id
-LEFT JOIN abilities ab      ON ab.id = n.ability_id
+       r.source_name,
+       r.percent,
+       r.hp_points, r.attack_points, r.defense_points,
+       r.sp_atk_points, r.sp_def_points, r.speed_points
+FROM usage_rows r
+JOIN usage_snapshots s       ON s.id = r.snapshot_id
+JOIN usage_names b           ON b.source_name = s.battle_name
+LEFT JOIN pokemons pk        ON pk.id = b.pokemon_id
+LEFT JOIN usage_names n      ON n.source_name = r.source_name
+LEFT JOIN moves m            ON m.id = n.move_id
+LEFT JOIN items i            ON i.id = n.item_id
+LEFT JOIN abilities ab       ON ab.id = n.ability_id
 LEFT JOIN pokemon_natures nt ON nt.en_name = n.nature
-LEFT JOIN battle_names tb   ON p.category = 'teammate'
-                           AND tb.battle_name = p.source_name
-LEFT JOIN pokemons tpk      ON tpk.id = tb.pokemon_id;
-
-CREATE VIEW usage_sp AS
-SELECT s.snapshot_date, s.season, s.format,
-       pk.ko_name AS pokemon, s.battle_name,
-       sp.rank, sp.percent,
-       sp.hp_points, sp.attack_points, sp.defense_points,
-       sp.sp_atk_points, sp.sp_def_points, sp.speed_points
-FROM usage_spreads sp
-JOIN usage_snapshots s ON s.id = sp.snapshot_id
-JOIN battle_names b    ON b.battle_name = s.battle_name
-LEFT JOIN pokemons pk  ON pk.id = b.pokemon_id;
+LEFT JOIN pokemons tpk       ON tpk.id = n.pokemon_id
+                             AND r.category = 'teammate';
 
 CREATE VIEW usage_rank AS
 SELECT r.taken_on, r.season, r.format, r.position,
        pk.ko_name AS pokemon, r.battle_name, r.source
 FROM usage_rankings r
-JOIN battle_names b   ON b.battle_name = r.battle_name
+JOIN usage_names b    ON b.source_name = r.battle_name
 LEFT JOIN pokemons pk ON pk.id = b.pokemon_id;

@@ -11,12 +11,9 @@
 
 from ._rows import one, rows
 
-# usage_picks 는 이름이 있는 줄, usage_spreads 는 SP 배분이다. 한 표에
-# 두면 칸의 3분의 1이 늘 빈다 — 모양이 다른 두 갈래라 갈라 둔다.
-PICK_COLUMNS = ["category", "rank", "source_name", "percent"]
-SPREAD_COLUMNS = ["rank", "percent", "hp_points", "attack_points",
-                  "defense_points", "sp_atk_points", "sp_def_points",
-                  "speed_points"]
+ROW_COLUMNS = ["category", "rank", "source_name", "percent",
+               "hp_points", "attack_points", "defense_points",
+               "sp_atk_points", "sp_def_points", "speed_points"]
 
 
 def known_keys(conn, season, fmt):
@@ -36,21 +33,21 @@ def link_battle_name(conn, battle_name, pokemon_name):
     """
     conn.cursor().execute(
         """
-        INSERT INTO battle_names (battle_name, pokemon_id)
-        VALUES (%s, (SELECT id FROM pokemons WHERE name = %s))
-        ON CONFLICT (battle_name) DO UPDATE
+        INSERT INTO usage_names (source_name, category, pokemon_id)
+        VALUES (%s, 'pokemon', (SELECT id FROM pokemons WHERE name = %s))
+        ON CONFLICT (source_name) DO UPDATE
             SET pokemon_id = COALESCE(EXCLUDED.pokemon_id,
-                                      battle_names.pokemon_id)
+                                      usage_names.pokemon_id)
         """,
         (battle_name, pokemon_name),
     )
 
 
-def save(conn, meta, picks, spreads):
+def save(conn, meta, rows_):
     """스냅샷 한 장을 넣거나 갈아끼운다. snapshot_id 를 돌려준다.
 
     meta 는 season · snapshot_date · format · battle_name · pokemon_name ·
-    source 여섯이다. pokemon_name 은 usage_snapshots 가 아니라 battle_names
+    source 여섯이다. pokemon_name 은 usage_snapshots 가 아니라 usage_names
     로 간다.
 
     순위(usage_rank)는 여기 없다. 그것은 usage_rankings 의 일이다 — 색인과
@@ -74,19 +71,14 @@ def save(conn, meta, picks, spreads):
 
     # 갈아끼우기다. 저쪽 순위가 바뀌면 없어진 줄이 생기는데, 지우지 않으면
     # 옛 줄이 남아 한 스냅샷에 두 시점이 섞인다.
-    cur.execute("DELETE FROM usage_picks WHERE snapshot_id = %s", (snapshot_id,))
-    cur.execute("DELETE FROM usage_spreads WHERE snapshot_id = %s", (snapshot_id,))
-
-    for table, columns, values in (("usage_picks", PICK_COLUMNS, picks),
-                                   ("usage_spreads", SPREAD_COLUMNS, spreads)):
-        if not values:
-            continue
-        marks = ", ".join(f"%({c})s" for c in columns)
+    cur.execute("DELETE FROM usage_rows WHERE snapshot_id = %s", (snapshot_id,))
+    if rows_:
+        marks = ", ".join(f"%({c})s" for c in ROW_COLUMNS)
         cur.executemany(
-            f"INSERT INTO {table} (snapshot_id, {', '.join(columns)})"
+            f"INSERT INTO usage_rows (snapshot_id, {', '.join(ROW_COLUMNS)})"
             f" VALUES (%(snapshot_id)s, {marks})",
-            [{"snapshot_id": snapshot_id, **{c: r.get(c) for c in columns}}
-             for r in values],
+            [{"snapshot_id": snapshot_id,
+              **{c: r.get(c) for c in ROW_COLUMNS}} for r in rows_],
         )
     return snapshot_id
 
@@ -117,7 +109,7 @@ def link_names(conn, category, mapping):
 
 def distinct_names(conn, category, season=None, snapshot_date=None, fmt=None):
     """그 갈래에 등장한 영문 이름 전부. 우리 표에 없는 것을 찾을 때 쓴다."""
-    sql = ["SELECT DISTINCT r.source_name FROM usage_picks r",
+    sql = ["SELECT DISTINCT r.source_name FROM usage_rows r",
            "JOIN usage_snapshots s ON s.id = r.snapshot_id",
            "WHERE r.category = %s"]
     args = [category]
@@ -137,8 +129,7 @@ def counts(conn):
     cur = conn.cursor()
     cur.execute(
         "SELECT (SELECT count(*) FROM usage_snapshots),"
-        "       (SELECT count(*) FROM usage_picks)"
-        "        + (SELECT count(*) FROM usage_spreads),"
+        "       (SELECT count(*) FROM usage_rows),"
         "       (SELECT min(snapshot_date) FROM usage_snapshots),"
         "       (SELECT max(snapshot_date) FROM usage_snapshots)")
     return cur.fetchone()
@@ -166,7 +157,7 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
         """
         WITH latest AS (
             SELECT s.id FROM usage_snapshots s
-            JOIN battle_names b ON b.battle_name = s.battle_name
+            JOIN usage_names b ON b.source_name = s.battle_name
             JOIN pokemons pk ON pk.id = b.pokemon_id
             WHERE pk.name = %s AND s.format = %s
             ORDER BY snapshot_date DESC, id DESC
@@ -185,40 +176,25 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
                CASE pn.down WHEN 'a' THEN 'atk' WHEN 'b' THEN 'def'
                             WHEN 'c' THEN 'spa' WHEN 'd' THEN 'spd'
                             WHEN 's' THEN 'spe' END AS stat_down,
+               r.hp_points, r.attack_points, r.defense_points,
+               r.sp_atk_points, r.sp_def_points, r.speed_points,
                s.snapshot_date, s.season
-        FROM usage_picks r
+        FROM usage_rows r
         JOIN latest l ON l.id = r.snapshot_id
         JOIN usage_snapshots s ON s.id = r.snapshot_id
-        LEFT JOIN usage_names  n  ON n.category = r.category
-                              AND n.source_name = r.source_name
+        LEFT JOIN usage_names  n  ON n.source_name = r.source_name
         LEFT JOIN moves        m  ON m.id = n.move_id
         LEFT JOIN items        i  ON i.id = n.item_id
         LEFT JOIN abilities    ab ON ab.id = n.ability_id
-        LEFT JOIN battle_names bn ON r.category = 'teammate'
-                              AND bn.battle_name = r.source_name
-        LEFT JOIN pokemons        tp ON tp.id = bn.pokemon_id
+        LEFT JOIN pokemons        tp ON tp.id = n.pokemon_id
+                                     AND r.category = 'teammate'
         LEFT JOIN pokemon_natures pn ON pn.en_name = n.nature
         WHERE (r.category = 'move' AND r.rank <= %s) OR r.rank = 1
         ORDER BY r.category, r.rank
         """,
         (pokemon_name, fmt, moves),
     )
-    out = rows(cur)
-    if not out:
-        return out
-
-    # SP 배분은 표가 다르다. 계산기 기본값을 채우려면 이것이 있어야 한다 —
-    # 없으면 SP 0 으로 서고, "남들이 실제로 쓰는 그 포켓몬" 이 아니게 된다.
-    cur.execute(
-        """
-        SELECT 'stat_points' AS category, rank, NULL AS name, percent,
-               hp_points, attack_points, defense_points,
-               sp_atk_points, sp_def_points, speed_points
-        FROM usage_spreads WHERE snapshot_id = %s AND rank = 1
-        """,
-        (out[0]["snapshot_id"] if "snapshot_id" in out[0] else None,),
-    )
-    return out + rows(cur)
+    return rows(cur)
 
 
 def save_rankings(conn, taken_on, fmt, season, source, rows):
@@ -257,7 +233,7 @@ def save_rankings(conn, taken_on, fmt, season, source, rows):
 def fetch_ranking(conn, fmt="Singles", limit=20):
     """가장 최근에 받은 전체 순위. 1위부터.
 
-    "가장 많이 쓰이는 포켓몬" 에 답하는 유일한 자료다. usage_picks 의
+    "가장 많이 쓰이는 포켓몬" 에 답하는 유일한 자료다. usage_rows 의
     percent 는 전부 그 포켓몬 안에서의 비율이라 이 질문에 못 쓴다.
     """
     cur = conn.cursor()
@@ -267,7 +243,7 @@ def fetch_ranking(conn, fmt="Singles", limit=20):
                p.id AS pokemon_id, p.type1, p.type2,
                r.taken_on, r.season
         FROM usage_rankings r
-        JOIN battle_names b ON b.battle_name = r.battle_name
+        JOIN usage_names b ON b.source_name = r.battle_name
         LEFT JOIN pokemons p ON p.id = b.pokemon_id
         WHERE r.format = %s
           AND r.taken_on = (SELECT max(taken_on) FROM usage_rankings
@@ -294,7 +270,7 @@ def fetch_rank_of(conn, pokemon_name, fmt="Singles"):
                (SELECT count(*) FROM usage_rankings
                 WHERE format = r.format AND taken_on = r.taken_on) AS total
         FROM usage_rankings r
-        JOIN battle_names b ON b.battle_name = r.battle_name
+        JOIN usage_names b ON b.source_name = r.battle_name
         JOIN pokemons pk ON pk.id = b.pokemon_id
         WHERE pk.name = %s AND r.format = %s
         ORDER BY r.taken_on DESC
@@ -314,11 +290,6 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
     저쪽 원본이 갈래마다 주는 개수가 다르다 — 기술·도구·팀원·성격은 10개,
     SP 배분은 8개, 특성은 2개다. top 으로 자르되 없는 것을 만들지 않는다.
 
-    ── 두 번 조회한다 ──
-      이름이 있는 줄(usage_picks)과 SP 배분(usage_spreads)은 모양이 달라
-      표가 갈려 있다. 한 질의로 합치려면 한쪽에 빈 칸을 만들어야 하는데,
-      그 빈 칸을 없애려고 가른 표다.
-
     linked_name 을 같이 준다. 화면이 그 이름을 눌러 도감으로 건너뛰려면
     우리 DB 의 키가 필요한데, 저쪽 표기(Focus Sash)로는 못 찾는다.
     """
@@ -330,7 +301,7 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
                 WHERE k.taken_on = s.snapshot_date AND k.format = s.format
                   AND k.battle_name = s.battle_name) AS usage_rank
         FROM usage_snapshots s
-        JOIN battle_names b ON b.battle_name = s.battle_name
+        JOIN usage_names b ON b.source_name = s.battle_name
         JOIN pokemons pk ON pk.id = b.pokemon_id
         WHERE pk.name = %s AND s.format = %s
         ORDER BY s.snapshot_date DESC, s.id DESC
@@ -355,16 +326,16 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
                           WHEN 's' THEN 'spe' END AS stat_up,
                CASE pn.down WHEN 'a' THEN 'atk' WHEN 'b' THEN 'def'
                             WHEN 'c' THEN 'spa' WHEN 'd' THEN 'spd'
-                            WHEN 's' THEN 'spe' END AS stat_down
-        FROM usage_picks r
-        LEFT JOIN usage_names  n  ON n.category = r.category
-                              AND n.source_name = r.source_name
+                            WHEN 's' THEN 'spe' END AS stat_down,
+               r.hp_points, r.attack_points, r.defense_points,
+               r.sp_atk_points, r.sp_def_points, r.speed_points
+        FROM usage_rows r
+        LEFT JOIN usage_names  n  ON n.source_name = r.source_name
         LEFT JOIN moves        m  ON m.id = n.move_id
         LEFT JOIN items        i  ON i.id = n.item_id
         LEFT JOIN abilities    ab ON ab.id = n.ability_id
-        LEFT JOIN battle_names bn ON r.category = 'teammate'
-                              AND bn.battle_name = r.source_name
-        LEFT JOIN pokemons        tp ON tp.id = bn.pokemon_id
+        LEFT JOIN pokemons        tp ON tp.id = n.pokemon_id
+                                     AND r.category = 'teammate'
         LEFT JOIN pokemon_natures pn ON pn.en_name = n.nature
         WHERE r.snapshot_id = %s AND r.rank <= %s
         ORDER BY r.category, r.rank
@@ -372,19 +343,6 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
         (head["id"], top),
     )
     out = rows(cur)
-
-    cur.execute(
-        """
-        SELECT 'stat_points' AS category, rank, NULL AS name, percent,
-               NULL AS linked_name, NULL AS move_type, NULL AS teammate_id,
-               NULL AS stat_up, NULL AS stat_down,
-               hp_points, attack_points, defense_points,
-               sp_atk_points, sp_def_points, speed_points
-        FROM usage_spreads WHERE snapshot_id = %s AND rank <= %s ORDER BY rank
-        """,
-        (head["id"], top),
-    )
-    out += rows(cur)
 
     meta = {k: head[k] for k in ("snapshot_date", "season", "usage_rank")}
     for r in out:
@@ -423,7 +381,7 @@ def fetch_rank_delta(conn, fmt="Singles", days=7):
                was.position - now.position AS delta,
                now.taken_on AS snapshot_date, was.taken_on AS compared_to
         FROM usage_rankings now
-        JOIN battle_names b ON b.battle_name = now.battle_name
+        JOIN usage_names b ON b.source_name = now.battle_name
         LEFT JOIN pokemons p ON p.id = b.pokemon_id
         LEFT JOIN usage_rankings was
                ON was.battle_name = now.battle_name

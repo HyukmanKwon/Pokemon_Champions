@@ -75,44 +75,46 @@ LINK_TABLE = {"move": "moves", "held_item": "items", "ability": "abilities",
 # 정수 id 가 아예 없다 — usage_names.nature 도 같은 enum 이다.
 
 
-def split_rows(raw_rows):
-    """usage_csv 의 rows 를 (picks, spreads) 로 가른다.
+def to_rows(raw_rows):
+    """usage_csv / fetch_battle 의 rows 를 usage_rows 줄들로.
 
-    저쪽이 한 CSV 에 여섯 갈래를 섞어 준다. 모양이 둘이라 표도 둘이다 —
-    이름이 있는 줄과, 이름 없이 여섯 칸이 한 벌로 오는 SP 배분.
+    갈래가 여섯인데 stat_points 만 모양이 다르다 — 이름이 없고 SP 여섯 칸이
+    한 벌로 온다. 한 표에 담되 그쪽은 source_name 이 NULL 이다.
 
     우리 것으로 옮기는 일은 여기서 안 한다. 그 대응은 usage_names 가
-    한 벌만 들고 있고(link_names), 이 줄들은 저쪽 표기를 그대로 담는다.
+    한 벌만 들고 있고(resolve_names), 이 줄들은 저쪽 표기를 그대로 담는다.
     stat_up / stat_down 도 안 담는다 — 성격이 정해지면 따라오는 값이라
     pokemon_natures 에서 읽으면 된다.
     """
-    picks, spreads = [], []
+    out = []
     for raw in raw_rows:
         cat, en = raw["category"], raw["name"] or None
         if cat == "stat_points":
-            spreads.append({"rank": raw["rank"],
-                            "percent": raw["percentage_value"],
-                            **{c: raw.get(c) for c in usage_csv.SP_COLUMNS}})
+            out.append({"category": cat, "rank": raw["rank"],
+                        "source_name": None,
+                        "percent": raw["percentage_value"],
+                        **{c: raw.get(c) for c in usage_csv.SP_COLUMNS}})
         elif en is not None:
-            picks.append({"category": cat, "rank": raw["rank"],
-                          "source_name": en,
-                          "percent": raw["percentage_value"]})
-    return picks, spreads
+            out.append({"category": cat, "rank": raw["rank"],
+                        "source_name": en,
+                        "percent": raw["percentage_value"]})
+    return out
 
 
 def resolve_names(conn, picks, maps, index):
-    """이번에 처음 보는 이름을 usage_names · battle_names 에 올린다.
+    """이번에 처음 보는 이름을 usage_names 에 올린다.
 
     행마다 붙이지 않는다. 이름 726개가 15만 줄에 흩어져 있어서, 대응을
     줄마다 적으면 같은 것을 1,389번까지 되풀이한다. (성격 27개 / 37,500줄)
     """
     by_cat = {}
     for p in picks:
-        by_cat.setdefault(p["category"], set()).add(p["source_name"])
+        if p["source_name"] is not None:
+            by_cat.setdefault(p["category"], set()).add(p["source_name"])
 
     for cat, names in by_cat.items():
         if cat == "teammate":
-            # 팀원은 포켓몬이라 battle_names 가 이미 그 역할이다.
+            # 팀원은 포켓몬이라 pokemon 갈래로 올린다.
             for name in names:
                 usage_repo.link_battle_name(
                     conn, name, usage.resolve_pokemon(index, name))
@@ -161,14 +163,14 @@ def collect(conn, fmt, season, date, sleep, limit, dry_run, refetch=False):
             unlinked.append(name)
 
         if not dry_run:
-            picks, spreads = split_rows(rows)
-            resolve_names(conn, picks, maps, index)
+            rows_ = to_rows(rows)
+            resolve_names(conn, rows_, maps, index)
             usage_repo.save(
                 conn,
                 {"season": season, "snapshot_date": day, "format": fmt,
                  "battle_name": name, "pokemon_name": ours,
                  "source": entry["path"]},
-                picks, spreads,
+                rows_,
             )
             # 순위도 같이 넣는다. 줄마다 같은 값이 오므로 첫 줄에서 집는다.
             # 색인이 주는 것과 같은 사실이라 한 표로 모은다 (source 로 구분).
@@ -335,13 +337,13 @@ def snapshot_live(conn, fmt, sleep, limit, dry_run, season=SEASON):
             unlinked.append(name)
 
         if not dry_run:
-            picks, spreads = split_rows(data["rows"])
-            resolve_names(conn, picks, maps, index)
+            rows_ = to_rows(data["rows"])
+            resolve_names(conn, rows_, maps, index)
             usage_repo.save(
                 conn,
                 {"season": season, "snapshot_date": today, "format": fmt,
                  "battle_name": name, "pokemon_name": ours, "source": "live"},
-                picks, spreads,
+                rows_,
             )
             usage_repo.save_rankings(conn, today, fmt, season, "live", [
                 {"position": r["position"], "battle_name": name}])
