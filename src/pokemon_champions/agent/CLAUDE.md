@@ -44,6 +44,17 @@ The rule generalises: when a tool returns numbers, make sure the response
 also contains whatever is needed to read them correctly. A gap next to a
 number is a gap the model fills.
 
+## The loop does not know which company it is talking to
+
+`runner.py` owns "when to stop asking"; `backends/` owns "how to ask". Do not
+put an `if model.startswith(...)` in the runner — that is the seam existing so
+you can A/B two providers on the same questions.
+
+Message shape belongs to the backend, all the way through. Providers differ in
+how a tool result is paired to its call — by id, or by name. Normalising both
+into one shape mispairs on the other side, and that does not raise: it produces
+an answer written against the wrong tool's output.
+
 ## Do not put the type-name table in the prompt
 
 `runner.py` reads it from `pokemon_type_names` at startup. Hardcoding it makes

@@ -20,7 +20,6 @@ import threading
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import (FileResponse, HTMLResponse, StreamingResponse)
 from fastapi.staticfiles import StaticFiles
@@ -272,20 +271,17 @@ def chat(req: ChatRequest):
                     sess = agent_tools.session(conn, deck_id=req.deck)
                     answer, history = runner.ask(
                         req.question, sess,
-                        model=req.model or runner.DEFAULT_MODEL,
+                        model=req.model,
                         history=req.history,
                         on_tool=lambda name, args, result: box.put(
                             ("tool", {"name": name, "args": args,
                                       "result": result})))
                     box.put(("answer", {"text": answer, "history": history}))
-            except requests.ConnectionError:
-                box.put(("error", {"message":
-                                   "Ollama 에 연결하지 못했습니다. "
-                                   "`ollama serve` 가 떠 있나요?"}))
-            except requests.HTTPError as e:
-                box.put(("error", {"message": f"Ollama 오류: {e}"}))
+            # 무엇이 잘못됐는지는 백엔드가 안다. 여기서 회사별 예외를 잡으면
+            # 백엔드를 하나 더할 때마다 이 자리가 같이 늘어난다.
             except Exception as e:      # noqa: BLE001 - 화면이 멎으면 안 된다
-                box.put(("error", {"message": f"{type(e).__name__}: {e}"}))
+                box.put(("error",
+                         {"message": runner.explain_error(e, req.model)}))
             finally:
                 box.put(None)
 

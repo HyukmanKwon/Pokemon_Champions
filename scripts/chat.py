@@ -20,8 +20,6 @@ import sys
 import threading
 import time
 
-import requests
-
 from pokemon_champions.db import connection
 from pokemon_champions.agent import runner, tools
 
@@ -87,12 +85,10 @@ def main():
             with waiting():
                 answer, history = runner.ask(
                     q, sess, args.model, history, on_tool)
-        except requests.ConnectionError:
-            print("Ollama 에 연결하지 못했습니다. `ollama serve` 가 떠 있나요?")
-            return 1
-        except requests.HTTPError as e:
-            print(f"Ollama 오류: {e}")
-            print(f"모델이 없다면 `ollama pull {args.model}` 을 먼저 하세요.")
+        # 무엇이 잘못됐는지는 백엔드가 안다. 여기서 회사별 예외를 잡으면
+        # 백엔드를 하나 더할 때마다 이 자리가 같이 늘어난다.
+        except Exception as e:      # noqa: BLE001
+            print(runner.explain_error(e, args.model))
             return 1
         print(answer)
         # 몇 초 걸렸는지 남긴다. 도구를 고칠 때마다 나아졌는지 눈으로 본다.
