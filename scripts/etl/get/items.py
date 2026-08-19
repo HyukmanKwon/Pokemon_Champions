@@ -11,8 +11,8 @@ items 테이블용 06_items.sql 을 생성한다.
     도구는 "text" 다. pick_korean_flavor 에 키를 넘겨줘야 한다.
 """
 
-from . import schema
-from .parse_utils import (collect, endpoint, get_json, korean,
+from .. import schema
+from ..parse_utils import (collect, endpoint, get_json, korean,
                           pick_english_effect, sql_of, to_values)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/item"

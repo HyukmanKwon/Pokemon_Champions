@@ -7,9 +7,9 @@ can_mega / is_mega 는 API가 주는 값이 아니라 pokemon_M_B 안에서 계�
 """
 import re
 
-from . import schema
-from . import translation
-from .parse_utils import collect, endpoint, sql_of, to_values
+from .. import schema
+from .. import translation
+from ..parse_utils import collect, endpoint, sql_of, to_values
 
 pokemon_M_B = [
     # ===== 1세대 (기본 29, 폼 26) =====

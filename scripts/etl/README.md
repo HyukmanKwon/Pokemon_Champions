@@ -57,62 +57,63 @@ PGDATABASE=pokemon_test python -m scripts.etl.build   # 다른 DB에 구축
 
 ## 2. 파일 구성
 
-**파이프라인** — 구축에 실제로 참여하는 코드.
+**폴더가 값의 출처를 말한다.** 파일을 열지 않고도 그 표가 어디서 오는지,
+다시 만들면 얼마가 드는지 알 수 있어야 한다.
+
+| 폴더 | 출처 | 재구축 비용 |
+|---|---|---|
+| `make/` | 코드에 적힌 고정값 · DB 에서 계산 | API 0회 |
+| `get/` | PokeAPI | 전체 약 1,900회 |
+| `sync/` | championsbattledata.com (채용률) | 하루 한 번 쌓인다 |
+| `tools/` | — | 구축에 참여하지 않는다 |
 
 ```
 scripts/etl/
-├── build.py              유일한 진입점. SQL 생성 → 실행. --only 로 부분 실행
+├── build.py              유일한 진입점. 표를 세우고 단계별로 넣는다
+├── dump_sql.py           지금 DB 를 data/sql/ 로 받아 적는다 (build 의 반대)
+├── load_sql.py           data/sql/ 을 그대로 넣는다 (설치할 때)
+│
+├── schema.py             모든 CREATE TABLE / ENUM (단일 출처) + 순서
 ├── paths.py              data/ 하위 경로. config.py 의 값을 그대로 쓴다
-├── schema.py             모든 CREATE TABLE / ENUM 정의 (단일 출처)
-├── parse_utils.py        PokeAPI 응답 파싱 + SQL 조립 공용 헬퍼
+├── parse_utils.py        PokeAPI 응답 파싱 + INSERT 조립 공용 헬퍼
 ├── translation.py        포켓몬 이름 한↔영 변환, 폼 이름 조립
 ├── move_flags.py         기술 플래그 (PokeAPI CSV + 이름 규칙)
 ├── overrides.py          사람이 확정한 값 읽기/쓰기
 │
-│  ── make_*.py : 값이 코드에 적혀 있다. API 0회 ──
-├── make_types.py         pokemon_types + pokemon_type_names
-├── make_natures.py       pokemon_natures
-├── make_mega_evolutions.py   mega_evolutions (DB 의 이름 규칙으로 계산)
+├── make/                 API 0회
+│   ├── types.py              pokemon_types + pokemon_type_names
+│   ├── natures.py            pokemon_natures
+│   └── mega_evolutions.py    mega_evolutions (이름 규칙으로 계산)
 │
-│  ── get_*.py : PokeAPI 에서 받는다 ──
-├── get_pokemons.py       pokemons
-├── get_moves.py          moves + move_stat_changes
-├── get_abilities.py      abilities + pokemon_abilities
-├── get_items.py          items
-├── get_pokemon_moves.py  pokemon_moves
+├── get/                  PokeAPI
+│   ├── pokemons.py           pokemons
+│   ├── moves.py              moves + move_stat_changes
+│   ├── abilities.py          abilities + pokemon_abilities
+│   ├── items.py              items
+│   └── pokemon_moves.py      pokemon_moves
+│
+├── sync/                 championsbattledata.com
+│   ├── usage.py              채용률 하루치를 쌓기 (매일, launchd)
+│   └── usage_csv.py          지난 날짜를 CSV 로 (usage.py 만 쓴다)
+│
+├── tools/                손으로 필요할 때만
+│   ├── migrate_roster.py     로스터 증감만 반영 (재구축 없이)
+│   ├── fill_moves.py         moves_M_B 에 있는데 DB 에 없는 기술만 채우기
+│   ├── pin_ko_names.py       DB 의 한국어 표기를 override 로 고정
+│   └── check_moves.py        외부 목록과 기술 대조 (누락 찾기)
 │
 └── annotator/            브라우저에서 손으로 고치는 도구들 (§5)
-    ├── _common.py        서버·화면 뼈대 (도구마다 재사용)
-    ├── moves.py          기술 플래그
-    ├── ko_names.py       한국어 이름·설명 (특성·도구·기술)
-    └── items.py          도구를 지닐 수 있는가
+    ├── _common.py            서버·화면 뼈대 (도구마다 재사용)
+    ├── moves.py              기술 플래그
+    └── ko_names.py           한국어 이름·설명 (특성·도구·기술)
 ```
 
-**접두사가 값의 출처를 말한다.** 파일을 열지 않고도 그 표가 어디서
-오는지 알 수 있어야 한다.
+`sync/` 만 셋째 갈래다. 다른 둘과 달리 한 번 만들고 끝이 아니라 날마다
+쌓이고, 그래서 `data/sql/` 에도 `build.py` 에도 들어가지 않는다.
 
-| 접두사 | 출처 | 재구축 비용 |
-|---|---|---|
-| `make_*` | 코드에 적힌 고정값 · DB 에서 계산 | API 0회 |
-| `get_*` | PokeAPI | 표마다 다름, 전체 약 1,900회 |
-| `sync_*` | championsbattledata.com (채용률) | 하루 한 번 쌓인다 |
-
-`sync_usage.py` 만 셋째 갈래다. 다른 둘과 달리 한 번 만들고 끝이 아니라
-날마다 쌓이고, 그래서 `data/sql/` 에도 `build.py` 에도 들어가지 않는다.
-
-이 파일들은 직접 돌리지 않는다. 노출하는 것은 `TABLE`·`COLUMNS`·
-`build(conn)` 셋뿐이고, DB 에 올리는 일은 `build.py` 가 한다. (§11)
-
-**일회성·진단 도구** — 구축에 참여하지 않는다. 손으로 필요할 때만 돌린다.
-
-```
-scripts/etl/
-├── migrate_roster.py     로스터가 바뀐 것을 재구축 없이 DB 에 반영
-├── fill_moves.py         moves_M_B 에 있는데 DB 에 없는 기술만 채우기 (PokeAPI)
-├── pin_ko_names.py       지금 DB 의 한국어 표기를 override 에 고정
-├── check_moves.py        외부 목록과 기술 대조 (누락 찾기)
-└── dump_sql.py           지금 DB 를 data/sql/ 에 받아 적기 (build 의 반대 방향)
-```
+`make/` · `get/` 안의 파일은 직접 돌리지 않는다. 노출하는 것은
+`TABLE`·`COLUMNS`·`build(conn)` 셋뿐이고, DB 에 올리는 일은 `build.py` 가
+한다. (§11)
 
 앞의 셋은 **`build.py` 를 다시 못 돌리기 때문에** 있다. 스키마에
 `IF NOT EXISTS` 가 없어 빈 DB 여야 하고, 전체 재구축은 PokeAPI 를 1,900번
@@ -125,10 +126,10 @@ scripts/etl/
 16일치만 남기므로, 오늘 안 받은 날짜는 16일 뒤에 사라진다.
 
 ```bash
-python -m scripts.etl.sync_usage --dry-run   # 받아만 보기
-python -m scripts.etl.sync_usage             # 최신 하루, Singles (235회 호출)
-python -m scripts.etl.sync_usage --date 30_07_2026 --format Doubles
-python -m scripts.etl.sync_usage --fill-missing   # 처음 보는 기술·도구를 채운다
+python -m scripts.etl.sync.usage --dry-run   # 받아만 보기
+python -m scripts.etl.sync.usage             # 최신 하루, Singles (235회 호출)
+python -m scripts.etl.sync.usage --date 30_07_2026 --format Doubles
+python -m scripts.etl.sync.usage --fill-missing   # 처음 보는 기술·도구를 채운다
 ```
 
 쌓이는 곳은 `battle_names` · `usage_snapshots` · `usage_rows` 세 표다. 전부
@@ -432,7 +433,7 @@ overrides/move_flags.json  재구축해도 살아남는다. git 에 커밋된다
 전용 사이트에서 목록을 복사해 붙이고 대조한다.
 
 ```bash
-python -m scripts.etl.check_moves 목록.txt      # 한국어 이름 한 줄에 하나
+python -m scripts.etl.tools.check_moves 목록.txt      # 한국어 이름 한 줄에 하나
 ```
 
 참고할 사이트:
@@ -502,8 +503,8 @@ python -m scripts.etl.check_moves 목록.txt      # 한국어 이름 한 줄에 
 이어졌다. (그 4개는 지금은 제외됐다. 목록과 DB 둘 다 498개다.)
 
 ```bash
-python -m scripts.etl.fill_moves --dry-run   # 무엇이 들어갈지 먼저
-python -m scripts.etl.fill_moves             # 반영. API 는 빠진 기술 수만큼만
+python -m scripts.etl.tools.fill_moves --dry-run   # 무엇이 들어갈지 먼저
+python -m scripts.etl.tools.fill_moves             # 반영. API 는 빠진 기술 수만큼만
 ```
 
 `moves` 와 `move_stat_changes` 뿐 아니라 **`pokemon_moves` 도 같이 채운다.**
@@ -527,8 +528,8 @@ python -m scripts.etl.fill_moves             # 반영. API 는 빠진 기술 수
 번역을 갱신하면 고정해 둔 것은 꿈쩍 않는데 안 담긴 것만 조용히 달라진다.
 
 ```bash
-python -m scripts.etl.pin_ko_names moves --dry-run
-python -m scripts.etl.pin_ko_names all
+python -m scripts.etl.tools.pin_ko_names moves --dry-run
+python -m scripts.etl.tools.pin_ko_names all
 ```
 
 **DB 에 있는 값을 override 로 옮겨 적을 뿐, 값을 지어내지 않는다.** 이미 담긴

@@ -38,7 +38,7 @@ import sys
 
 from pokemon_champions.db import connect
 
-from .get_moves import (COLUMNS, STAT_COLUMNS, STAT_TABLE, TABLE, fetch_move,
+from ..get.moves import (COLUMNS, STAT_COLUMNS, STAT_TABLE, TABLE, fetch_move,
                         moves_M_B, parse_move, parse_stat_changes)
 
 

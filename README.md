@@ -80,12 +80,12 @@ Pokemon_Champions/
 │       ├── dump_sql.py         반대 방향 — 지금 DB 를 data/sql/ 로
 │       ├── schema.py           모든 DDL의 단일 출처
 │       ├── get_*.py            단계별 생성기 12개
-│       ├── sync_moves.py       기술만 추가 (전체 재구축 없이)
-│       ├── sync_usage.py       채용률 하루치를 DB 에 쌓기 (매일)
-│       ├── usage_csv.py        지난 날짜를 CSV 로 (sync_usage 만 쓴다)
-│       ├── migrate_roster.py   로스터 증감만 반영
-│       ├── pin_ko_names.py     DB 의 한국어 표기를 override 로 고정
-│       ├── check_moves.py      외부 목록과 기술 대조
+│       ├── tools/fill_moves.py    기술만 추가 (전체 재구축 없이)
+│       ├── sync/usage.py       채용률 하루치를 DB 에 쌓기 (매일)
+│       ├── sync/usage_csv.py   지난 날짜를 CSV 로 (usage.py 만 쓴다)
+│       ├── tools/migrate_roster.py  로스터 증감만 반영
+│       ├── tools/pin_ko_names.py    DB 의 한국어 표기를 override 로 고정
+│       ├── tools/check_moves.py     외부 목록과 기술 대조
 │       ├── overrides.py        사람이 확정한 값 읽기/쓰기
 │       ├── move_flags.py       기술 플래그 (CSV + 이름 규칙)
 │       ├── translation.py      이름 한↔영, 폼 이름 조립
@@ -157,7 +157,7 @@ Pokemon_Champions/
 ```
 
 `data/sql/` 을 커밋하는 이유가 여기 있다. 이 파일들을 처음 만드는 것은 `build.py`
-지만, DB 는 빌드 이후로도 애노테이터 · `sync_moves` · `migrate_roster` 로 계속
+지만, DB 는 빌드 이후로도 애노테이터 · `tools/fill_moves` · `migrate_roster` 로 계속
 움직인다. 그 손댄 결과는 **PokeAPI 를 다시 불러도 나오지 않는다.** 그러니 이건
 재생성 가능한 부산물이 아니라 다시 만들 수 없는 결과물이고, `data/overrides/` 와
 같은 취급을 받아야 한다.
@@ -175,7 +175,7 @@ Pokemon_Champions/
 
 채용률 세 표(`usage_snapshots` · `usage_rows` · `usage_rankings`)는 `data/sql/`
 에 없다. PokeAPI 가 아니라 하루 한 벌씩 쌓이는 것이라 배포할 내용이 없다.
-`load_sql.py` 가 빈 표만 만들고, `sync_usage.py` 가 채운다.
+`load_sql.py` 가 빈 표만 만들고, `sync/usage.py` 가 채운다.
 
 셋이 답하는 질문이 다르다.
 
@@ -439,7 +439,7 @@ n/16 으로 세지므로 곱셈으로는 영영 안 나온다.
 써 보고 정한다.
 
 **도구 `reviewed` 채우기** — `items.reviewed`가 0/166이다. 수집 범위를 좁히는
-쪽(`get_items.py`의 `ITEM_CATEGORIES` + `EXTRA_ITEMS`)이 먼저 걸러 주고 있어서 지금
+쪽(`get/items.py`의 `ITEM_CATEGORIES` + `EXTRA_ITEMS`)이 먼저 걸러 주고 있어서 지금
 아프지는 않지만, 화면에는 166개가 전부 "미확인"으로 뜬다. `annotator.items`를
 돌리거나, 이 방식을 접기로 하고 지우거나 — 둘 중 하나로 정해야 한다.
 

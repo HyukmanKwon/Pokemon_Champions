@@ -27,8 +27,8 @@ import sys
 
 from pokemon_champions.db import connect
 
-from . import overrides
-from .annotator.ko_names import EDITABLE, TABLES
+from .. import overrides
+from ..annotator.ko_names import EDITABLE, TABLES
 
 
 def pin(table, dry_run=False, force=False):

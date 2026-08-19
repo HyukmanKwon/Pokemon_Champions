@@ -15,8 +15,8 @@ pokemon_abilities 두 표를 같이 만든다.
   그 우회가 사라진다.
 """
 
-from . import get_pokemons
-from .parse_utils import (collect, endpoint, korean, pick_english_effect,
+from . import pokemons as get_pokemons
+from ..parse_utils import (collect, endpoint, korean, pick_english_effect,
                           sql_of, to_values)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/ability"

@@ -1,7 +1,7 @@
-from . import move_flags
-from . import overrides
-from . import schema
-from .parse_utils import (collect, endpoint, korean, pick_english_effect,
+from .. import move_flags
+from .. import overrides
+from .. import schema
+from ..parse_utils import (collect, endpoint, korean, pick_english_effect,
                           sql_of, to_values)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/move"

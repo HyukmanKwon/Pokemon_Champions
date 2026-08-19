@@ -43,10 +43,10 @@ from pokemon_champions.usecases import usage, usage_source
 
 from . import usage_csv
 
-from .get_items import COLUMNS as ITEM_COLUMNS
-from .get_items import fetch_item, parse_item
-from .get_moves import COLUMNS as MOVE_COLUMNS
-from .get_moves import (STAT_COLUMNS, STAT_TABLE, fetch_move, parse_move,
+from ..get.items import COLUMNS as ITEM_COLUMNS
+from ..get.items import fetch_item, parse_item
+from ..get.moves import COLUMNS as MOVE_COLUMNS
+from ..get.moves import (STAT_COLUMNS, STAT_TABLE, fetch_move, parse_move,
                         parse_stat_changes)
 
 # 저쪽 갈래 -> 이름을 맞춰볼 우리 표. teammate 는 pokemons 지만 이름 규칙이

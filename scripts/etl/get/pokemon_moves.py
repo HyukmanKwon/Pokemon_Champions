@@ -10,8 +10,8 @@ pokemon_moves 연결 테이블용 07_pokemon_moves.sql 을 생성한다.
   - 따라서 03_pokemons.sql / 04_moves.sql 이 DB에 올라간 뒤에 실행돼야 한다.
 """
 
-from . import schema
-from .parse_utils import endpoint, sql_of
+from .. import schema
+from ..parse_utils import endpoint, sql_of
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/pokemon"
 

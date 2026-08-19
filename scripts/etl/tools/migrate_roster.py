@@ -38,14 +38,14 @@ import argparse
 
 from pokemon_champions.db import connect
 
-from .get_abilities import COLUMNS as ABILITY_COLUMNS
-from .get_abilities import fetch_ability, parse_ability
-from .get_items import COLUMNS as ITEM_COLUMNS
-from .get_items import collect_item_names, fetch_item, parse_item
-from .make_mega_evolutions import match_stone, select_stones
-from .get_pokemons import (COLUMNS, base_of, fetch_pokemon,
+from ..get.abilities import COLUMNS as ABILITY_COLUMNS
+from ..get.abilities import fetch_ability, parse_ability
+from ..get.items import COLUMNS as ITEM_COLUMNS
+from ..get.items import collect_item_names, fetch_item, parse_item
+from ..make.mega_evolutions import match_stone, select_stones
+from ..get.pokemons import (COLUMNS, base_of, fetch_pokemon,
                            parse_pokemon, pokemon_M_B, split_mega)
-from .get_pokemon_moves import fetch_pokemon as fetch_moves_source
+from ..get.pokemon_moves import fetch_pokemon as fetch_moves_source
 
 
 def db_names(cur):

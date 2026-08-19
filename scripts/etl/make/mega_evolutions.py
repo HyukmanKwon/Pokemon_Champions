@@ -17,9 +17,9 @@ pokemons 와 items 를 읽어서 만들기 때문에 03·06 단계 뒤에 와야
   두고 끝에 목록을 출력한다. 틀린 스톤을 넣느니 비워두는 편이 낫다.
 """
 
-from . import schema
-from .get_pokemons import MANUAL_BASE, split_mega
-from .parse_utils import sql_of
+from .. import schema
+from ..get.pokemons import MANUAL_BASE, split_mega
+from ..parse_utils import sql_of
 
 TABLE = "mega_evolutions"
 COLUMNS = ["mega_id", "base_id", "item_id"]

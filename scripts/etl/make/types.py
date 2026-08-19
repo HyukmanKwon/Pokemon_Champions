@@ -1,5 +1,5 @@
-from . import schema
-from .parse_utils import literal_build, sql_of
+from .. import schema
+from ..parse_utils import literal_build, sql_of
 
 TABLE = "pokemon_types"
 COLUMNS = ["attack_type", "defense_type", "multiplier"]
