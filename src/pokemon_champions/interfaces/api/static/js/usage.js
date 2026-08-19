@@ -177,16 +177,16 @@ const Usage = (() => {
 
     box.innerHTML = `
       <header class="usage-head">
+        ${iconImg(d.sprite, d.ko_name, "sprite")}
         <div class="who">
           <h3>${esc(d.ko_name)}</h3>
           <span class="rank">${d.meta_rank}위</span>
+          <span class="sub">${esc(d.date)} · ${esc(d.format)}</span>
         </div>
         <div class="what">
           <span class="type-badges">${(d.types || []).map(t =>
             iconImg(t.icon, typeKo(t.name), "")).join("")}</span>
-          <span class="sub">${esc(d.date)} · ${esc(d.format)}</span>
         </div>
-        ${iconImg(d.sprite, d.ko_name, "sprite")}
         ${baseStats(d.base)}
       </header>
       <div class="usage-cols">

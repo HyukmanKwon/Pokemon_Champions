@@ -544,31 +544,39 @@
 .usage-table td.delta.down { color: var(--error); }
 .usage-table td.delta.same { color: var(--muted); }
 
-/* 상세 머리. 두 줄 · 두 칸이다.
+/* 상세 머리. 왼쪽이 그림, 오른쪽이 세 줄이다.
 
-     이름 · 순위 | 타입 배지 · 날짜
-     그림       | 종족값
+     그림 | 이름 · 순위 · 날짜
+          | 타입 배지
+          | 종족값
 
-   왼쪽 칸의 너비는 이름 줄과 그림 중 넓은 쪽이 정한다(auto). 그림에 고정
-   너비를 주면 이름이 긴 폼에서 타입 배지가 멀리 밀려난다.
+   ── 그림을 크게 둔 자리다 ──
+     예전에는 그림이 96px 로 오른쪽 칸 안에 끼어 있었다. 순위표 아이콘의
+     네 배라 "상세를 열었다" 는 표시는 됐지만, 이 화면에서 제일 오래
+     쳐다보는 것이 그림인데 제일 작았다. 어느 폼인지 — 리전폼인지 메가인지 —
+     를 눈으로 가리려면 그 크기로는 모자란다.
 
-   ── 높이 맞추기를 그만둔 자리다 ──
-     예전에는 머리를 한 줄(33px, 브라우저에서 잰 값)로 눌러서 왼쪽 표의
-     첫 데이터 줄과 오른쪽 첫 제목("기술")을 나란히 놓았다. 두 줄이 되고
-     그림이 96px 이 된 지금은 그 맞춤이 성립하지 않는다 — 어떤 상수를
-     넣어도 머리가 표의 첫 줄보다 아래로 내려간다.
+     그래서 그림에 왼쪽 칸을 통째로 주고 세 줄을 세로로 걸치게 했다.
+     높이를 세 줄에 맞추는 것이 아니라 세 줄이 그림 높이 안에 들어간다.
 
-     그래서 상수를 지우고 내용이 높이를 정하게 둔다. 여기에 다시 픽셀을
-     적기 전에, 무엇과 무엇을 맞추려는 것인지부터 정해야 한다. */
+   왼쪽 칸의 너비는 그림이 정한다(auto). 고정 폭을 주면 그림이 없는 폼에서
+   오른쪽이 통째로 밀린다. */
 .usage-head {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  align-items: center; column-gap: 12px; row-gap: 6px;
-  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  align-items: center; column-gap: 14px; row-gap: 6px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+/* 세 줄을 걸친다. span 을 안 주면 그림이 첫 줄에만 앉아서 이름 옆에
+   붙고, 아래 두 줄이 그림 밑으로 흘러내린다. */
+.usage-head .sprite {
+  grid-row: 1 / span 3; grid-column: 1;
+  height: 168px; width: 168px; object-fit: contain;
+  margin: -8px 0;              /* 그림 파일의 빈 테두리를 걷어낸다 */
 }
 .usage-head .who { display: flex; align-items: baseline; gap: 6px; }
 .usage-head .what { display: flex; align-items: center; gap: 8px; }
-.usage-head h3 { margin: 0; font-size: 1.05rem; white-space: nowrap; }
+.usage-head h3 { margin: 0; font-size: 1.15rem; white-space: nowrap; }
 .usage-head .rank {
   background: var(--accent); color: #fff; border-radius: 10px;
   padding: 1px 8px; font-size: 0.78rem;
@@ -577,16 +585,10 @@
   color: var(--muted); font-size: 0.75rem; margin-left: auto;
   white-space: nowrap;
 }
-/* 순위표 아이콘(26px)의 네 배쯤. 이 화면에서 그림이 제일 큰 자리라
-   여기서만 96px 을 쓴다 — 목록과 같은 크기로 두면 상세를 연 것이
-   눈에 안 띈다. 위아래 음수 여백은 그림 파일의 빈 테두리를 걷어낸다. */
-.usage-head .sprite {
-  height: 96px; width: 96px; object-fit: contain;
-  justify-self: center; margin: -6px 0;
-}
 
-/* 종족값 여섯 칸 + 합계. 도감처럼 막대로 그리면 여섯 줄이라 그림(96px)
-   보다 높아진다. 머리에서는 숫자만 본다. */
+/* 종족값 여섯 칸 + 합계. 도감처럼 막대로 그리면 여섯 줄이 되는데, 그러면
+   머리의 세 줄이 그림 높이를 넘겨서 그림 옆이 아니라 아래로 밀린다.
+   머리에서는 숫자만 본다. */
 /* 폭을 26rem 에서 끊는다. 화면이 좁아 상세가 아래로 내려오면 오른쪽 칸이
    700px 이 되는데, 그때 일곱 칸을 늘리면 숫자 사이가 멀어져 한 덩어리로
    안 읽힌다. */
