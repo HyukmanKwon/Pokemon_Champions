@@ -1,9 +1,9 @@
-"""계산 규칙 테이블 조회 — 타입 상성 · 날씨 · 필드 · 상태이상.
+"""계산 규칙 조회 — 타입 상성과 타입 이름.
 
-── 왜 한 파일에 모으나 ──
-  이 넷은 성격이 같다. 포켓몬마다 다르지 않고, 배틀 중에 바뀌지 않고,
-  한 번 읽어서 계산 내내 돌려쓰는 참조표다. 조회 함수도 전부 "그 테이블
-  통째로" 하나뿐이라 파일을 넷으로 쪼개면 파일당 함수가 하나가 된다.
+── 날씨·필드·상태이상은 여기 없다 ──
+  열다섯 줄짜리 상수라 calc/rules.py 로 옮겼다. 조인 상대가 없고, 읽는
+  방법도 "통째로 한 번 읽어 dict 로 접기" 하나뿐이라 표로 둘 이유가
+  없었다. 상성표는 324행이고 enum 으로 묶여 있어 DB 에 남는다.
 
 ── 왜 매번 읽지 않고 통째로 주나 ──
   타입 상성은 데미지 한 번 계산할 때마다 필요하다. 그때마다 SELECT 하면
@@ -11,17 +11,6 @@
   메모리가 문제되지 않으므로, 진입점에서 한 번 읽어 인자로 내려보낸다.
   (calc/damage.py 의 Rules 참고)
 
-── 왜 ORDER BY 가 있나 ──
-  날씨·필드·상태이상 셋은 계산에만 쓰이지 않는다. /api/calc/rules 가
-  이 dict 를 그대로 펴서 화면 드롭다운을 채운다. dict 는 삽입 순서를
-  지키므로 여기의 ORDER BY 가 곧 화면 순서다.
-
-  빼면 순서가 "행이 디스크에 놓인 순서" 가 된다. 그러면 같은 저장소인데
-  build.py 로 세운 DB 와 load_sql 로 세운 DB 의 화면이 달라진다 —
-  dump_sql 이 기본키순으로 정렬해서 적기 때문이다. 실제로 겪었다.
-
-  name 순이 아니라 sort_order 순인 것은, 쾌청이 먼저인 이유가 알파벳이
-  아니라 본가 순서이기 때문이다. (scripts/etl/schema.py 주석)
 """
 
 from ._rows import keyed
@@ -53,46 +42,3 @@ def fetch_type_names(conn, language="ko"):
         "SELECT type_name, name FROM pokemon_type_names WHERE language = %s",
         (language,))
     return dict(cur.fetchall())
-
-
-def fetch_weathers(conn):
-    """{날씨이름: 행} — 위력 보정·방어 보정·지속 데미지까지."""
-    cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT name, ko_name, boost_type, boost_mult, weaken_type, weaken_mult,
-               def_boost_type, def_boost_stat, def_boost_mult,
-               chip_damage, chip_immune
-        FROM weathers
-        ORDER BY sort_order
-        """
-    )
-    return keyed(cur)
-
-
-def fetch_terrains(conn):
-    """{필드이름: 행}. 필드는 접지된 쪽에만 걸린다."""
-    cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT name, ko_name, boost_type, boost_mult,
-               weaken_type, weaken_mult, heal_fraction
-        FROM terrains
-        ORDER BY sort_order
-        """
-    )
-    return keyed(cur)
-
-
-def fetch_status_conditions(conn):
-    """{상태이상이름: 행}. 화상의 공격 반감, 마비의 스피드 반감 등."""
-    cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT name, ko_name, attack_mult, speed_mult, turn_damage,
-               immobile, fail_chance
-        FROM status_conditions
-        ORDER BY sort_order
-        """
-    )
-    return keyed(cur)

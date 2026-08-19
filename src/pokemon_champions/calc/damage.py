@@ -37,7 +37,7 @@ from dataclasses import dataclass, field, replace
 
 from ..config import BULK_FACTOR, LEVEL_FACTOR, MOD_ONE, SPREAD_MULT
 from ..domain import BattlePokemon
-from . import modifiers, residual
+from . import modifiers, residual, rules
 
 # 여러 대상을 치는 기술. moves.target 이 이 값이면 더블에서 위력이 깎인다.
 SPREAD_TARGETS = {"all-opponents", "all-other-pokemon", "all-pokemon"}
@@ -73,17 +73,24 @@ class BattleContext:
 
 @dataclass
 class Rules:
-    """계산 내내 돌려쓰는 참조표. rules_repo 로 한 번 읽어서 넘긴다.
+    """계산 내내 돌려쓰는 참조표.
 
-    데미지 한 번마다 SELECT 하면 확정 N타 분석에서 턴 수만큼 쿼리가 나간다.
+    chart 만 DB 에서 온다(324행). 데미지 한 번마다 SELECT 하면 확정 N타
+    분석에서 턴 수만큼 쿼리가 나가므로 진입점에서 한 번 읽어 넘긴다.
+
+    날씨·필드·상태이상은 calc/rules.py 의 상수다. 넘기지 않으면 그것이
+    쓰인다 — 부르는 쪽이 chart 만 챙기면 된다.
     """
 
     chart: dict                              # {(공격타입, 방어타입): 배수}
-    weathers: dict = field(default_factory=dict)
-    terrains: dict = field(default_factory=dict)
+
+    # 셋은 상수라 기본값이 곧 정답이다. 넘길 이유가 없지만 인자로 남겨
+    # 두는 것은 테스트가 다른 값을 끼워 넣을 수 있어야 하기 때문이다.
+    weathers: dict = field(default_factory=lambda: rules.WEATHERS)
+    terrains: dict = field(default_factory=lambda: rules.TERRAINS)
     # 화상의 공격 반감은 여기 없이도 되지만(damage.py 가 직접 본다), 턴 끝
     # 지속 데미지는 분수가 표에 있어야 한다. calc/residual.py 가 본다.
-    conditions: dict = field(default_factory=dict)
+    conditions: dict = field(default_factory=lambda: rules.STATUS_CONDITIONS)
 
 
 @dataclass

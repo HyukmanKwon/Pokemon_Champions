@@ -62,11 +62,7 @@ def on_startup():
     # 참조표는 배틀 중에 안 바뀐다. 계산 한 번마다 324행을 다시 읽으면
     # 확정 N타 분석에서 턴 수만큼 쿼리가 나간다. 뜰 때 한 번만 읽는다.
     state["rules"] = Rules(
-        chart=rules_repo.fetch_type_chart(state["conn"]),
-        weathers=rules_repo.fetch_weathers(state["conn"]),
-        terrains=rules_repo.fetch_terrains(state["conn"]),
-        conditions=rules_repo.fetch_status_conditions(state["conn"]),
-    )
+        chart=rules_repo.fetch_type_chart(state["conn"]))
 
 
 @app.on_event("shutdown")

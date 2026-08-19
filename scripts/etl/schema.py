@@ -248,20 +248,6 @@ POKEMON_MOVES = """CREATE TABLE pokemon_moves (
 # 계산용 고정값. API 없이 만든다.
 # ─────────────────────────────────────────────────────────────
 
-# 상태이상 상수. 9세대 본가 기준값이므로 포챔스 룰이 다르면 여기만 고친다.
-STATUS_CONDITIONS = """CREATE TABLE status_conditions (
-    name          VARCHAR(20) PRIMARY KEY,  -- burn, paralysis ... moves.ailment 과 대응
-    ko_name       VARCHAR(20),
-    attack_mult   REAL,      -- 물리공격 보정. 화상 0.5
-    speed_mult    REAL,      -- 스피드 보정. 마비 0.5
-    turn_damage   REAL,      -- 매 턴 최대 HP의 몇 배를 잃는가
-    immobile      BOOLEAN,   -- 행동 자체가 막히는가 (잠듦·얼음)
-    fail_chance   REAL,      -- 행동이 실패할 확률. 마비 0.25
-    note          TEXT,
-    sort_order    INT NOT NULL UNIQUE   -- 화면에 늘어놓는 순서. 아래 주석 참고
-);
-"""
-
 # ─────────────────────────────────────────────────────────────
 # sort_order 가 weathers · terrains · status_conditions 셋에 있는 이유
 #
@@ -288,42 +274,6 @@ MEGA_EVOLUTIONS = """CREATE TABLE mega_evolutions (
     mega_id  INT PRIMARY KEY REFERENCES pokemons(id),
     base_id  INT NOT NULL REFERENCES pokemons(id),
     item_id  INT REFERENCES items(id)   -- 매칭 실패 시 NULL
-);
-"""
-
-# 날씨. 기술 위력 보정과 방어 보정이 서로 다른 능력치에 붙는다.
-#   모래바람 : 바위 타입의 '특수방어' 1.5배
-#   눈       : 얼음 타입의 '방어' 1.5배
-# 그래서 어느 능력치인지를 def_boost_stat 에 따로 적는다.
-WEATHERS = f"""CREATE TABLE weathers (
-    name            VARCHAR(20) PRIMARY KEY,
-    ko_name         VARCHAR(20),
-    boost_type      {TYPES_ENUM},   -- 위력이 오르는 기술 타입
-    boost_mult      REAL,
-    weaken_type     {TYPES_ENUM},   -- 위력이 내리는 기술 타입
-    weaken_mult     REAL,
-    def_boost_type  {TYPES_ENUM},   -- 방어 보정을 받는 포켓몬 타입
-    def_boost_stat  CHAR(1),        -- b(방어) / d(특수방어)
-    def_boost_mult  REAL,
-    chip_damage     REAL,           -- 매 턴 최대 HP의 몇 배를 잃는가
-    chip_immune     TEXT[],         -- 그 지속 데미지를 안 받는 타입
-    note            TEXT,
-    sort_order      INT NOT NULL UNIQUE   -- 화면 순서. STATUS_CONDITIONS 위 주석
-);
-"""
-
-# 필드. 지면에 닿은 포켓몬에게만 적용된다.
-# (비행 타입, 부유 특성, 풍선 소지, 텔레키네시스 대상은 제외)
-TERRAINS = f"""CREATE TABLE terrains (
-    name           VARCHAR(20) PRIMARY KEY,
-    ko_name        VARCHAR(20),
-    boost_type     {TYPES_ENUM},   -- 위력 1.3배가 되는 기술 타입
-    boost_mult     REAL,
-    weaken_type    {TYPES_ENUM},   -- 미스트필드의 드래곤 0.5배
-    weaken_mult    REAL,
-    heal_fraction  REAL,           -- 매 턴 회복량. 그래스필드 1/16
-    note           TEXT,
-    sort_order     INT NOT NULL UNIQUE   -- 화면 순서. STATUS_CONDITIONS 위 주석
 );
 """
 
@@ -505,9 +455,6 @@ CREATE_ORDER = [
     ("moves", MOVES),
     ("abilities", ABILITIES),
     ("items", ITEMS),
-    ("status_conditions", STATUS_CONDITIONS),
-    ("weathers", WEATHERS),
-    ("terrains", TERRAINS),
     # 자식
     ("pokemon_abilities", POKEMON_ABILITIES),
     ("pokemon_moves", POKEMON_MOVES),
@@ -526,7 +473,6 @@ SCHEMA_SQL = "\n".join(ddl for _, ddl in CREATE_ORDER)
 CONTENT_ORDER = [
     "pokemon_types", "pokemon_type_names", "pokemon_natures",
     "pokemons", "moves", "abilities", "items",
-    "status_conditions", "weathers", "terrains",
     "pokemon_abilities", "pokemon_moves", "move_stat_changes",
     "mega_evolutions",
 ]

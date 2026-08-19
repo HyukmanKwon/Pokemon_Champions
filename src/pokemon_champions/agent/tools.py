@@ -67,11 +67,7 @@ class Session:
 def load_rules(conn):
     """상성표 324행 + 날씨 + 필드 + 상태이상. 한 번 읽어 세션 내내 돌려쓴다."""
     return Rules(
-        chart=rules_repo.fetch_type_chart(conn),
-        weathers=rules_repo.fetch_weathers(conn),
-        terrains=rules_repo.fetch_terrains(conn),
-        conditions=rules_repo.fetch_status_conditions(conn),
-    )
+        chart=rules_repo.fetch_type_chart(conn))
 
 
 def session(conn, deck_id=None, rules=None):

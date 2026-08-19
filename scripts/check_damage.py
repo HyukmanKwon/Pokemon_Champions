@@ -136,11 +136,7 @@ def main():
     with connection() as conn:
         specs = roster.slots()
         rules = Rules(
-            chart=rules_repo.fetch_type_chart(conn),
-            weathers=rules_repo.fetch_weathers(conn),
-            terrains=rules_repo.fetch_terrains(conn),
-            conditions=rules_repo.fetch_status_conditions(conn),
-        )
+            chart=rules_repo.fetch_type_chart(conn))
 
         print("포케챔스 계산기: https://pokemon.yodams.com/calc/damage")
         print("싱글 · 랭크 0 · 날씨 없음 · 급소 없음 기준입니다.")

@@ -27,6 +27,8 @@ list means `usecases/`. No `conn` means `calc/`.
 - `scripts/` may import `src/`. **`src/` must never import `scripts/`.**
   `pyproject.toml` (`where = ["src"]`) enforces this — `scripts/` is not installed.
 - Regulation constants (level 50, IV 31, SP 66) live only in `config.py`.
+- Game-rule constants (weather, terrain, status) live only in `calc/rules.py`.
+  They are not tables — nothing joins to them, and `calc/` cannot import `db/`.
 - Never create an empty folder or a placeholder file. Add it when it has content.
 
 ## Commands

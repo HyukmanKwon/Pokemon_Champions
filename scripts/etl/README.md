@@ -77,10 +77,7 @@ scripts/etl/
 ├── get_items.py              items
 ├── get_pokemon_moves.py      pokemon_moves
 │
-├── get_status_conditions.py  status_conditions
 ├── get_mega_evolutions.py    mega_evolutions
-├── get_weathers.py           weathers
-├── get_terrains.py           terrains
 │
 └── annotator/            브라우저에서 손으로 고치는 도구들 (§5)
     ├── _common.py        서버·화면 뼈대 (도구마다 재사용)
@@ -171,9 +168,7 @@ data/
 | 5 | `abilities` | 202 | 202 |
 | 6 | `items` | 168 | 180 |
 | 7 | `pokemon_moves` | 21,678 | 318 |
-| 8 | `status_conditions` | 7 | 0 (고정값) |
-| 9 | `mega_evolutions` | 76 | 0 (DB에서 계산) |
-| 10 | `weathers` · `terrains` | 4 + 4 | 0 (고정값) |
+| 8 | `mega_evolutions` | 76 | 0 (DB에서 계산) |
 
 **생성과 실행을 번갈아 하는 이유**는 뒤 단계가 앞 단계의 테이블을 읽기 때문이다.
 
@@ -576,7 +571,7 @@ python -m scripts.etl.dump_sql              # 전체
 ```sql
 DROP TABLE IF EXISTS pokemon_moves, move_stat_changes, mega_evolutions,
     items, abilities, moves, pokemons, pokemon_types, pokemon_natures,
-    status_conditions, weathers, terrains CASCADE;
+    battle_names CASCADE;
 DROP TYPE IF EXISTS pokemon_types_enum, pokemon_natures_enum CASCADE;
 ```
 
@@ -738,78 +733,24 @@ CSV 를 쓰는 효과는 분명하다. 예를 들어 이름 규칙으로는 `sup
 ### `pokemon_moves` — 포켓몬-기술 연결
 `pokemon_id`, `move_id` (둘이 합쳐 PK)
 
-### `status_conditions` — 상태이상 상수 (7행, 고정값)
-`name`(PK), `ko_name`, `attack_mult`, `speed_mult`, `turn_damage`,
-`immobile`, `fail_chance`, `note`
+### 날씨 · 필드 · 상태이상 — 표가 아니다
 
-`name` 은 PokeAPI 의 move-ailment 이름이라 `moves.ailment` 와 바로 조인된다.
+`src/pokemon_champions/calc/rules.py` 의 상수다. 열다섯 줄인데 어느 표도
+참조하지 않고, 읽는 방법도 "통째로 한 번 읽어 dict 로 접기" 하나뿐이라
+표로 둘 이유가 없었다. 진입점에서 한 번 읽었으므로 DB 에 두어 아끼는
+것도 없었다 — 프로세스 수명 동안 쿼리 세 번이 전부였다.
 
-```sql
-SELECT m.ko_name, s.ko_name, s.attack_mult
-FROM moves m JOIN status_conditions s ON m.ailment = s.name;
-```
+옮기고 얻은 것이 하나 있다. `calc/` 는 `db/` 를 import 할 수 없어서 이
+값들을 인자로 받아야 했는데, 상수가 되면서 그 우회가 사라졌다. 이제
+`Rules(chart=...)` 만 넘기면 나머지는 기본값이 채운다.
 
-값은 **9세대 본가 기준**이다. 세대마다 바뀐 적이 있으니(화상 1/8→1/16,
-마비 스피드 1/4→1/2) 포챔스가 다르면 `get_status_conditions.py` 의
-`CONDITIONS` 만 고치면 된다.
+dict 의 삽입 순서가 곧 화면 드롭다운 순서다. 쾌청이 먼저인 것은 알파벳이
+아니라 본가 순서이고, 재배열하려면 그 파일의 줄을 옮기면 된다.
+(전에는 `sort_order` 칸이 하던 일)
 
-### `mega_evolutions` — 메가진화 관계 (76행)
-`mega_id`(PK), `base_id`, `item_id`
-
-`variant`(x/y) 칸은 없다. 스톤 이름이 그것을 담고 있어서다 —
-`charizardite-x` / `charizardite-y`. 76행 중 x·y 가 갈리는 것은 리자몽과
-라이츄 넷뿐이고 나머지는 단일 메가라 구분할 것이 없다. 화면 배지와 정렬은
-스톤 이름의 접미사에서 뽑는다.
-
-베이스는 이름 규칙으로 자른다(`charizard-mega-x` → `charizard` + `x`).
-메가스톤은 규칙이 없어서 — `blastoisinite`(blastoise), `heracronite`(heracross),
-`alakazite`(alakazam)처럼 철자가 깎인다 — **접두사가 가장 길게 겹치는 스톤**을
-고른다. 겹침이 베이스 이름의 60%에 못 미치면 틀린 스톤을 넣는 대신 NULL로
-두고 끝에 목록을 출력한다.
-
-성별 폼은 스톤을 공유한다. `meowstic-male`과 `meowstic-female`이 똑같이
-`meowsticite`를 쓰므로, 매칭할 때만 `-male` / `-female` 꼬리를 떼어낸다.
-이름 규칙에서 아예 벗어나는 것은 `get_mega_evolutions.py` 의 `MANUAL_BASE` 에
-적는다. (현재 `pyroar-mega` → `pyroar-male` 하나뿐)
-
-### `weathers` — 날씨 (4행, 고정값)
-`name`(PK), `ko_name`, `boost_type` `boost_mult`, `weaken_type` `weaken_mult`,
-`def_boost_type` `def_boost_stat` `def_boost_mult`, `chip_damage`, `chip_immune`, `note`
-
-보정이 두 종류다. 하나는 **기술 위력**(비에서 물 1.5배, 불꽃 0.5배), 다른 하나는
-**방어 능력치**인데 붙는 능력치가 서로 다르다.
-
-| 날씨 | 위력 | 방어 보정 | 지속 데미지 |
-|---|---|---|---|
-| `sun` 쾌청 | 불꽃 ×1.5, 물 ×0.5 | — | — |
-| `rain` 비 | 물 ×1.5, 불꽃 ×0.5 | — | — |
-| `sandstorm` 모래바람 | — | 바위의 **특수방어** ×1.5 | 1/16 (바위·땅·강철 제외) |
-| `snow` 눈 | — | 얼음의 **방어** ×1.5 | — |
-
-어느 능력치인지는 `def_boost_stat`(`b` 또는 `d`)에 들어 있다. `name` 은 날씨를
-까는 기술과 이어진다 (`sunny-day`→`sun`, `snowscape`→`snow`).
-
-9세대 기준이다. 8세대까지의 싸라기눈은 얼음 타입을 뺀 전원이 1/16을 잃었지만,
-9세대 눈은 지속 데미지가 없다.
-
-### `terrains` — 필드 (4행, 고정값)
-`name`(PK), `ko_name`, `boost_type` `boost_mult`, `weaken_type` `weaken_mult`,
-`heal_fraction`, `note`
-
-| 필드 | 효과 |
-|---|---|
-| `electric` 일렉트릭필드 | 전기 ×1.3, 잠듦 무효 |
-| `grassy` 그래스필드 | 풀 ×1.3, 매 턴 1/16 회복, 지진·땅고르기 ×0.5 |
-| `misty` 미스트필드 | 드래곤 ×0.5, 상태이상·혼란 무효 |
-| `psychic` 사이코필드 | 에스퍼 ×1.3, 우선도 1 이상 기술 무효 |
-
-**필드는 접지된 포켓몬에게만 걸린다.** 비행 타입·부유·풍선은 영향을 받지 않는다.
-위력 1.3배도 기술을 쓰는 쪽이 접지되어 있을 때만 붙는다. 이 판정은 테이블이
-아니라 계산 코드에서 해야 한다.
-
----
-
-## 9. 수집 범위 조절
+> `moves.ailment` 는 여전히 `burn` · `paralysis` 같은 값을 담는다. 그 열쇠가
+> `STATUS_CONDITIONS` 의 열쇠와 같다. 표가 아니게 되었으니 외래키로는 못
+> 묶고, 값이 어긋나면 조회 결과가 `None` 이 된다.
 
 ### 포켓몬 — `get_pokemons.py` 의 `pokemon_M_B`
 PokeAPI 이름 형식(소문자, 하이픈)으로 적는다. 예: `charizard-mega-x`

@@ -1615,33 +1615,6 @@ VALUES
     (2276, 'tatsugirinite', '싸리용나이트', 'mega-stones', 80, '싸리용에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.', NULL),
     (2277, 'glimmoranite', '킬라플로르나이트', 'mega-stones', 80, '킬라플로르에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.', NULL);
 
-INSERT INTO status_conditions
-    (name, ko_name, attack_mult, speed_mult, turn_damage, immobile, fail_chance, note, sort_order)
-VALUES
-    ('burn', '화상', 0.5, NULL, 0.0625, false, NULL, '물리공격 0.5배. 불꽃 타입은 걸리지 않는다', 0),
-    ('confusion', '혼란', NULL, NULL, NULL, false, 0.33, '부가 상태. 33% 확률로 자신을 공격', 6),
-    ('freeze', '얼음', NULL, NULL, NULL, true, NULL, '매 턴 20% 확률로 해동. 얼음 타입은 걸리지 않는다', 5),
-    ('paralysis', '마비', NULL, 0.5, NULL, false, 0.25, '행동 실패 25%. 전기 타입은 걸리지 않는다', 1),
-    ('poison', '독', NULL, NULL, 0.125, false, NULL, '독·강철 타입은 걸리지 않는다', 2),
-    ('sleep', '잠듦', NULL, NULL, NULL, true, NULL, '1~3턴. 잠꼬대·코골기만 사용 가능', 4),
-    ('toxic', '맹독', NULL, NULL, NULL, false, NULL, '턴마다 1/16씩 누적. n턴째 n/16', 3);
-
-INSERT INTO weathers
-    (name, ko_name, boost_type, boost_mult, weaken_type, weaken_mult, def_boost_type, def_boost_stat, def_boost_mult, chip_damage, chip_immune, note, sort_order)
-VALUES
-    ('rain', '비', 'water', 1.5, 'fire', 0.5, NULL, NULL, NULL, NULL, NULL, '번개·폭풍이 필중. 아침햇살 회복량 1/4', 1),
-    ('sandstorm', '모래바람', NULL, NULL, NULL, NULL, 'rock', 'd', 1.5, 0.0625, ARRAY['rock','ground','steel'], '바위 타입의 특수방어 1.5배', 2),
-    ('snow', '눈', NULL, NULL, NULL, NULL, 'ice', 'b', 1.5, NULL, NULL, '얼음 타입의 방어 1.5배. 9세대부터 지속 데미지 없음', 3),
-    ('sun', '쾌청', 'fire', 1.5, 'water', 0.5, NULL, NULL, NULL, NULL, NULL, '솔라빔이 즉시 발동. 대타출동·아침햇살 회복량 2/3', 0);
-
-INSERT INTO terrains
-    (name, ko_name, boost_type, boost_mult, weaken_type, weaken_mult, heal_fraction, note, sort_order)
-VALUES
-    ('electric', '일렉트릭필드', 'electric', 1.3, NULL, NULL, NULL, '접지된 포켓몬은 잠듦 상태가 되지 않는다', 0),
-    ('grassy', '그래스필드', 'grass', 1.3, NULL, NULL, 0.0625, '지진·땅고르기·매그니튜드의 위력 0.5배. 접지된 포켓몬이 매 턴 회복', 1),
-    ('misty', '미스트필드', NULL, NULL, 'dragon', 0.5, NULL, '접지된 포켓몬은 상태이상·혼란에 걸리지 않는다', 2),
-    ('psychic', '사이코필드', 'psychic', 1.3, NULL, NULL, NULL, '접지된 포켓몬에게 우선도 1 이상의 기술이 통하지 않는다', 3);
-
 INSERT INTO pokemon_abilities
     (pokemon_id, ability_id, slot)
 VALUES

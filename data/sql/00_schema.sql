@@ -110,46 +110,6 @@ CREATE TABLE items (
     effect       TEXT
 );
 
-CREATE TABLE status_conditions (
-    name          VARCHAR(20) PRIMARY KEY,  -- burn, paralysis ... moves.ailment 과 대응
-    ko_name       VARCHAR(20),
-    attack_mult   REAL,      -- 물리공격 보정. 화상 0.5
-    speed_mult    REAL,      -- 스피드 보정. 마비 0.5
-    turn_damage   REAL,      -- 매 턴 최대 HP의 몇 배를 잃는가
-    immobile      BOOLEAN,   -- 행동 자체가 막히는가 (잠듦·얼음)
-    fail_chance   REAL,      -- 행동이 실패할 확률. 마비 0.25
-    note          TEXT,
-    sort_order    INT NOT NULL UNIQUE   -- 화면에 늘어놓는 순서. 아래 주석 참고
-);
-
-CREATE TABLE weathers (
-    name            VARCHAR(20) PRIMARY KEY,
-    ko_name         VARCHAR(20),
-    boost_type      pokemon_types_enum,   -- 위력이 오르는 기술 타입
-    boost_mult      REAL,
-    weaken_type     pokemon_types_enum,   -- 위력이 내리는 기술 타입
-    weaken_mult     REAL,
-    def_boost_type  pokemon_types_enum,   -- 방어 보정을 받는 포켓몬 타입
-    def_boost_stat  CHAR(1),        -- b(방어) / d(특수방어)
-    def_boost_mult  REAL,
-    chip_damage     REAL,           -- 매 턴 최대 HP의 몇 배를 잃는가
-    chip_immune     TEXT[],         -- 그 지속 데미지를 안 받는 타입
-    note            TEXT,
-    sort_order      INT NOT NULL UNIQUE   -- 화면 순서. STATUS_CONDITIONS 위 주석
-);
-
-CREATE TABLE terrains (
-    name           VARCHAR(20) PRIMARY KEY,
-    ko_name        VARCHAR(20),
-    boost_type     pokemon_types_enum,   -- 위력 1.3배가 되는 기술 타입
-    boost_mult     REAL,
-    weaken_type    pokemon_types_enum,   -- 미스트필드의 드래곤 0.5배
-    weaken_mult    REAL,
-    heal_fraction  REAL,           -- 매 턴 회복량. 그래스필드 1/16
-    note           TEXT,
-    sort_order     INT NOT NULL UNIQUE   -- 화면 순서. STATUS_CONDITIONS 위 주석
-);
-
 CREATE TABLE pokemon_abilities (
     pokemon_id  INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
     ability_id  INT NOT NULL REFERENCES abilities(id),

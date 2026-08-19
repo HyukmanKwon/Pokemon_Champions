@@ -15,9 +15,10 @@
   abilities            특성               PokeAPI    <- pokemon_abilities 필요
   items                도구               PokeAPI
   pokemon_moves        포켓몬-기술 연결   PokeAPI    <- pokemons, moves 필요
-  status_conditions    상태이상 상수      고정값     API 0회
   mega_evolutions      메가진화 관계      고정값     <- pokemons, items 필요
-  weathers · terrains  날씨·필드 상수     고정값     API 0회
+
+날씨·필드·상태이상은 여기 없다 — src/pokemon_champions/calc/rules.py 의
+상수다. 열다섯 줄짜리라 표로 둘 이유가 없었다.
 
 ── 표를 먼저 다 만든다 ──
   전에는 단계마다 자기 CREATE TABLE 을 들고 다녀서, 실행 순서가 곧 생성
@@ -61,8 +62,7 @@ from pokemon_champions.db import connect
 from . import paths
 from . import schema
 from . import (get_abilities, get_items, get_mega_evolutions, get_moves,
-               get_natures, get_pokemon_moves, get_pokemons,
-               get_status_conditions, get_terrains, get_types, get_weathers)
+               get_natures, get_pokemon_moves, get_pokemons, get_types)
 
 # 실행 순서. 앞 단계가 DB에 올라간 뒤에 뒤 단계가 생성된다.
 STEPS = [
@@ -73,10 +73,7 @@ STEPS = [
     get_abilities,
     get_items,
     get_pokemon_moves,
-    get_status_conditions,
     get_mega_evolutions,
-    get_weathers,
-    get_terrains,
 ]
 
 
