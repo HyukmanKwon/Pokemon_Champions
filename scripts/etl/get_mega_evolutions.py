@@ -21,10 +21,8 @@ from . import schema
 from .get_pokemons import MANUAL_BASE, split_mega
 from .parse_utils import sql_of
 
-FILENAME = "10_mega_evolutions.sql"
 TABLE = "mega_evolutions"
-COLUMNS = ["mega_name", "base_name", "item_name"]
-DDL = schema.MEGA_EVOLUTIONS
+COLUMNS = ["mega_id", "base_id", "item_id"]
 
 # 이름 규칙으로 베이스를 못 찾는 예외는 get_pokemons.MANUAL_BASE 에 있다.
 # can_mega 를 켜는 쪽과 같은 표를 봐야 둘이 어긋나지 않는다.
@@ -48,17 +46,21 @@ def match_key(base):
 
 
 def select_pokemons(cur):
-    """(모든 이름, 메가폼 이름들). 메가폼 여부는 이름 규칙으로 가른다 —
-    pokemons 에 is_mega 칸이 없고, split_mega 가 그 판정의 단일 출처다."""
-    cur.execute("SELECT name FROM pokemons ORDER BY name")
-    names = [r[0] for r in cur.fetchall()]
-    return set(names), [n for n in names if split_mega(n)[0] is not None]
+    """({이름: id}, 메가폼 이름들). 메가폼 여부는 이름 규칙으로 가른다 —
+    pokemons 에 is_mega 칸이 없고, split_mega 가 그 판정의 단일 출처다.
+
+    표에는 id 로 넣지만 고르는 일(베이스 찾기·스톤 맞추기)은 이름으로 한다.
+    그래서 대응표째 들고 나간다."""
+    cur.execute("SELECT name, id FROM pokemons ORDER BY name")
+    by_name = dict(cur.fetchall())
+    return by_name, [n for n in by_name if split_mega(n)[0] is not None]
 
 
 def select_stones(cur):
-    cur.execute(
-        "SELECT name FROM items WHERE category = 'mega-stones' ORDER BY name")
-    return [row[0] for row in cur.fetchall()]
+    """{스톤 이름: id}. 접두사 비교는 이름으로 하고 넣을 때 id 로 옮긴다."""
+    cur.execute("SELECT name, id FROM items "
+                "WHERE category = 'mega-stones' ORDER BY name")
+    return dict(cur.fetchall())
 
 
 def stone_variant(stone):
@@ -113,11 +115,13 @@ def build(conn):
         stone = match_stone(base, variant, stones)
         if stone is None:
             no_stone.append(mega)
-        values.append((mega, base, stone))
+        # 고르는 일은 이름으로 끝났다. 표에는 id 로 넣는다.
+        values.append((names[mega], names[base],
+                       stones[stone] if stone else None))
         print(f"{mega} <- {base} / {stone}")
 
     print(f"\n연결 {len(values)}행")
     print(f"베이스 없음: {len(no_base)}개 - {no_base}")
     print(f"스톤 못 찾음: {len(no_stone)}개 - {no_stone}")
-    return sql_of(cur, DDL, TABLE, COLUMNS, values)
+    return sql_of(cur, TABLE, COLUMNS, values)
 

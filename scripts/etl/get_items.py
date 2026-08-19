@@ -19,11 +19,9 @@ POKEAPI_BASE = "https://pokeapi.co/api/v2/item"
 KO_OVERRIDE_KEY = "item_ko_names"
 POKEAPI_CATEGORY = "https://pokeapi.co/api/v2/item-category"
 
-FILENAME = "06_items.sql"
 TABLE = "items"
 COLUMNS = ["id", "name", "ko_name", "category",
            "fling_power", "description", "effect"]
-DDL = schema.ITEMS
 
 # ─────────────────────────────────────────────────────────────
 # 수집 대상 카테고리 (옆의 숫자는 현재 PokeAPI 기준 개수)
@@ -145,5 +143,5 @@ def build(conn):
 
     rows = collect(items, fetch_item, parse_item)
 
-    return sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
+    return sql_of(cur, TABLE, COLUMNS, to_values(rows, COLUMNS))
 

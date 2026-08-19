@@ -27,15 +27,15 @@ def fetch_form(conn, base_ko_name, item_ko_name):
         """
         SELECT mp.id, mp.name, mp.ko_name, mp.type1, mp.type2,
                mp.h, mp.a, mp.b, mp.c, mp.d, mp.s,
-               pa.ability_name, ab.ko_name, ab.description
+               ab.name, ab.ko_name, ab.description
         FROM mega_evolutions me
-        JOIN pokemons bp  ON bp.name = me.base_name
-        JOIN pokemons mp  ON mp.name = me.mega_name
-        JOIN items i      ON i.name  = me.item_name
+        JOIN pokemons bp  ON bp.id = me.base_id
+        JOIN pokemons mp  ON mp.id = me.mega_id
+        JOIN items i      ON i.id  = me.item_id
         -- 메가폼은 특성이 하나뿐이라 슬롯 1이다.
         LEFT JOIN pokemon_abilities pa
-               ON pa.pokemon_name = mp.name AND pa.slot = 1
-        LEFT JOIN abilities ab ON ab.name = pa.ability_name
+               ON pa.pokemon_id = mp.id AND pa.slot = 1
+        LEFT JOIN abilities ab ON ab.id = pa.ability_id
         WHERE bp.ko_name = %s AND i.ko_name = %s
         """,
         (normalize(base_ko_name), normalize(item_ko_name)),
@@ -74,9 +74,9 @@ def fetch_stones(conn, base_ko_name):
                CASE WHEN i.name LIKE '%%-x' THEN 'x'
                     WHEN i.name LIKE '%%-y' THEN 'y' END AS variant
         FROM mega_evolutions me
-        JOIN pokemons bp ON bp.name = me.base_name
-        JOIN pokemons mp ON mp.name = me.mega_name
-        LEFT JOIN items i ON i.name = me.item_name
+        JOIN pokemons bp ON bp.id = me.base_id
+        JOIN pokemons mp ON mp.id = me.mega_id
+        LEFT JOIN items i ON i.id = me.item_id
         WHERE bp.ko_name = %s
         ORDER BY i.name NULLS FIRST, mp.ko_name
         """,
@@ -98,8 +98,8 @@ def fetch_required_item(conn, mega_ko_name):
         """
         SELECT i.ko_name
         FROM mega_evolutions me
-        JOIN pokemons p   ON p.name = me.mega_name
-        LEFT JOIN items i ON i.name = me.item_name
+        JOIN pokemons p   ON p.id = me.mega_id
+        LEFT JOIN items i ON i.id = me.item_id
         WHERE p.ko_name = %s
         """,
         (normalize(mega_ko_name),),

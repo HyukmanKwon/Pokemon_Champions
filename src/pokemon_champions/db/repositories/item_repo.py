@@ -77,15 +77,16 @@ def fetch_detail(conn, name):
                mp.id   AS mega_id,
                mp.name AS mega_name, mp.ko_name AS mega_ko_name,
                -- 이 쿼리는 도구가 주어라 items 를 조인하지 않는다.
-               -- 스톤 이름은 me.item_name 이 곧 그것이다.
-               CASE WHEN me.item_name LIKE '%%-x' THEN 'x'
-                    WHEN me.item_name LIKE '%%-y' THEN 'y' END AS variant
+               -- 스톤 이름은 인자로 들어온 name 이 곧 그것이다.
+               CASE WHEN %s LIKE '%%-x' THEN 'x'
+                    WHEN %s LIKE '%%-y' THEN 'y' END AS variant
         FROM mega_evolutions me
-        JOIN pokemons bp ON bp.name = me.base_name
-        JOIN pokemons mp ON mp.name = me.mega_name
-        WHERE me.item_name = %s
+        JOIN pokemons bp ON bp.id = me.base_id
+        JOIN pokemons mp ON mp.id = me.mega_id
+        JOIN items i     ON i.id  = me.item_id
+        WHERE i.name = %s
         """,
-        (name,),
+        (name, name, name),
     )
     row["mega"] = one(cur)
 

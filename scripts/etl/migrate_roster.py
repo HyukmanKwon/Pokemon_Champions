@@ -16,13 +16,13 @@
   pokemons 행 하나가 pokemon_abilities · pokemon_moves · mega_evolutions
   세 곳을 가리킨다. 그래서 포켓몬을 넣고 뺀 뒤에 세 표를 차례로 맞춘다.
 
-  특성은 넣는 순서가 정해져 있다. pokemon_abilities.ability_name 이
-  abilities(name) 을 참조하므로, 처음 보는 특성은 abilities 에 먼저 받아
+  특성은 넣는 순서가 정해져 있다. pokemon_abilities.ability_id 가
+  abilities(id) 를 참조하므로, 처음 보는 특성은 abilities 에 먼저 받아
   두어야 한다. 그래서 포켓몬 행만 먼저 넣고 특성 행은 모아 두었다가
   sync_abilities 뒤에 넣는다.
 
   기술도 같은 이유로 moves 에 있는 것만 넣는다 (insert_moves 가 교집합을
-  취한다). 없는 기술을 넣으려 하면 외래키가 막는다.
+  취한다). 없는 기술을 넣으려 하면 move_id 가 NULL 이 되어 막힌다.
 
 ── 지우는 순서 ──
   mega_evolutions 가 pokemons(name) 을 참조하는데 CASCADE 가 아니라,
@@ -76,15 +76,19 @@ def insert_pokemon(cur, row):
 def insert_abilities(cur, triples):
     """pokemon_abilities 행들. abilities 를 채운 뒤에 불러야 한다.
 
-    ability_name 이 abilities(name) 을 참조하므로, 처음 보는 특성을 아직
+    triples 는 (포켓몬 id, 특성 이름, 슬롯) 이다. 특성만 이름인 것은
+    get_pokemons 가 만들 때 abilities 가 아직 없어 id 를 몰라서다.
+    여기서 이름을 id 로 옮긴다 — 그 표가 이제 막 채워졌다.
+
+    ability_id 가 abilities(id) 를 참조하므로, 처음 보는 특성을 아직
     안 받아둔 상태에서 넣으면 외래키가 막고 트랜잭션 전체가 무너진다.
     그래서 포켓몬 행과 따로 떼어 sync_abilities 뒤로 미룬다.
     """
-    for pokemon, ability, slot in triples:
+    for pokemon_id, ability, slot in triples:
         cur.execute(
-            "INSERT INTO pokemon_abilities (pokemon_name, ability_name, slot)"
-            " VALUES (%s, %s, %s)",
-            (pokemon, ability, slot),
+            "INSERT INTO pokemon_abilities (pokemon_id, ability_id, slot)"
+            " VALUES (%s, (SELECT id FROM abilities WHERE name = %s), %s)",
+            (pokemon_id, ability, slot),
         )
 
 
@@ -100,7 +104,9 @@ def insert_moves(cur, name, valid):
     learned = sorted({m["move"]["name"] for m in data["moves"]} & valid)
     for move in learned:
         cur.execute(
-            "INSERT INTO pokemon_moves (pokemon_name, move_name) VALUES (%s, %s)"
+            "INSERT INTO pokemon_moves (pokemon_id, move_id)"
+            " VALUES ((SELECT id FROM pokemons WHERE name = %s),"
+            "         (SELECT id FROM moves WHERE name = %s))"
             " ON CONFLICT DO NOTHING",
             (name, move),
         )
@@ -209,11 +215,13 @@ def sync_mega_rows(cur):
     포켓몬만 넣고 여기를 안 채우면, 도감에는 뜨는데 엔트리에서 메가 버튼이
     안 생긴다 — resolve_mega 가 이 표를 보기 때문이다.
     """
-    cur.execute("SELECT name FROM pokemons")
-    names = {r[0] for r in cur.fetchall()}
+    # 고르는 일(베이스 찾기·스톤 맞추기)은 이름으로 하고, 넣을 때 id 로 옮긴다.
+    cur.execute("SELECT name, id FROM pokemons")
+    names = dict(cur.fetchall())
     megas = sorted(n for n in names if split_mega(n)[0] is not None)
 
-    cur.execute("SELECT mega_name FROM mega_evolutions")
+    cur.execute("SELECT p.name FROM mega_evolutions me"
+                " JOIN pokemons p ON p.id = me.mega_id")
     have = {r[0] for r in cur.fetchall()}
 
     stones = select_stones(cur)
@@ -228,8 +236,8 @@ def sync_mega_rows(cur):
         stone = match_stone(base, split_mega(mega)[1], stones)
         cur.execute(
             "INSERT INTO mega_evolutions"
-            " (mega_name, base_name, item_name) VALUES (%s, %s, %s)",
-            (mega, base, stone),
+            " (mega_id, base_id, item_id) VALUES (%s, %s, %s)",
+            (names[mega], names[base], stones[stone] if stone else None),
         )
         added.append((mega, stone))
     return added, orphans

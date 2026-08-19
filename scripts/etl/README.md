@@ -69,18 +69,18 @@ scripts/etl/
 ├── move_flags.py         기술 플래그 (PokeAPI CSV + 이름 규칙)
 ├── overrides.py          사람이 확정한 값 읽기/쓰기
 │
-├── get_types.py          01_types.sql
-├── get_natures.py        02_natures.sql
-├── get_pokemons.py       03_pokemons.sql
-├── get_moves.py          04_moves.sql
-├── get_abilities.py      05_abilities.sql
-├── get_items.py          06_items.sql
-├── get_pokemon_moves.py  07_pokemon_moves.sql
+├── get_types.py              pokemon_types + pokemon_type_names
+├── get_natures.py            pokemon_natures
+├── get_pokemons.py           pokemons + pokemon_abilities
+├── get_moves.py              moves + move_stat_changes
+├── get_abilities.py          abilities
+├── get_items.py              items
+├── get_pokemon_moves.py      pokemon_moves
 │
-├── get_status_conditions.py  09_status_conditions.sql
-├── get_mega_evolutions.py    10_mega_evolutions.sql
-├── get_weathers.py           11_weathers.sql
-├── get_terrains.py           12_terrains.sql
+├── get_status_conditions.py  status_conditions
+├── get_mega_evolutions.py    mega_evolutions
+├── get_weathers.py           weathers
+├── get_terrains.py           terrains
 │
 └── annotator/            브라우저에서 손으로 고치는 도구들 (§5)
     ├── _common.py        서버·화면 뼈대 (도구마다 재사용)
@@ -89,7 +89,7 @@ scripts/etl/
     └── items.py          도구를 지닐 수 있는가
 ```
 
-`get_*.py` 는 직접 돌리지 않는다. 노출하는 것은 `FILENAME`·`TABLE`·`COLUMNS`·
+`get_*.py` 는 직접 돌리지 않는다. 노출하는 것은 `TABLE`·`COLUMNS`·
 `DDL`·`build(conn)` 다섯 개뿐이고, 파일을 만들고 DB 에 올리는 일은 `build.py` 가
 한다. (§11)
 
@@ -164,24 +164,23 @@ data/
 
 | # | 파일 | 테이블 | 행 수 | API 호출 |
 |---|---|---|---|---|
-| 01 | `01_types.sql` | `pokemon_types` | 324 | 0 (고정값) |
-| 02 | `02_natures.sql` | `pokemon_natures` | 21 | 0 (고정값) |
-| 03 | `03_pokemons.sql` | `pokemons` | 313 | 626 |
-| 04 | `04_moves.sql` | `moves` + `move_stat_changes` | 498 + α | 498 |
-| 05 | `05_abilities.sql` | `abilities` | 200 | 200 |
-| 06 | `06_items.sql` | `items` | 284 | 296 |
-| 07 | `07_pokemon_moves.sql` | `pokemon_moves` | 21,295 | 313 |
-| 09 | `09_status_conditions.sql` | `status_conditions` | 7 | 0 (고정값) |
-| 10 | `10_mega_evolutions.sql` | `mega_evolutions` | 75 | 0 (DB에서 계산) |
-| 11 | `11_weathers.sql` | `weathers` | 4 | 0 (고정값) |
-| 12 | `12_terrains.sql` | `terrains` | 4 | 0 (고정값) |
+| 1 | `pokemon_types` + `pokemon_type_names` | 324 + 54 | 0 (고정값) |
+| 2 | `pokemon_natures` | 25 | 0 (고정값) |
+| 3 | `pokemons` + `pokemon_abilities` | 318 + 652 | 318 |
+| 4 | `moves` + `move_stat_changes` | 498 + 151 | 498 |
+| 5 | `abilities` | 202 | 202 |
+| 6 | `items` | 168 | 180 |
+| 7 | `pokemon_moves` | 21,678 | 318 |
+| 8 | `status_conditions` | 7 | 0 (고정값) |
+| 9 | `mega_evolutions` | 76 | 0 (DB에서 계산) |
+| 10 | `weathers` · `terrains` | 4 + 4 | 0 (고정값) |
 
 **생성과 실행을 번갈아 하는 이유**는 뒤 단계가 앞 단계의 테이블을 읽기 때문이다.
 
-- `05_abilities` 는 `pokemon_abilities`(03 단계가 같이 만든다)를 훑어 대상
-  특성 목록을 만들고, 파일 끝에서 그 표의 외래키를 `ALTER` 로 붙인다
-- `07_pokemon_moves` 는 `pokemons` 와 `moves` 를 읽어 교집합만 저장한다
-- `10_mega_evolutions` 는 `pokemons` 의 메가폼과 `items` 의 메가스톤을 맞춘다
+- `abilities` 는 `pokemon_abilities`(포켓몬 단계가 같이 채운다)를 훑어 대상
+  특성 목록을 만든다
+- `pokemon_moves` 는 `pokemons` 와 `moves` 를 읽어 교집합만 저장한다
+- `mega_evolutions` 는 `pokemons` 의 메가폼과 `items` 의 메가스톤을 맞춘다
 
 그래서 03·04가 DB에 올라간 뒤에야 05·07을, 03·06 뒤에야 10을 만들 수 있다.
 이 순서를 `build.py` 가 알아서 지킨다.
@@ -210,12 +209,12 @@ data/
 한 표만 따로 뽑고 싶으면 `--only` 를 준다. DB에는 실행하지 않는다.
 
 ```bash
-python -m scripts.etl.build --only items          # data/sql/06_items.sql 만 생성
+python -m scripts.etl.build --only items          # items 만 생성 (DB 안 건드림)
 python -m scripts.etl.build --only items --exec   # 만들고 DB 에도 실행
 python -m scripts.etl.build --only 06 --only 07   # 여러 개
 ```
 
-이름은 `items` · `06` · `06_items` 가 모두 같은 것을 가리킨다. 못 찾는 이름을
+이름은 모듈 꼬리(`items`)와 표 이름(`items`) 둘 다 걸린다. 못 찾는 이름을
 주면 고를 수 있는 목록을 보여주고 멈춘다 — 오타를 조용히 건너뛰면 "돌렸는데
 파일이 안 바뀐다" 가 되기 때문이다.
 
@@ -245,7 +244,7 @@ python -m scripts.etl.build --only 06 --only 07   # 여러 개
 한 단계가 깨지면 롤백하고 어느 파일에서 멈췄는지 알린 뒤 종료한다.
 
 ```
-04_moves.sql 에서 멈췄습니다.
+moves 에서 멈췄습니다.
   UndefinedColumn: column "target" of relation "moves" does not exist
 
 앞 단계까지는 DB에 반영돼 있습니다. 이어서 진행할 수 없으니
@@ -538,7 +537,6 @@ python -m scripts.etl.pin_ko_names all
 ```bash
 python -m scripts.etl.dump_sql --dry-run    # 무엇이 달라지는지만
 python -m scripts.etl.dump_sql              # 전체
-python -m scripts.etl.dump_sql 04_moves     # 한 파일만
 ```
 
 **왜 필요한가.** DB 는 빌드 이후로 계속 움직인다. 애노테이터로 플래그와
@@ -564,11 +562,10 @@ python -m scripts.etl.dump_sql 04_moves     # 한 파일만
 볼 수 있어서다. 생성기들은 입력 목록 순서로 찍으므로 고정값 테이블 몇 개는
 순서만 달라지는데, 내용은 같다.
 
-**칼럼 순서 하나가 어긋나 있다.** `pokemons.pokemon_id` 는 지금 DB 에서 맨
-뒤에 있는데(나중에 `ALTER TABLE ADD COLUMN` 으로 붙였다) `schema.py` 는
-두 번째로 선언한다. 그래서 이 SQL 로 새로 만든 DB 는 데이터·타입·제약조건이
-전부 같아도 칼럼 순서만 다르다. `SELECT *` 의 출력 순서 말고는 영향이 없다.
-맞추려면 `pokemons` 를 다시 만들어야 하는데 그럴 값어치는 없어 보인다.
+**칼럼 순서가 어긋날 수 있다.** 지금 DB 는 `ALTER TABLE` 을 여러 번 거쳤고,
+드롭한 칼럼 자리는 번호가 비어 있다(`information_schema` 의 `ordinal_position`).
+`00_schema.sql` 로 새로 만든 DB 는 그 번호가 이어진다. 데이터·타입·제약조건은
+같고 `SELECT *` 의 출력 순서 말고는 영향이 없다.
 
 ---
 
@@ -625,7 +622,7 @@ WHERE datname = 'pokemon' AND pid <> pg_backend_pid();
 | `h a b c d s` | INT | 종족값 |
 
 메가 관련 칸은 없다. `can_mega` / `is_mega` 는 `mega_evolutions` 에서 그대로
-나온다 — 그 표에 `base_name` 으로 있으면 메가가 가능하고, `mega_name` 으로
+나온다 — 그 표에 `base_id` 로 있으면 메가가 가능하고, `mega_id` 로
 있으면 그 자체가 메가폼이다. 읽는 쪽은 `pokemon_repo` 가 `EXISTS` 로 만들어
 주므로 API 응답 모양은 예전과 같다.
 
@@ -712,7 +709,7 @@ CSV 를 쓰는 효과는 분명하다. 예를 들어 이름 규칙으로는 `sup
 ```
 
 ### `move_stat_changes` — 기술의 능력 변화
-`move_name`, `stat` (둘이 합쳐 PK), `change`
+`move_id`, `stat` (둘이 합쳐 PK), `change`
 
 `stat` 은 `a b c d s` 와 `acc`(명중), `eva`(회피). `change` 는 `-6 ~ +6`.
 능력 변화가 없는 기술은 아예 행이 없다.
@@ -739,7 +736,7 @@ CSV 를 쓰는 효과는 분명하다. 예를 들어 이름 규칙으로는 `sup
 이미 좁히므로 이 표에 들어온 것은 전부 지닐 수 있는 도구다 (§5).
 
 ### `pokemon_moves` — 포켓몬-기술 연결
-`pokemon_name`, `move_name` (둘이 합쳐 PK)
+`pokemon_id`, `move_id` (둘이 합쳐 PK)
 
 ### `status_conditions` — 상태이상 상수 (7행, 고정값)
 `name`(PK), `ko_name`, `attack_mult`, `speed_mult`, `turn_damage`,
@@ -757,12 +754,12 @@ FROM moves m JOIN status_conditions s ON m.ailment = s.name;
 `CONDITIONS` 만 고치면 된다.
 
 ### `mega_evolutions` — 메가진화 관계 (76행)
-`mega_name`(PK), `base_name`, `item_name`
+`mega_id`(PK), `base_id`, `item_id`
 
 `variant`(x/y) 칸은 없다. 스톤 이름이 그것을 담고 있어서다 —
 `charizardite-x` / `charizardite-y`. 76행 중 x·y 가 갈리는 것은 리자몽과
 라이츄 넷뿐이고 나머지는 단일 메가라 구분할 것이 없다. 화면 배지와 정렬은
-`item_name` 의 접미사에서 뽑는다.
+스톤 이름의 접미사에서 뽑는다.
 
 베이스는 이름 규칙으로 자른다(`charizard-mega-x` → `charizard` + `x`).
 메가스톤은 규칙이 없어서 — `blastoisinite`(blastoise), `heracronite`(heracross),
@@ -870,18 +867,21 @@ PokeAPI에 한국어가 아직 없는 항목이 있다.
 2. `get_XX.py` 를 만들고 아래를 노출한다
 
    ```python
-   FILENAME = "08_XXX.sql"
-   TABLE    = "XXX"
-   COLUMNS  = [...]          # INSERT 컬럼 순서
-   DDL      = schema.XXX
+   TABLE   = "XXX"
+   COLUMNS = [...]           # INSERT 컬럼 순서
 
-   def build(conn) -> str:   # SQL 전문을 문자열로 반환
+   def build(conn) -> str:   # INSERT 문만 문자열로 반환
        ...
    ```
 
 3. `build.py` 의 `STEPS` 에 의존 순서에 맞게 끼워 넣는다
-4. `schema.py` 의 `ALL_TABLES` 에 테이블 이름을 추가한다
+4. `schema.py` 의 `CREATE_ORDER` 에 `(표 이름, DDL)` 을 넣는다 — 부모가 먼저다
+5. 넣을 행이 있으면 `schema.py` 의 `CONTENT_ORDER` 에도 표 이름을 넣는다
 
-**노출하는 것은 이 다섯 개가 전부다.** 파일에 직접 쓰지 않고 문자열을 반환하는
-것이 규칙이고, 파일 배치와 DB 실행은 `build.py` 가 한다. `main()` 도 `connect()`
-도 적지 않는다 — `STEPS` 에 넣는 순간 `--only` 로 단독 실행이 된다.
+**노출하는 것은 이 셋이 전부다.** `DDL` 도 `FILENAME` 도 적지 않는다 —
+표를 만드는 SQL 은 `CREATE_ORDER` 한 곳에서만 나오고, 생성기는 넣을 것만
+만든다. `main()` 도 `connect()` 도 적지 않는다 — `STEPS` 에 넣는 순간
+`--only` 로 단독 실행이 된다.
+
+한 응답에서 표 둘이 나오면 `EXTRA = [(표, 칼럼)]` 을 같이 노출한다.
+`dump_sql` 이 그 표의 칼럼 목록을 여기서 찾는다.

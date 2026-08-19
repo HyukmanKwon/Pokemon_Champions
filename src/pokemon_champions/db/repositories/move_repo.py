@@ -54,8 +54,8 @@ def fetch_learnable(conn, ko_name):
         """
         SELECT m.ko_name
         FROM pokemon_moves pm
-        JOIN pokemons p ON p.name = pm.pokemon_name
-        JOIN moves m    ON m.name = pm.move_name
+        JOIN pokemons p ON p.id = pm.pokemon_id
+        JOIN moves m    ON m.id = pm.move_id
         WHERE p.ko_name = %s AND m.ko_name IS NOT NULL
         ORDER BY m.ko_name
         """,
@@ -105,8 +105,10 @@ def fetch_detail(conn, name):
 
     cur.execute(
         """
-        SELECT stat, change FROM move_stat_changes
-        WHERE move_name = %s ORDER BY stat
+        SELECT sc.stat, sc.change
+        FROM move_stat_changes sc
+        JOIN moves m ON m.id = sc.move_id
+        WHERE m.name = %s ORDER BY sc.stat
         """,
         (name,),
     )
@@ -116,8 +118,9 @@ def fetch_detail(conn, name):
         """
         SELECT p.id, p.name, p.ko_name, p.type1, p.type2
         FROM pokemon_moves pm
-        JOIN pokemons p ON p.name = pm.pokemon_name
-        WHERE pm.move_name = %s
+        JOIN pokemons p ON p.id = pm.pokemon_id
+        JOIN moves m    ON m.id = pm.move_id
+        WHERE m.name = %s
         ORDER BY p.id, p.name
         """,
         (name,),

@@ -83,14 +83,16 @@ def korean(data, override_key, flavor_key="flavor_text"):
     return ko
 
 
-def render(ddl, table, columns, rows):
-    """DDL + INSERT 를 합쳐 SQL 파일 전문을 만든다.
+def render(table, columns, rows):
+    """INSERT 문 하나를 만든다.
 
     rows 는 cur.mogrify 로 만든 "    (...)" 문자열들의 리스트.
+
+    DDL 은 여기서 만들지 않는다. 표를 만드는 SQL 은 schema.CREATE_ORDER
+    한 곳에서만 나오고 00_schema.sql 로 간다. 생성기는 넣을 것만 만든다.
     """
     body = f"INSERT INTO {table}\n    ({', '.join(columns)})\nVALUES\n"
-    body += ",\n".join(rows) + ";\n"
-    return ddl + "\n" + body
+    return body + ",\n".join(rows) + ";\n"
 
 
 def mogrify_rows(cur, values_list, width):
@@ -99,15 +101,15 @@ def mogrify_rows(cur, values_list, width):
     return [cur.mogrify(placeholder, v).decode("utf-8") for v in values_list]
 
 
-def sql_of(cur, ddl, table, columns, values):
-    """값 튜플 목록을 DDL + INSERT 한 덩어리로. 생성기 build() 의 마지막 줄.
+def sql_of(cur, table, columns, values):
+    """값 튜플 목록을 INSERT 문으로. 생성기 build() 의 마지막 줄.
 
     열두 생성기가 전부 이 한 줄로 끝난다. render 와 mogrify_rows 를 따로
     부르면 len(columns) 를 두 번 적게 되고, 그 둘이 어긋나면 mogrify 가
     "not enough arguments" 로 터진다 — 칼럼을 하나 늘렸을 때 실제로 겪는
     실수다. 여기서 한 번만 적는다.
     """
-    return render(ddl, table, columns, mogrify_rows(cur, values, len(columns)))
+    return render(table, columns, mogrify_rows(cur, values, len(columns)))
 
 
 def to_values(rows, columns):
@@ -169,7 +171,7 @@ def numbered(rows):
     return [(*row, i) for i, row in enumerate(rows)]
 
 
-def literal_build(conn, ddl, table, columns, values, echo=None):
+def literal_build(conn, table, columns, values, echo=None):
     """코드에 적힌 행 목록을 그대로 SQL 로. API 를 안 부르는 생성기의 build().
 
     타입 상성·성격·날씨·필드·랭크·상태이상 여섯 개가 하는 일이 같다 — 파일에
@@ -183,4 +185,4 @@ def literal_build(conn, ddl, table, columns, values, echo=None):
     if echo is not None:
         for v in values:
             print(echo(v))
-    return sql_of(conn.cursor(), ddl, table, columns, values)
+    return sql_of(conn.cursor(), table, columns, values)

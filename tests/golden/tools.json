@@ -1252,7 +1252,7 @@
       }
     ],
     "shown": 3,
-    "total": 317
+    "total": 318
   },
   "search_pokemon({\"limit\": 5, \"min_total\": 500, \"order_by\": \"spe\", \"type\": \"ice\"})": {
     "results": [
@@ -1615,12 +1615,12 @@
       {
         "ko_name": "까칠한피부",
         "name": "Rough Skin",
-        "percent": 98.9
+        "percent": 99.3
       },
       {
         "ko_name": "모래숨기",
         "name": "Sand Veil",
-        "percent": 1.1
+        "percent": 0.7
       }
     ],
     "counted_as": "Garchomp",
@@ -1629,42 +1629,42 @@
       {
         "ko_name": "기합의띠",
         "name": "Focus Sash",
-        "percent": 40.5
-      },
-      {
-        "ko_name": "자뭉열매",
-        "name": "Sitrus Berry",
-        "percent": 20.5
+        "percent": 40.7
       },
       {
         "ko_name": "구애스카프",
         "name": "Choice Scarf",
-        "percent": 18
+        "percent": 19.7
+      },
+      {
+        "ko_name": "자뭉열매",
+        "name": "Sitrus Berry",
+        "percent": 14
       },
       {
         "ko_name": "리샘열매",
         "name": "Lum Berry",
-        "percent": 9.2
+        "percent": 8.2
+      },
+      {
+        "ko_name": "유루열매",
+        "name": "Chesto Berry",
+        "percent": 5
       },
       {
         "ko_name": "생명의구슬",
         "name": "Life Orb",
-        "percent": 3.1
+        "percent": 4.3
+      },
+      {
+        "ko_name": "달인의띠",
+        "name": "Expert Belt",
+        "percent": 2.9
       },
       {
         "ko_name": "한카리아스나이트",
         "name": "Garchompite",
         "percent": 1.7
-      },
-      {
-        "ko_name": "먹다남은음식",
-        "name": "Leftovers",
-        "percent": 1.1
-      },
-      {
-        "ko_name": "플카열매",
-        "name": "Yache Berry",
-        "percent": 0.8
       }
     ],
     "ko_name": "한카리아스",
@@ -1682,37 +1682,37 @@
       {
         "ko_name": "스텔스록",
         "name": "Stealth Rock",
-        "percent": 47.1
+        "percent": 49.9
       },
       {
         "ko_name": "스케일샷",
         "name": "Scale Shot",
-        "percent": 41.5
-      },
-      {
-        "ko_name": "역린",
-        "name": "Outrage",
-        "percent": 35
+        "percent": 47.2
       },
       {
         "ko_name": "칼춤",
         "name": "Swords Dance",
-        "percent": 31.9
+        "percent": 33.4
       },
       {
-        "ko_name": "암석봉인",
-        "name": "Rock Tomb",
-        "percent": 29.1
+        "ko_name": "역린",
+        "name": "Outrage",
+        "percent": 30.2
       },
       {
         "ko_name": "드래곤테일",
         "name": "Dragon Tail",
-        "percent": 26
+        "percent": 29.2
+      },
+      {
+        "ko_name": "암석봉인",
+        "name": "Rock Tomb",
+        "percent": 28.3
       },
       {
         "ko_name": "독찌르기",
         "name": "Poison Jab",
-        "percent": 16.1
+        "percent": 15.8
       }
     ],
     "natures": [
@@ -1721,7 +1721,7 @@
         "down_ko_name": "특수공격",
         "ko_name": "명랑",
         "name": "Jolly",
-        "percent": 54.1,
+        "percent": 52,
         "up": "spe",
         "up_ko_name": "스피드"
       },
@@ -1730,7 +1730,7 @@
         "down_ko_name": "특수공격",
         "ko_name": "고집",
         "name": "Adamant",
-        "percent": 26.6,
+        "percent": 29.9,
         "up": "atk",
         "up_ko_name": "공격"
       },
@@ -1739,7 +1739,7 @@
         "down_ko_name": "특수공격",
         "ko_name": "장난꾸러기",
         "name": "Impish",
-        "percent": 15.1,
+        "percent": 14.8,
         "up": "def",
         "up_ko_name": "방어"
       },
@@ -1748,7 +1748,7 @@
         "down_ko_name": "특수공격",
         "ko_name": "신중",
         "name": "Careful",
-        "percent": 2.2,
+        "percent": 1.6,
         "up": "spd",
         "up_ko_name": "특수방어"
       },
@@ -1757,7 +1757,7 @@
         "down_ko_name": "특수방어",
         "ko_name": "천진난만",
         "name": "Naive",
-        "percent": 0.5,
+        "percent": 0.4,
         "up": "spe",
         "up_ko_name": "스피드"
       },
@@ -1766,18 +1766,9 @@
         "down_ko_name": "특수방어",
         "ko_name": "개구쟁이",
         "name": "Naughty",
-        "percent": 0.3,
+        "percent": 0.2,
         "up": "atk",
         "up_ko_name": "공격"
-      },
-      {
-        "down": "def",
-        "down_ko_name": "방어",
-        "ko_name": "성급",
-        "name": "Hasty",
-        "percent": 0.2,
-        "up": "spe",
-        "up_ko_name": "스피드"
       },
       {
         "down": "atk",
@@ -1787,6 +1778,15 @@
         "percent": 0.2,
         "up": "def",
         "up_ko_name": "방어"
+      },
+      {
+        "down": "def",
+        "down_ko_name": "방어",
+        "ko_name": "성급",
+        "name": "Hasty",
+        "percent": 0.2,
+        "up": "spe",
+        "up_ko_name": "스피드"
       }
     ],
     "pokemon": "garchomp",
@@ -1794,7 +1794,7 @@
     "source": "championsbattledata.com (게임 내 배틀 데이터를 옮긴 팬 사이트)",
     "spreads": [
       {
-        "percent": 52.8,
+        "percent": 49.2,
         "spread": {
           "atk": 32,
           "def": 0,
@@ -1805,7 +1805,7 @@
         }
       },
       {
-        "percent": 8.8,
+        "percent": 9.8,
         "spread": {
           "atk": 32,
           "def": 2,
@@ -1816,18 +1816,7 @@
         }
       },
       {
-        "percent": 3.3,
-        "spread": {
-          "atk": 0,
-          "def": 32,
-          "hp": 32,
-          "spa": 0,
-          "spd": 0,
-          "spe": 2
-        }
-      },
-      {
-        "percent": 3.2,
+        "percent": 5.3,
         "spread": {
           "atk": 32,
           "def": 1,
@@ -1838,18 +1827,40 @@
         }
       },
       {
-        "percent": 2.9,
+        "percent": 3.5,
         "spread": {
-          "atk": 32,
-          "def": 0,
+          "atk": 0,
+          "def": 16,
+          "hp": 32,
+          "spa": 0,
+          "spd": 17,
+          "spe": 1
+        }
+      },
+      {
+        "percent": 2.4,
+        "spread": {
+          "atk": 31,
+          "def": 3,
           "hp": 0,
           "spa": 0,
-          "spd": 2,
+          "spd": 0,
           "spe": 32
         }
       },
       {
-        "percent": 1.4,
+        "percent": 1.5,
+        "spread": {
+          "atk": 0,
+          "def": 32,
+          "hp": 32,
+          "spa": 0,
+          "spd": 2,
+          "spe": 0
+        }
+      },
+      {
+        "percent": 1.2,
         "spread": {
           "atk": 32,
           "def": 0,
@@ -1860,7 +1871,7 @@
         }
       },
       {
-        "percent": 1.2,
+        "percent": 0.8,
         "spread": {
           "atk": 0,
           "def": 25,
@@ -1869,25 +1880,9 @@
           "spd": 0,
           "spe": 9
         }
-      },
-      {
-        "percent": 0.9,
-        "spread": {
-          "atk": 0,
-          "def": 19,
-          "hp": 32,
-          "spa": 0,
-          "spd": 15,
-          "spe": 0
-        }
       }
     ],
     "teammates": [
-      {
-        "ko_name": "따라큐",
-        "name": "Mimikyu",
-        "percent": null
-      },
       {
         "ko_name": "누리레느",
         "name": "Primarina",
@@ -1899,18 +1894,8 @@
         "percent": null
       },
       {
-        "ko_name": "메타그로스",
-        "name": "Metagross",
-        "percent": null
-      },
-      {
-        "ko_name": "브리두라스",
-        "name": "Archaludon",
-        "percent": null
-      },
-      {
-        "ko_name": "갸라도스",
-        "name": "Gyarados",
+        "ko_name": "따라큐",
+        "name": "Mimikyu",
         "percent": null
       },
       {
@@ -1919,8 +1904,23 @@
         "percent": null
       },
       {
-        "ko_name": "리자몽",
-        "name": "Charizard",
+        "ko_name": "브리두라스",
+        "name": "Archaludon",
+        "percent": null
+      },
+      {
+        "ko_name": "아머까오",
+        "name": "Corviknight",
+        "percent": null
+      },
+      {
+        "ko_name": "갸라도스",
+        "name": "Gyarados",
+        "percent": null
+      },
+      {
+        "ko_name": "메타그로스",
+        "name": "Metagross",
         "percent": null
       }
     ]

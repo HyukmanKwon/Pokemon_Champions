@@ -57,7 +57,7 @@ def fetch_selectable(conn):
     cur.execute(
         "SELECT ko_name FROM pokemons p "
         "WHERE NOT EXISTS (SELECT 1 FROM mega_evolutions m"
-        "                  WHERE m.mega_name = p.name) "
+        "                  WHERE m.mega_id = p.id) "
         "  AND ko_name IS NOT NULL ORDER BY ko_name"
     )
     return [r[0] for r in cur.fetchall()]
@@ -73,7 +73,7 @@ def fetch_meta(conn, ko_name):
     cur.execute(
         "SELECT p.id, p.type1, p.type2, "
         "       EXISTS (SELECT 1 FROM mega_evolutions m"
-        "               WHERE m.mega_name = p.name) AS is_mega "
+        "               WHERE m.mega_id = p.id) AS is_mega "
         "FROM pokemons p WHERE p.ko_name = %s",
         (normalize(ko_name),),
     )
@@ -102,8 +102,8 @@ def fetch_abilities(conn, ko_name):
         """
         SELECT COALESCE(ab.ko_name, ab.name)
         FROM pokemons p
-        JOIN pokemon_abilities pa ON pa.pokemon_name = p.name
-        JOIN abilities ab         ON ab.name = pa.ability_name
+        JOIN pokemon_abilities pa ON pa.pokemon_id = p.id
+        JOIN abilities ab         ON ab.id = pa.ability_id
         WHERE p.ko_name = %s
         ORDER BY pa.slot
         """,
@@ -130,12 +130,12 @@ def fetch_list(conn):
     cur = conn.cursor()
     cur.execute(
         """
-        SELECT p.id, p.pokemon_id, p.name, p.ko_name, p.type1, p.type2,
+        SELECT p.id, p.dex_no AS pokemon_id, p.name, p.ko_name, p.type1, p.type2,
                p.height, p.weight, p.h, p.a, p.b, p.c, p.d, p.s,
-               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.base_name = p.name) AS can_mega,
-               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.mega_name = p.name) AS is_mega
+               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.base_id = p.id) AS can_mega,
+               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.mega_id = p.id) AS is_mega
         FROM pokemons p
-        ORDER BY p.pokemon_id, p.id, p.name
+        ORDER BY p.dex_no, p.id, p.name
         """
     )
     return rows(cur)
@@ -150,10 +150,10 @@ def fetch_detail(conn, name):
     cur = conn.cursor()
     cur.execute(
         """
-        SELECT p.id, p.pokemon_id, p.name, p.ko_name, p.type1, p.type2,
+        SELECT p.id, p.dex_no AS pokemon_id, p.name, p.ko_name, p.type1, p.type2,
                p.height, p.weight, p.h, p.a, p.b, p.c, p.d, p.s,
-               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.base_name = p.name) AS can_mega,
-               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.mega_name = p.name) AS is_mega
+               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.base_id = p.id) AS can_mega,
+               EXISTS (SELECT 1 FROM mega_evolutions m WHERE m.mega_id = p.id) AS is_mega
         FROM pokemons p WHERE p.name = %s
         """,
         (name,),
@@ -168,8 +168,8 @@ def fetch_detail(conn, name):
         SELECT pa.slot AS pos, ab.name, ab.ko_name, ab.description,
                pa.slot = 3 AS is_hidden
         FROM pokemons p
-        JOIN pokemon_abilities pa ON pa.pokemon_name = p.name
-        JOIN abilities ab         ON ab.name = pa.ability_name
+        JOIN pokemon_abilities pa ON pa.pokemon_id = p.id
+        JOIN abilities ab         ON ab.id = pa.ability_id
         WHERE p.name = %s
         ORDER BY pa.slot
         """,
@@ -182,8 +182,9 @@ def fetch_detail(conn, name):
         SELECT m.id, m.name, m.ko_name, m.type, m.category,
                m.power, m.accuracy, m.pp, m.priority
         FROM pokemon_moves pm
-        JOIN moves m ON m.name = pm.move_name
-        WHERE pm.pokemon_name = %s
+        JOIN moves m    ON m.id = pm.move_id
+        JOIN pokemons p ON p.id = pm.pokemon_id
+        WHERE p.name = %s
         ORDER BY m.ko_name NULLS LAST, m.name
         """,
         (name,),
@@ -198,9 +199,10 @@ def fetch_detail(conn, name):
                CASE WHEN i.name LIKE '%%-x' THEN 'x'
                     WHEN i.name LIKE '%%-y' THEN 'y' END AS variant, i.name AS item_name, i.ko_name AS item_ko_name
         FROM mega_evolutions me
-        JOIN pokemons mp  ON mp.name = me.mega_name
-        LEFT JOIN items i ON i.name  = me.item_name
-        WHERE me.base_name = %s
+        JOIN pokemons mp  ON mp.id = me.mega_id
+        LEFT JOIN items i ON i.id  = me.item_id
+        JOIN pokemons bp  ON bp.id = me.base_id
+        WHERE bp.name = %s
         ORDER BY i.name NULLS FIRST, mp.name
         """,
         (name,),
@@ -213,9 +215,10 @@ def fetch_detail(conn, name):
                CASE WHEN i.name LIKE '%%-x' THEN 'x'
                     WHEN i.name LIKE '%%-y' THEN 'y' END AS variant, i.name AS item_name, i.ko_name AS item_ko_name
         FROM mega_evolutions me
-        JOIN pokemons bp  ON bp.name = me.base_name
-        LEFT JOIN items i ON i.name  = me.item_name
-        WHERE me.mega_name = %s
+        JOIN pokemons bp  ON bp.id = me.base_id
+        LEFT JOIN items i ON i.id  = me.item_id
+        JOIN pokemons mp  ON mp.id = me.mega_id
+        WHERE mp.name = %s
         """,
         (name,),
     )

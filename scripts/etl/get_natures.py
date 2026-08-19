@@ -1,10 +1,8 @@
 from . import schema
 from .parse_utils import literal_build
 
-FILENAME = "02_natures.sql"
 TABLE = "pokemon_natures"
 COLUMNS = ["en_name", "ko_name", "up", "down"]
-DDL = schema.NATURES
 
 # (영문명, 한글명, 오르는 능력치, 내리는 능력치)
 NATURES = [
@@ -39,6 +37,6 @@ NATURES = [
 
 def build(conn):
     """02_natures.sql 전문을 만들어 돌려준다. (25행, API 호출 없음)"""
-    return literal_build(conn, DDL, TABLE, COLUMNS, NATURES,
+    return literal_build(conn, TABLE, COLUMNS, NATURES,
                          echo=lambda n: f"{n[0]:<10} {n[1]}")
 

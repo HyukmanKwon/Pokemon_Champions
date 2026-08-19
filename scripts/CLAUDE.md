@@ -17,15 +17,23 @@ out of the distributed package.
 | | When | What |
 |---|---|---|
 | `load_sql.py` | every install | `data/sql/` -> DB. No API calls, seconds |
-| `build.py` | new regulation | PokeAPI -> `data/sql/` -> DB. ~1,900 calls, minutes |
+| `build.py` | new regulation | PokeAPI -> DB. ~1,900 calls, minutes |
 | `dump_sql.py` | after editing the DB | DB -> `data/sql/`, then commit |
 
-`build.py` needs an empty DB and always re-fetches — it never reuses existing
-files. Do not run it to "fix" a database.
+`build.py` needs an empty DB and always re-fetches. **It does not write
+`data/sql/`** — only `dump_sql.py` does. Do not run `build.py` to "fix" a
+database.
 
-`data/sql/` is committed and is the real distribution artifact. After any
-change that alters DB contents, run `dump_sql.py` and commit the result, or
-installs will not match your database.
+`data/sql/` is two files and is the seed for rebuilding (new machine, disaster
+recovery, CI):
+
+| | From | What |
+|---|---|---|
+| `00_schema.sql` | `schema.py` | every `CREATE TYPE` / `CREATE TABLE`, parents first |
+| `01_content.sql` | the live DB | every `INSERT`, in FK-safe order |
+
+After any change that alters DB contents, run `dump_sql.py` and commit the
+result, or a rebuild will not match your database.
 
 `sync_usage.py` is the exception: usage snapshots accumulate daily and are
 **not** part of `data/sql/`. `daily_usage.sh` runs it under launchd.
@@ -36,11 +44,20 @@ running it daily costs nothing.
 ## schema.py is the single source of DDL
 
 Never write `CREATE TABLE` anywhere else, and never reverse-engineer DDL from
-the live DB — that would drop every comment. Adding a table means adding it to
-`ALL_TABLES` too.
+the live DB — that would drop every comment.
+
+Two lists carry the order, and adding a table means adding it to both:
+
+- `CREATE_ORDER` — `(table, ddl)` pairs. Parents first; this becomes
+  `00_schema.sql`, and `ALL_TABLES` is derived from it.
+- `CONTENT_ORDER` — table names in FK-safe insert order. Tables that ship
+  empty (the `usage_*` family) are left out.
 
 ## Generators
 
-Each `get_*.py` exposes `FILENAME`, `TABLE`, `COLUMNS`, `DDL`, `build(conn)`.
-A file holding a second table declares `EXTRA = [(DDL, table, columns)]` so
-`dump_sql` finds it. Literal tables build through `parse_utils.literal_build`.
+Each `get_*.py` exposes `TABLE`, `COLUMNS`, and `build(conn)`. A generator
+that fills a second table from the same API response declares
+`EXTRA = [(table, columns)]` so `dump_sql` knows its columns.
+
+`build(conn)` returns **`INSERT` statements only** — no DDL. Literal tables
+build through `parse_utils.literal_build`.

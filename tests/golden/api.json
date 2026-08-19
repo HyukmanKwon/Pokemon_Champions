@@ -2064,6 +2064,25 @@
           ]
         },
         {
+          "icon": "/sprite/pokemon/867/icon",
+          "id": 867,
+          "ko_name": "데스판",
+          "name": "runerigus",
+          "sprite": "/sprite/pokemon/867",
+          "type1": "ground",
+          "type2": "ghost",
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
+        },
+        {
           "icon": "/sprite/pokemon/899/icon",
           "id": 899,
           "ko_name": "신비록",
@@ -7689,11 +7708,20 @@
         },
         {
           "delta": 59,
-          "icon": null,
-          "ko_name": "Runerigus",
-          "name": null,
+          "icon": "/sprite/pokemon/867/icon",
+          "ko_name": "데스판",
+          "name": "runerigus",
           "position": 130,
-          "types": []
+          "types": [
+            {
+              "icon": "/sprite/type/ground",
+              "name": "ground"
+            },
+            {
+              "icon": "/sprite/type/ghost",
+              "name": "ghost"
+            }
+          ]
         },
         {
           "delta": 0,

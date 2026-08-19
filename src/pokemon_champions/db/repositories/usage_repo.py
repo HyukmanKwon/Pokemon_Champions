@@ -36,10 +36,11 @@ def link_battle_name(conn, battle_name, pokemon_name):
     """
     conn.cursor().execute(
         """
-        INSERT INTO battle_names (battle_name, pokemon_name) VALUES (%s, %s)
+        INSERT INTO battle_names (battle_name, pokemon_id)
+        VALUES (%s, (SELECT id FROM pokemons WHERE name = %s))
         ON CONFLICT (battle_name) DO UPDATE
-            SET pokemon_name = COALESCE(EXCLUDED.pokemon_name,
-                                        battle_names.pokemon_name)
+            SET pokemon_id = COALESCE(EXCLUDED.pokemon_id,
+                                      battle_names.pokemon_id)
         """,
         (battle_name, pokemon_name),
     )
@@ -135,7 +136,8 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
         WITH latest AS (
             SELECT s.id FROM usage_snapshots s
             JOIN battle_names b ON b.battle_name = s.battle_name
-            WHERE b.pokemon_name = %s AND s.format = %s
+            JOIN pokemons pk ON pk.id = b.pokemon_id
+            WHERE pk.name = %s AND s.format = %s
             ORDER BY snapshot_date DESC, id DESC
             LIMIT 1
         )
@@ -189,12 +191,12 @@ def fetch_ranking(conn, fmt="Singles", limit=20):
     cur = conn.cursor()
     cur.execute(
         """
-        SELECT r.position, r.battle_name, b.pokemon_name, p.ko_name,
+        SELECT r.position, r.battle_name, p.name AS pokemon_name, p.ko_name,
                p.id AS pokemon_id, p.type1, p.type2,
                r.taken_on, r.season
         FROM usage_rankings r
         JOIN battle_names b ON b.battle_name = r.battle_name
-        LEFT JOIN pokemons p ON p.name = b.pokemon_name
+        LEFT JOIN pokemons p ON p.id = b.pokemon_id
         WHERE r.format = %s
           AND r.taken_on = (SELECT max(taken_on) FROM usage_rankings
                             WHERE format = %s)
@@ -221,7 +223,8 @@ def fetch_rank_of(conn, pokemon_name, fmt="Singles"):
                 WHERE format = r.format AND taken_on = r.taken_on) AS total
         FROM usage_rankings r
         JOIN battle_names b ON b.battle_name = r.battle_name
-        WHERE b.pokemon_name = %s AND r.format = %s
+        JOIN pokemons pk ON pk.id = b.pokemon_id
+        WHERE pk.name = %s AND r.format = %s
         ORDER BY r.taken_on DESC
         LIMIT 1
         """,
@@ -249,7 +252,8 @@ def fetch_detail(conn, pokemon_name, fmt="Singles", top=10):
             SELECT s.id, s.snapshot_date, s.season, s.usage_rank
             FROM usage_snapshots s
             JOIN battle_names b ON b.battle_name = s.battle_name
-            WHERE b.pokemon_name = %s AND s.format = %s
+            JOIN pokemons pk ON pk.id = b.pokemon_id
+            WHERE pk.name = %s AND s.format = %s
             ORDER BY s.snapshot_date DESC, s.id DESC
             LIMIT 1
         )
@@ -306,11 +310,12 @@ def fetch_rank_delta(conn, fmt="Singles", days=7):
             WHERE format = %(fmt)s AND usage_rank IS NOT NULL
               AND snapshot_date <= (SELECT d FROM latest) - %(days)s::int
         )
-        SELECT now.battle_name, b.pokemon_name,
+        SELECT now.battle_name, p.name AS pokemon_name,
                now.usage_rank, was.usage_rank - now.usage_rank AS delta,
                now.snapshot_date, was.snapshot_date AS compared_to
         FROM usage_snapshots now
         JOIN battle_names b ON b.battle_name = now.battle_name
+        LEFT JOIN pokemons p ON p.id = b.pokemon_id
         LEFT JOIN usage_snapshots was
                ON was.battle_name = now.battle_name
               AND was.format = now.format

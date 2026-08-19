@@ -40,6 +40,7 @@ import sys
 from pokemon_champions.db import connect
 
 from . import paths
+from . import schema
 from .build import STEPS
 from .parse_utils import sql_of
 
@@ -60,8 +61,12 @@ def primary_key(cur, table):
     return [r[0] for r in cur.fetchall()]
 
 
-def table_sql(cur, ddl, table, columns):
-    """DDL + 지금 DB 의 행으로 INSERT 문을 만든다."""
+SCHEMA_FILE = "00_schema.sql"
+CONTENT_FILE = "01_content.sql"
+
+
+def rows_sql(cur, table, columns):
+    """지금 DB 의 행으로 INSERT 문을 만든다. 행이 없으면 빈 문자열."""
     missing = set(columns) - set(db_columns(cur, table))
     if missing:
         raise SystemExit(
@@ -77,8 +82,8 @@ def table_sql(cur, ddl, table, columns):
 
     # 행이 없으면 INSERT 를 붙이지 않는다. VALUES; 는 문법 오류다.
     if not values:
-        return ddl, 0
-    return sql_of(cur, ddl, table, columns, values), len(values)
+        return "", 0
+    return sql_of(cur, table, columns, values), len(values)
 
 
 def db_columns(cur, table):
@@ -90,73 +95,65 @@ def db_columns(cur, table):
     return [r[0] for r in cur.fetchall()]
 
 
-def build_file(cur, step):
-    """단계 하나의 SQL 전문과 (테이블, 행 수) 목록을 돌려준다.
+def table_columns():
+    """{테이블: COLUMNS}. 생성기들이 선언한 것을 한 곳에 모은다.
 
-    한 파일에 표가 여럿일 수 있다. 생성기가 EXTRA 로 알려 주고, 순서는
-    적힌 그대로 뒤에 붙는다 — 앞의 표를 참조하는 표가 있으면 그 순서가
-    곧 실행 순서다.
-
-        01_types.sql   pokemon_types + pokemon_type_names
-        04_moves.sql   moves + move_stat_changes
+    DB 에서 칼럼을 읽어오지 않는 이유는, 그러면 schema.py 와 DB 가 어긋나도
+    조용히 지나가기 때문이다. 생성기가 적어 둔 목록과 대조해야 그 어긋남이
+    table_sql 에서 그 자리에 멈춘다.
     """
-    sql, n = table_sql(cur, step.DDL, step.TABLE, step.COLUMNS)
-    counts = [(step.TABLE, n)]
-
-    for ddl, table, columns in getattr(step, "EXTRA", []):
-        extra, m = table_sql(cur, ddl, table, columns)
-        sql += "\n" + extra
-        counts.append((table, m))
-
-    # 행이 아니라 마지막에 한 번 실행되는 SQL. 파일 경계를 넘는 외래키가
-    # 여기로 온다 — pokemon_abilities(03) -> abilities(05) 가 그것이다.
-    post = getattr(step, "POST_SQL", "")
-    if post:
-        sql += "\n" + post
-
-    return sql, counts
+    out = {}
+    for step in STEPS:
+        out[step.TABLE] = step.COLUMNS
+        for table, columns in getattr(step, "EXTRA", []):
+            out[table] = columns
+    return out
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("only", nargs="?",
-                        help="파일 이름 일부. 예: 04_moves")
     parser.add_argument("--dry-run", action="store_true",
                         help="파일을 쓰지 않고 달라지는 것만 보고한다")
     args = parser.parse_args()
-
-    steps = [s for s in STEPS if not args.only or args.only in s.FILENAME]
-    if not steps:
-        raise SystemExit(f"{args.only} 에 맞는 단계가 없다.")
 
     paths.SQL_DIR.mkdir(exist_ok=True)
     conn = connect()
     cur = conn.cursor()
 
+    columns_of = table_columns()
+    body, counts = [], []
+    for table in schema.CONTENT_ORDER:
+        columns = columns_of.get(table)
+        if columns is None:
+            raise SystemExit(f"{table}: 어느 생성기도 COLUMNS 를 선언하지 않았다.")
+        sql, n = rows_sql(cur, table, columns)
+        if sql:
+            body.append(sql)
+        counts.append((table, n))
+
+    files = {
+        SCHEMA_FILE: schema.SCHEMA_SQL,
+        CONTENT_FILE: "\n".join(body),
+    }
+
     changed = 0
-    for step in steps:
-        sql, counts = build_file(cur, step)
-        path = paths.SQL_DIR / step.FILENAME
-
+    for name, text in files.items():
+        path = paths.SQL_DIR / name
         old = path.read_text(encoding="utf-8") if path.exists() else None
-        if old == sql:
-            mark = "그대로"
-        elif old is None:
-            mark = "새 파일"
+        mark = "그대로" if old == text else ("새 파일" if old is None else "바뀜")
+        if mark != "그대로":
             changed += 1
-        else:
-            mark = "바뀜"
-            changed += 1
-
         if not args.dry_run:
-            path.write_text(sql, encoding="utf-8")
+            path.write_text(text, encoding="utf-8")
+        print(f"  {mark:6} {name}")
 
-        body = " + ".join(f"{t} {n:,}행" for t, n in counts)
-        print(f"  {mark:6} {step.FILENAME:<24} {body}")
+    print()
+    for table, n in counts:
+        print(f"    {table:<22}{n:>8,}행")
 
     conn.close()
     where = "확인만 했다" if args.dry_run else f"기록: {paths.SQL_DIR}"
-    print(f"\n{len(steps)}개 중 {changed}개가 파일과 다르다. {where}")
+    print(f"\n2개 중 {changed}개가 파일과 다르다. {where}")
     return 0
 
 

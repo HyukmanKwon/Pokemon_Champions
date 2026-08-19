@@ -16,10 +16,8 @@ from .parse_utils import (collect, endpoint, korean, pick_english_effect,
 POKEAPI_BASE = "https://pokeapi.co/api/v2/ability"
 KO_OVERRIDE_KEY = "ability_ko_names"
 
-FILENAME = "05_abilities.sql"
 TABLE = "abilities"
 COLUMNS = ["id", "name", "ko_name", "description", "effect"]
-DDL = schema.ABILITIES
 
 
 fetch_ability = endpoint(POKEAPI_BASE)
@@ -54,10 +52,6 @@ def build(conn):
     print(f"DB 특성 수: {len(abilities)}")
 
     rows = collect(abilities, fetch_ability, parse_ability)
-    return sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
+    return sql_of(cur, TABLE, COLUMNS, to_values(rows, COLUMNS))
 
-
-# 이 파일 끝에 붙는 SQL. pokemon_abilities(03) 가 abilities(05) 를 가리키게
-# 만드는 외래키인데, 두 표가 모두 서 있는 첫 시점이 여기라 여기서 건다.
-POST_SQL = schema.POKEMON_ABILITIES_FK
 

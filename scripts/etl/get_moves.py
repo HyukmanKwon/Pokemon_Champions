@@ -6,7 +6,6 @@ from .parse_utils import (collect, endpoint, korean, pick_english_effect,
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/move"
 
-FILENAME = "04_moves.sql"
 TABLE = "moves"
 COLUMNS = ["id", "name", "ko_name", "type", "power", "accuracy",
            "pp", "category", "priority",
@@ -26,16 +25,14 @@ OVERRIDE_KEY = "move_flags"
 #   독실     -> 독독실   (toxic-thread)
 # 목록 대조는 check_moves.py 가 한다. (README §6)
 KO_OVERRIDE_KEY = "move_ko_names"
-DDL = schema.MOVES
 
 # 한 파일 안에 두 번째 테이블도 같이 만든다. 같은 응답에서 나오므로
 # API를 다시 부르지 않으려고 04 단계에 합쳤다.
 STAT_TABLE = "move_stat_changes"
-STAT_COLUMNS = ["move_name", "stat", "change"]
-STAT_DDL = schema.MOVE_STAT_CHANGES
+STAT_COLUMNS = ["move_id", "stat", "change"]
 
 # dump_sql 이 읽는 목록 — 이 파일에 표가 하나 더 있다는 뜻이다.
-EXTRA = [(STAT_DDL, STAT_TABLE, STAT_COLUMNS)]
+EXTRA = [(STAT_TABLE, STAT_COLUMNS)]
 
 # PokeAPI 능력치 이름 -> 이 프로젝트 표기
 STAT_MAP = {
@@ -215,7 +212,7 @@ def parse_move(data):
 
 
 def parse_stat_changes(data):
-    """능력 변화 목록을 (기술명, 능력, 변화량) 튜플들로 바꾼다.
+    """능력 변화 목록을 (기술 id, 능력, 변화량) 튜플들로 바꾼다.
 
     변화가 없는 기술은 빈 리스트다. 누구에게 걸리는지는 여기서 알 수 없고
     moves.meta_category 를 봐야 한다. (schema.MOVE_STAT_CHANGES 주석 참고)
@@ -225,7 +222,7 @@ def parse_stat_changes(data):
         stat = STAT_MAP.get(sc["stat"]["name"])
         if stat is None:                # hp 등 배틀에서 안 쓰는 항목
             continue
-        rows.append((data["name"], stat, sc["change"]))
+        rows.append((data["id"], stat, sc["change"]))
     return rows
 
 
@@ -248,11 +245,11 @@ def build(conn):
     print("  바람·베기·압박은 CSV 에 없어 전부 추측입니다."
           " annotator/moves.py 로 확인하세요.")
 
-    sql = sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
+    sql = sql_of(cur, TABLE, COLUMNS, to_values(rows, COLUMNS))
 
     # 변화가 하나도 없으면 INSERT 없이 테이블만 만든다 (VALUES; 는 문법 오류)
     if stat_values:
-        sql += "\n" + sql_of(cur, STAT_DDL, STAT_TABLE,
+        sql += "\n" + sql_of(cur, STAT_TABLE,
                              STAT_COLUMNS, stat_values)
     else:
         sql += "\n" + STAT_DDL

@@ -42,8 +42,8 @@ def fetch_list(conn):
         SELECT ab.id, ab.name, ab.ko_name, ab.description,
                COUNT(p.name) AS pokemon_count
         FROM abilities ab
-        LEFT JOIN pokemon_abilities pa ON pa.ability_name = ab.name
-        LEFT JOIN pokemons p           ON p.name = pa.pokemon_name
+        LEFT JOIN pokemon_abilities pa ON pa.ability_id = ab.id
+        LEFT JOIN pokemons p           ON p.id = pa.pokemon_id
         GROUP BY ab.id, ab.name, ab.ko_name, ab.description
         ORDER BY ab.ko_name NULLS LAST, ab.name
         """
@@ -72,8 +72,8 @@ def fetch_detail(conn, name):
         SELECT p.id, p.name, p.ko_name, p.type1, p.type2,
                pa.slot AS pos, pa.slot = 3 AS is_hidden
         FROM pokemon_abilities pa
-        JOIN pokemons p ON p.name = pa.pokemon_name
-        WHERE pa.ability_name = %s
+        JOIN pokemons p ON p.id = pa.pokemon_id
+        WHERE pa.ability_id = (SELECT id FROM abilities WHERE name = %s)
         ORDER BY p.id, p.name
         """,
         (name,),

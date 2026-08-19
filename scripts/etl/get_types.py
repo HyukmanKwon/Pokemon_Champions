@@ -1,10 +1,8 @@
 from . import schema
 from .parse_utils import literal_build, sql_of
 
-FILENAME = "01_types.sql"
 TABLE = "pokemon_types"
 COLUMNS = ["attack_type", "defense_type", "multiplier"]
-DDL = schema.TYPES
 
 TYPES = schema.TYPE_NAMES
 
@@ -40,7 +38,7 @@ NAME_TABLE = "pokemon_type_names"
 NAME_COLUMNS = ["type_name", "language", "name"]
 
 # dump_sql 이 읽는 목록 — 이 파일에 표가 하나 더 있다는 뜻이다.
-EXTRA = [(schema.POKEMON_TYPE_NAMES, NAME_TABLE, NAME_COLUMNS)]
+EXTRA = [(NAME_TABLE, NAME_COLUMNS)]
 
 # 공격타입 -> {배수: [그 배수를 받는 방어타입들]}
 TYPE_CHART = {
@@ -146,12 +144,11 @@ def build(conn):
     values = [(atk, dfn, multiplier(atk, dfn))
               for atk in TYPES for dfn in TYPES]
     print(f"{len(TYPES)}×{len(TYPES)} = {len(values)}행")
-    sql = literal_build(conn, DDL, TABLE, COLUMNS, values)
+    sql = literal_build(conn, TABLE, COLUMNS, values)
 
     names = [(t, lang, TYPE_LABELS[t][i])
              for t in TYPES
              for i, lang in enumerate(NAME_LANGUAGES)]
     print(f"{len(TYPES)}타입 × {len(NAME_LANGUAGES)}언어 = {len(names)}행")
-    return sql + "\n" + sql_of(conn.cursor(), schema.POKEMON_TYPE_NAMES,
-                               NAME_TABLE, NAME_COLUMNS, names)
+    return sql + "\n" + sql_of(conn.cursor(), NAME_TABLE, NAME_COLUMNS, names)
 

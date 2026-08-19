@@ -15,10 +15,8 @@ from .parse_utils import endpoint, sql_of
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/pokemon"
 
-FILENAME = "07_pokemon_moves.sql"
 TABLE = "pokemon_moves"
-COLUMNS = ["pokemon_name", "move_name"]
-DDL = schema.POKEMON_MOVES
+COLUMNS = ["pokemon_id", "move_id"]
 
 
 # collect() 를 쓰지 않는다. 이름 하나가 행 수십 개가 되고 ko_name 도 없어서,
@@ -31,13 +29,15 @@ def build(conn):
     cur = conn.cursor()
 
     # 1) DB에 존재하는 유효 기술 목록 (교집합 기준)
-    cur.execute("SELECT name FROM moves")
-    valid_moves = {row[0] for row in cur.fetchall()}
+    cur.execute("SELECT name, id FROM moves")
+    move_id = dict(cur.fetchall())
+    valid_moves = set(move_id)
     print(f"DB 기술 수: {len(valid_moves)}")
 
-    # 2) DB에 존재하는 포켓몬 목록 (대상)
-    cur.execute("SELECT name FROM pokemons")
-    pokemons = [row[0] for row in cur.fetchall()]
+    # 2) DB에 존재하는 포켓몬 목록 (대상). 표에는 id 로 넣으므로 같이 읽는다.
+    cur.execute("SELECT name, id FROM pokemons")
+    pokemon_id = dict(cur.fetchall())
+    pokemons = list(pokemon_id)
     print(f"DB 포켓몬 수: {len(pokemons)}")
 
     failed = []
@@ -55,10 +55,10 @@ def build(conn):
         valid = learned & valid_moves
 
         for move in sorted(valid):
-            values.append((name, move))
+            values.append((pokemon_id[name], move_id[move]))
 
         print(f"{name} - {len(valid)}개")
 
     print(f"\n연결 {len(values)}행 / 실패: {len(failed)}개 - {failed}")
-    return sql_of(cur, DDL, TABLE, COLUMNS, values)
+    return sql_of(cur, TABLE, COLUMNS, values)
 

@@ -21,7 +21,6 @@ name 은 기술 이름과 맞춰 뒀다. 날씨를 까는 기술과 바로 이�
 from . import schema
 from .parse_utils import literal_build, numbered
 
-FILENAME = "11_weathers.sql"
 TABLE = "weathers"
 # sort_order 는 아래 WEATHERS 의 줄 순서에서 뽑는다. 화면 드롭다운이
 # 이 순서로 늘어선다 — 재배열하려면 목록을 옮기면 된다.
@@ -29,7 +28,6 @@ COLUMNS = ["name", "ko_name", "boost_type", "boost_mult",
            "weaken_type", "weaken_mult",
            "def_boost_type", "def_boost_stat", "def_boost_mult",
            "chip_damage", "chip_immune", "note", "sort_order"]
-DDL = schema.WEATHERS
 
 WEATHERS = [
     ("sun", "쾌청",
@@ -50,6 +48,6 @@ WEATHERS = [
 
 def build(conn):
     """11_weathers.sql 전문을 만들어 돌려준다. (4행)"""
-    return literal_build(conn, DDL, TABLE, COLUMNS, numbered(WEATHERS),
+    return literal_build(conn, TABLE, COLUMNS, numbered(WEATHERS),
                          echo=lambda w: f"{w[0]:<10} {w[1]}")
 

@@ -38,8 +38,6 @@ pokemon_M_B = [
     "absol", "glalie", "metagross",
     # -- 3세대 폼 --
     "absol-mega", "aggron-mega", "altaria-mega", "banette-mega", "blaziken-mega", "camerupt-mega",
-    # 캐스퐁은 날씨에 따라 타입과 종족값이 통째로 바뀐다. 한 줄로 두면
-    # 데미지 계산이 어느 모습인지 모른다.
     "castform-rainy", "castform-snowy", "castform-sunny",
     "chimecho-mega", "gardevoir-mega", "glalie-mega", "manectric-mega", "mawile-mega", "medicham-mega",
     "metagross-mega", "sableye-mega", "sceptile-mega", "sharpedo-mega", "swampert-mega",
@@ -52,7 +50,6 @@ pokemon_M_B = [
     "abomasnow-mega", "froslass-mega", "gallade-mega", "garchomp-mega", "lopunny-mega", "lucario-mega",
     "rotom-fan", "rotom-frost", "rotom-heat", "rotom-mow", "rotom-wash", "staraptor-mega",
     # ===== 5세대 (기본 29, 폼 11) =====
-    # 배쓰나이(basculin-red-striped) 제외
     "serperior", "emboar", "samurott", "watchog", "liepard", "simisage",
     "simisear", "simipour", "musharna", "excadrill", "audino", "conkeldurr",
     "scolipede", "whimsicott", "krookodile", "scrafty", "cofagrigus",
@@ -63,15 +60,12 @@ pokemon_M_B = [
     "samurott-hisui", "scolipede-mega", "scrafty-mega", "stunfisk-galar", "zoroark-hisui",
     # ===== 6세대 (기본 34, 폼 15) =====
     "chesnaught", "delphox", "greninja", "diggersby", "talonflame", "vivillon",
-    # 플라베베·플라엣(일반) 제외. 남는 건 영원의 꽃 플라엣테와 그 메가뿐이다.
     "pyroar-male", "florges", "pangoro", "furfrou",
     "meowstic-male","meowstic-female", "aegislash-shield", "aromatisse", "slurpuff", "malamar", "barbaracle",
     "dragalge", "clawitzer", "heliolisk", "tyrantrum", "aurorus", "sylveon",
     "hawlucha", "dedenne", "goodra", "klefki", "trevenant", "gourgeist-average",
     "avalugg", "noivern", "floette-eternal", "meowstic-male-mega","meowstic-female-mega",
     # -- 6세대 폼 --
-    # 킬가르도는 배틀 중 실드폼↔블레이드폼이 오간다. 종족값이 정반대라
-    # 한쪽만 두면 계산이 반쯤 틀린다.
     "aegislash-blade",
     "avalugg-hisui", "barbaracle-mega", "chesnaught-mega", "delphox-mega", "dragalge-mega", "floette-mega",
     "goodra-hisui", "gourgeist-large", "gourgeist-small", "gourgeist-super",
@@ -84,15 +78,12 @@ pokemon_M_B = [
     # -- 7세대 폼 --
     "crabominable-mega", "decidueye-hisui", "drampa-mega", "lycanroc-midday", "lycanroc-dusk", "lycanroc-midnight",
     # ===== 8세대 (기본 17, 폼 3) =====
-    # 다태우지네(centiskorch) · 에써르(indeedee-male) 제외
     "corviknight", "flapple", "appletun", "sandaconda", "polteageist",
     "hatterene", "grimmsnarl", "mr-rime", "alcremie", "falinks", "morpeko-full-belly",
-    "dragapult", "wyrdeer", "kleavor", "basculegion-male", "sneasler", "overqwil",
+    "dragapult", "wyrdeer", "kleavor", "basculegion-male", "sneasler", "overqwil", "runerigus",
     # -- 8세대 폼 --
-    # 모르페코는 턴마다 배부른↔배고픈이 바뀌고, 그때 오파의 타입이 달라진다.
     "basculegion-female", "falinks-mega", "morpeko-hangry",
     # ===== 9세대 (기본 23, 폼 2) =====
-    # 육파리(toedscruel) 제외
     "meowscarada", "skeledirge", "quaquaval", "maushold-family-of-four", "garganacl", "armarouge",
     "ceruledge", "bellibolt", "scovillain", "espathra", "tinkaton",
     "palafin-zero", "palafin-hero", "orthworm", "glimmora", "houndstone", "annihilape", "farigiraf",
@@ -103,21 +94,18 @@ pokemon_M_B = [
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/pokemon"
 
-FILENAME = "03_pokemons.sql"
 TABLE = "pokemons"
-COLUMNS = ["id", "pokemon_id", "name", "ko_name", "type1", "type2",
+COLUMNS = ["id", "dex_no", "name", "ko_name", "type1", "type2",
            "height", "weight",
            "h", "a", "b", "c", "d", "s"]
 
 # 한 파일 안에 두 번째 표도 같이 만든다. 같은 응답에서 나오므로 API 를
 # 다시 부르지 않는다. (get_moves 의 move_stat_changes 와 같은 결)
 ABILITY_TABLE = "pokemon_abilities"
-ABILITY_COLUMNS = ["pokemon_name", "ability_name", "slot"]
-ABILITY_DDL = schema.POKEMON_ABILITIES
+ABILITY_COLUMNS = ["pokemon_id", "ability_id", "slot"]
 
 # dump_sql 이 읽는 목록 — 이 파일에 표가 하나 더 있다는 뜻이다.
-EXTRA = [(ABILITY_DDL, ABILITY_TABLE, ABILITY_COLUMNS)]
-DDL = schema.POKEMONS
+EXTRA = [(ABILITY_TABLE, ABILITY_COLUMNS)]
 
 # charizard-mega-x -> ("charizard", "x") / gengar-mega -> ("gengar", None)
 MEGA_RE = re.compile(r"^(.*)-mega(?:-([xy]))?$")
@@ -181,7 +169,7 @@ def parse_pokemon(data):
         "id": data["id"],
         # 원종 도감 번호. species URL 끝 숫자가 그것이라 API 를 더 부르지
         # 않는다 — .../pokemon-species/6/ 이면 메가리자몽X 도 6 이 된다.
-        "pokemon_id": species_id(data),
+        "dex_no": species_id(data),
         "name": data["name"],
         "ko_name": ko_name,
         "type1": types.get(1),
@@ -197,7 +185,10 @@ def parse_pokemon(data):
 
         # 밑줄로 시작해서 COLUMNS 에 없다. pokemons 행에는 안 들어가지만
         # 같은 응답에서만 나오는 값이라 여기서 같이 들고 나간다.
-        "_abilities": [(data["name"], en, slot)
+        #
+        # 특성은 아직 이름이다 — abilities 가 05 단계라 이 시점에 id 를 모른다.
+        # 이름 -> id 는 넣기 직전에 옮긴다. (build / migrate_roster)
+        "_abilities": [(data["id"], en, slot)
                        for slot, en in sorted(abilities.items())],
     }
 
@@ -216,6 +207,6 @@ def build(conn):
     if orphans:
         print(f"베이스가 목록에 없는 메가: {len(orphans)}개 - {orphans}")
 
-    sql = sql_of(cur, DDL, TABLE, COLUMNS, to_values(rows, COLUMNS))
-    return sql + "\n" + sql_of(cur, ABILITY_DDL, ABILITY_TABLE,
+    sql = sql_of(cur, TABLE, COLUMNS, to_values(rows, COLUMNS))
+    return sql + "\n" + sql_of(cur, ABILITY_TABLE,
                                 ABILITY_COLUMNS, ability_values)

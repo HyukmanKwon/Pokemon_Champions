@@ -88,17 +88,24 @@ CREATE TABLE pokemon_natures (
 
 # can_mega / is_mega 를 칸으로 두지 않는다.
 #
-# 둘 다 mega_evolutions 에서 그대로 나온다 — 그 표에 base_name 으로 있으면
-# 메가가 가능하고, mega_name 으로 있으면 그 자체가 메가폼이다. 칸으로 두면
+# 둘 다 mega_evolutions 에서 그대로 나온다 — 그 표에 base_id 로 있으면
+# 메가가 가능하고, mega_id 로 있으면 그 자체가 메가폼이다. 칸으로 두면
 # 관계표와 갈라질 수 있고, 실제로 갈리지 않게 하려고 migrate_roster 가
 # "전부 껐다가 다시 켜는" 함수(sync_can_mega)를 들고 있었다. 다시 칠해야
 # 하는 값이라면 애초에 저장할 값이 아니다.
 #
 # 읽는 쪽은 repositories 가 EXISTS 로 만들어 준다. 응답 모양은 그대로다.
 POKEMONS = f"""CREATE TABLE pokemons (
-    id         INT,   -- PokeAPI 번호. 폼마다 다르고 폼 변이는 10000번대다
-    pokemon_id INT,   -- 원종 도감 번호. 폼이 달라도 같다 (메가리자몽 -> 6)
-    name      VARCHAR(50) PRIMARY KEY,
+    -- PokeAPI 번호. 폼마다 다르고 폼 변이는 10000번대다.
+    -- 자식 표는 전부 이것을 가리킨다.
+    id        INT PRIMARY KEY,
+
+    -- 원종 도감 번호. 폼이 달라도 같다 (리자몽·메가리자몽X·Y 전부 6).
+    -- 이름이 pokemon_id 였는데, 자식 표의 pokemon_id 가 id 를 가리키게
+    -- 되면서 같은 이름이 두 뜻을 갖게 되어 바꿨다.
+    dex_no    INT,
+
+    name      VARCHAR(50) UNIQUE NOT NULL,
     ko_name   VARCHAR(50),
     type1     {TYPES_ENUM} NOT NULL,
     type2     {TYPES_ENUM},
@@ -165,10 +172,10 @@ MOVES = f"""CREATE TABLE moves (
 #   damage-lower    변화 대상이 상대     (냉동바람의 -1 스피드는 상대에게)
 #   net-good-stats  순수 변화기, 자신    (칼춤, 껍질깨기)
 MOVE_STAT_CHANGES = """CREATE TABLE move_stat_changes (
-    move_name  VARCHAR(50) NOT NULL REFERENCES moves(name),
-    stat       VARCHAR(3) NOT NULL,   -- a b c d s / acc eva
-    change     INT NOT NULL,          -- -6 ~ +6
-    PRIMARY KEY (move_name, stat)
+    move_id  INT NOT NULL REFERENCES moves(id),
+    stat     VARCHAR(3) NOT NULL,   -- a b c d s / acc eva
+    change   INT NOT NULL,          -- -6 ~ +6
+    PRIMARY KEY (move_id, stat)
 );
 """
 
@@ -215,23 +222,13 @@ ITEMS = """CREATE TABLE items (
 # 숨은 특성인 경우라, 번호에 구멍이 나는 것이 정상이다. 그래서 slot 을
 # "몇 번째" 가 아니라 PokeAPI 의 slot 값 그대로 둔다.
 #
-# abilities(name) 로 가는 외래키는 여기서 못 건다 — 그 표가 05 단계라
-# 이 파일보다 뒤에 선다. get_abilities 가 자기 파일 끝에서 ALTER 로 붙인다.
 POKEMON_ABILITIES = """CREATE TABLE pokemon_abilities (
-    pokemon_name  VARCHAR(50) NOT NULL
-        REFERENCES pokemons(name) ON UPDATE CASCADE ON DELETE CASCADE,
-    ability_name  VARCHAR(50) NOT NULL,
-    slot          SMALLINT NOT NULL CHECK (slot BETWEEN 1 AND 3),
-    PRIMARY KEY (pokemon_name, slot),
-    UNIQUE (pokemon_name, ability_name)
+    pokemon_id  INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
+    ability_id  INT NOT NULL REFERENCES abilities(id),
+    slot        SMALLINT NOT NULL CHECK (slot BETWEEN 1 AND 3),
+    PRIMARY KEY (pokemon_id, slot),
+    UNIQUE (pokemon_id, ability_id)
 );
-"""
-
-# 위 표가 abilities 를 가리키게 만드는 마지막 한 줄. 05_abilities.sql 끝에
-# 붙는다 — 그때가 두 표가 모두 서 있는 첫 시점이다.
-POKEMON_ABILITIES_FK = """ALTER TABLE pokemon_abilities
-    ADD CONSTRAINT pokemon_abilities_ability_fkey
-    FOREIGN KEY (ability_name) REFERENCES abilities(name) ON UPDATE CASCADE;
 """
 
 # 습득 정보(레벨업/기술머신/유전)는 아직 없다. 포챔스가 그 구분을 룰로
@@ -241,11 +238,9 @@ POKEMON_ABILITIES_FK = """ALTER TABLE pokemon_abilities
 # DELETE 하는데, 기본값(RESTRICT)이면 기술이 연결된 포켓몬은 안 지워져
 # 그 스크립트가 통째로 롤백된다.
 POKEMON_MOVES = """CREATE TABLE pokemon_moves (
-    pokemon_name  VARCHAR(50) NOT NULL
-        REFERENCES pokemons(name) ON UPDATE CASCADE ON DELETE CASCADE,
-    move_name     VARCHAR(50) NOT NULL
-        REFERENCES moves(name) ON UPDATE CASCADE,
-    PRIMARY KEY (pokemon_name, move_name)
+    pokemon_id  INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
+    move_id     INT NOT NULL REFERENCES moves(id),
+    PRIMARY KEY (pokemon_id, move_id)
 );
 """
 
@@ -283,16 +278,16 @@ STATUS_CONDITIONS = """CREATE TABLE status_conditions (
 #   값으로 적어 둔다 — 생성기의 목록 순서에서 그대로 뽑는다.
 # ─────────────────────────────────────────────────────────────
 
-# 메가진화 관계. 한 포켓몬이 X/Y 두 개를 가질 수 있어서 mega_name 이 PK다.
+# 메가진화 관계. 한 포켓몬이 X/Y 두 개를 가질 수 있어서 mega_id 가 PK다.
 # pokemons 와 items 가 DB에 올라간 뒤에 만든다.
 #
 # variant(x/y)는 칸으로 두지 않는다. 스톤 이름이 그것을 담고 있다 —
 # charizardite-x / charizardite-y. 지금 76행 중 x·y 가 붙는 것은 리자몽과
 # 라이츄 넷뿐이고, 나머지는 단일 메가라 구분할 것이 없다.
 MEGA_EVOLUTIONS = """CREATE TABLE mega_evolutions (
-    mega_name  VARCHAR(50) PRIMARY KEY REFERENCES pokemons(name),
-    base_name  VARCHAR(50) NOT NULL REFERENCES pokemons(name),
-    item_name  VARCHAR(50) REFERENCES items(name)  -- 매칭 실패 시 NULL
+    mega_id  INT PRIMARY KEY REFERENCES pokemons(id),
+    base_id  INT NOT NULL REFERENCES pokemons(id),
+    item_id  INT REFERENCES items(id)   -- 매칭 실패 시 NULL
 );
 """
 
@@ -356,13 +351,13 @@ TERRAINS = f"""CREATE TABLE terrains (
 
 # 저쪽 표기 -> 우리 이름. 한 벌만 둔다.
 #
-# 전에는 usage_snapshots 와 usage_rankings 가 각자 pokemon_name 을 들고
+# 전에는 usage_snapshots 와 usage_rankings 가 각자 우리 이름을 들고
 # 있었다. 그런데 battle_name 이 정해지면 pokemon_name 도 정해진다 —
 # 4,220행이 236개짜리 대응표를 반복해 보관하던 셈이고, 두 표의 값이
 # 갈라지면 어느 쪽이 맞는지 판별할 방법이 없었다. (이행 종속)
 #
 # 저쪽 표기를 키로 삼는 이유는 그것이 자료의 자연키이기 때문이다.
-# pokemon_name 은 로스터에 없는 이름이면 NULL 이라 키가 될 수 없고,
+# 우리 쪽 키는 로스터에 없는 이름이면 NULL 이라 키가 될 수 없고,
 # usage_rankings 의 기본키 구성 요소이기도 하다.
 #
 # ON DELETE SET NULL 은 migrate_roster 때문이다. 로스터에서 빠진 포켓몬을
@@ -370,8 +365,10 @@ TERRAINS = f"""CREATE TABLE terrains (
 # 남으므로 그 포켓몬이 다시 들어오면 이 표 한 행만 고치면 도로 이어붙는다
 # — 전에는 4,220행을 훑어야 했다.
 BATTLE_NAMES = """CREATE TABLE battle_names (
-    battle_name   VARCHAR(50) PRIMARY KEY,   -- 저쪽 표기 (Garchomp, Alolan Raichu)
-    pokemon_name  VARCHAR(50) REFERENCES pokemons(name) ON DELETE SET NULL
+    -- 저쪽 표기가 기본키다. 저쪽 자료의 자연키이고, 우리 로스터에 없는
+    -- 이름도 기록으로 남아야 하므로 이쪽이 NULL 이 될 수 없는 쪽이다.
+    battle_name  VARCHAR(50) PRIMARY KEY,   -- Garchomp, Alolan Raichu
+    pokemon_id   INT REFERENCES pokemons(id) ON DELETE SET NULL
 );
 """
 
@@ -486,11 +483,53 @@ CREATE UNIQUE INDEX usage_rankings_position_idx
     ON usage_rankings (taken_on, format, position);
 """
 
-ALL_TABLES = [
-    "usage_rankings", "usage_rows", "usage_snapshots", "battle_names",
-    "pokemon_moves", "pokemon_abilities", "move_stat_changes", "mega_evolutions",
-    "items", "abilities", "moves", "pokemons",
-    "pokemon_type_names", "pokemon_types", "pokemon_natures",
-    "status_conditions", "weathers", "terrains",
+# ─────────────────────────────────────────────────────────────
+# 순서
+#
+# CREATE_ORDER   00_schema.sql 에 적히는 순서. 부모가 먼저다.
+# CONTENT_ORDER  01_content.sql 의 INSERT 순서. 외래키가 걸리지 않는 순서다.
+#
+# 둘이 다른 이유는 생성 순서와 적재 순서가 같지 않아서가 아니라, 빈 표
+# (usage_*)는 만들기만 하고 넣을 것이 없기 때문이다.
+#
+# ALL_TABLES 는 전부 지우는 명령을 만들 때 쓴다. 지우는 것은 CASCADE 라
+# 순서를 안 탄다.
+# ─────────────────────────────────────────────────────────────
+
+CREATE_ORDER = [
+    # 부모 — 다른 표를 가리키지 않는다
+    ("pokemon_types", TYPES),
+    ("pokemon_type_names", POKEMON_TYPE_NAMES),
+    ("pokemon_natures", NATURES),
+    ("pokemons", POKEMONS),
+    ("moves", MOVES),
+    ("abilities", ABILITIES),
+    ("items", ITEMS),
+    ("status_conditions", STATUS_CONDITIONS),
+    ("weathers", WEATHERS),
+    ("terrains", TERRAINS),
+    # 자식
+    ("pokemon_abilities", POKEMON_ABILITIES),
+    ("pokemon_moves", POKEMON_MOVES),
+    ("move_stat_changes", MOVE_STAT_CHANGES),
+    ("mega_evolutions", MEGA_EVOLUTIONS),
+    # 채용률 — 매일 쌓이는 것이라 01_content.sql 에는 안 들어간다
+    ("battle_names", BATTLE_NAMES),
+    ("usage_snapshots", USAGE_SNAPSHOTS),
+    ("usage_rows", USAGE_ROWS),
+    ("usage_rankings", USAGE_RANKINGS),
 ]
+
+SCHEMA_SQL = "\n".join(ddl for _, ddl in CREATE_ORDER)
+
+# INSERT 순서. 부모가 먼저다 — pokemon_abilities 는 abilities 뒤여야 한다.
+CONTENT_ORDER = [
+    "pokemon_types", "pokemon_type_names", "pokemon_natures",
+    "pokemons", "moves", "abilities", "items",
+    "status_conditions", "weathers", "terrains",
+    "pokemon_abilities", "pokemon_moves", "move_stat_changes",
+    "mega_evolutions",
+]
+
+ALL_TABLES = [name for name, _ in CREATE_ORDER]
 ALL_ENUMS = [TYPES_ENUM, NATURES_ENUM, "pokemon_type", "nature_name"]

@@ -53,20 +53,13 @@ from pokemon_champions.db import connect
 from . import paths
 from . import schema
 
-# SQL 파일에 없고 여기서 빈 표로 만드는 것들. (이름, DDL)
-#
-# 순서가 곧 CREATE 순서다. battle_names 가 맨 앞인 것은 스냅샷과 순위가
-# 그것을 참조하기 때문이고, usage_rows 는 usage_snapshots 뒤여야 한다.
-EMPTY_TABLES = [
-    ("battle_names", schema.BATTLE_NAMES),
-    ("usage_snapshots", schema.USAGE_SNAPSHOTS),
-    ("usage_rows", schema.USAGE_ROWS),
-    ("usage_rankings", schema.USAGE_RANKINGS),
-]
-
-
 def sql_files():
-    """data/sql/*.sql 을 이름순으로. 하나도 없으면 멈춘다."""
+    """00_schema.sql 다음 01_content.sql. 하나도 없으면 멈춘다.
+
+    이름순이 곧 실행 순서다 — 표를 전부 만든 뒤에 넣는다. 스키마와 데이터를
+    가른 이유는 출처가 다르기 때문이다. 00 은 schema.py 에서 나오고,
+    01 은 지금 DB 에서 나온다. (dump_sql)
+    """
     files = sorted(paths.SQL_DIR.glob("*.sql"))
     if not files:
         raise SystemExit(
@@ -109,9 +102,7 @@ def main(argv=None):
     if args.dry_run:
         for path in files:
             print(f"  {path.name:<24} {path.stat().st_size:>9,} bytes")
-        for name, _ in EMPTY_TABLES:
-            print(f"  {name:<24} {'빈 표':>9}")
-        print(f"\n파일 {len(files)}개 + 빈 표 {len(EMPTY_TABLES)}개. 확인만 했다")
+        print(f"\n파일 {len(files)}개. 확인만 했다")
         return 0
 
     conn = connect()
@@ -123,9 +114,6 @@ def main(argv=None):
         for path in files:
             cur.execute(path.read_text(encoding="utf-8"))
             print(f"  {path.name}")
-        for name, ddl in EMPTY_TABLES:
-            cur.execute(ddl)
-            print(f"  {name} (빈 표)")
         conn.commit()
     except psycopg2.Error as e:
         conn.rollback()
