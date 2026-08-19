@@ -282,17 +282,35 @@ def sync_rankings(conn, fmt, season="Current", dry_run=False):
     return n
 
 
-def missing_dates(conn, fmt, season=None):
-    """저쪽이 아직 주는 날짜 중 우리가 안 받은 것. 오래된 것부터."""
+# 지금 시즌이 시작한 날. 저쪽 폴더의 시즌 이름은 갱신되지 않아서
+# (2026-08-18 자료도 M4/ 아래 있다) 기간은 날짜로 자를 수밖에 없다.
+# 시즌이 바뀌면 이 값을 고친다.
+SEASON_START = date(2026, 8, 5)
+
+
+def missing_dates(conn, fmt, season=None, since=None):
+    """저쪽이 아직 주는 날짜 중 우리가 안 받은 것. 오래된 것부터.
+
+    ── 시즌 이름으로는 못 거른다 ──
+      저쪽 폴더 이름의 시즌은 갱신되지 않는다. 2026-08-18 자료도 M4/ 아래
+      들어 있어서, --season 으로 걸러도 지난 시즌이 딸려 온다. 그래서
+      기간은 since(날짜)로 자른다.
+    """
     cur = conn.cursor()
     cur.execute("SELECT DISTINCT snapshot_date FROM usage_snapshots "
                 "WHERE format = %s", (fmt,))
     have = {r[0] for r in cur.fetchall()}
-    return [(s, d) for s, d in usage_csv.daily_dates(season)
-            if usage_csv.to_date(d) not in have]
+    out = []
+    for s, d in usage_csv.daily_dates(season):
+        day = usage_csv.to_date(d)
+        if day in have or (since and day < since):
+            continue
+        out.append((s, d))
+    return out
 
 
-def backfill(conn, fmt, season, sleep, limit, dry_run, refetch=False):
+def backfill(conn, fmt, season, sleep, limit, dry_run, refetch=False,
+             since=None):
     """받을 수 있는데 아직 안 받은 날짜를 오래된 것부터 전부.
 
     ── 왜 필요한가 ──
@@ -306,8 +324,9 @@ def backfill(conn, fmt, season, sleep, limit, dry_run, refetch=False):
     ── 오래된 것부터 ──
       중간에 끊기면 사라지기 직전의 것부터 남아 있어야 한다.
     """
-    todo = ([(s, d) for s, d in usage_csv.daily_dates(season)] if refetch
-            else missing_dates(conn, fmt, season))
+    todo = ([(s, d) for s, d in usage_csv.daily_dates(season)
+             if not since or usage_csv.to_date(d) >= since] if refetch
+            else missing_dates(conn, fmt, season, since))
     if not todo:
         print(f"{fmt}: 받을 수 있는 날짜를 전부 받았습니다.")
         return 0, 0, 0
@@ -326,6 +345,10 @@ def main(argv=None):
     ap.add_argument("--format", default="Singles",
                     choices=list(usage_source.FORMATS))
     ap.add_argument("--season", help="예: M4. 안 주면 색인의 최신 시즌")
+    ap.add_argument("--since", type=lambda v: date.fromisoformat(v),
+                    metavar="YYYY-MM-DD", default=SEASON_START,
+                    help=f"이 날짜부터만 받는다 (기본 {SEASON_START}, "
+                         "지금 시즌 시작일). --since 1970-01-01 이면 전부")
     ap.add_argument("--date", help="저쪽 폴더 이름. 예: 30_07_2026. "
                                    "안 주면 가장 최근 하루")
     ap.add_argument("--refetch", action="store_true",
@@ -356,7 +379,7 @@ def main(argv=None):
         run = backfill if args.backfill else collect
         saved, skipped, failed = (
             run(conn, args.format, args.season, args.sleep,
-                args.limit, args.dry_run, args.refetch)
+                args.limit, args.dry_run, args.refetch, args.since)
             if args.backfill else
             run(conn, args.format, args.season, args.date,
                 args.sleep, args.limit, args.dry_run, args.refetch))

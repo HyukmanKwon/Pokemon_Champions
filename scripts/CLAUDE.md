@@ -37,9 +37,14 @@ result, or a rebuild will not match your database.
 
 `sync_usage.py` is the exception: usage snapshots accumulate daily and are
 **not** part of `data/sql/`. `daily_usage.sh` runs it under launchd.
-Always use `--backfill`, never "today only" — the source keeps 16 days and
-a missed day is gone for good. Already-fetched dates are skipped, so
-running it daily costs nothing.
+Always use `--backfill`, never "today only" — a missed day is gone once the
+source drops it. Already-fetched dates are skipped, so running it daily
+costs nothing.
+
+`--since` defaults to `SEASON_START` in `sync/usage.py`. The source's folder
+names keep the old season label (2026-08-18 data still sits under `M4/`), so
+the season boundary is a **date**, not the label. Bump `SEASON_START` when a
+new regulation begins.
 
 ## schema.py is the single source of DDL
 

@@ -123,7 +123,7 @@ scripts/etl/
 
 `sync_usage` 만 성질이 다르다. 우회로가 아니라 **매일 도는 것**이고, 받아오는
 곳도 PokeAPI 가 아니라 championsbattledata.com 이다. 저쪽이 일자별 자료를
-16일치만 남기므로, 오늘 안 받은 날짜는 16일 뒤에 사라진다.
+저쪽이 지난 날짜를 언젠가 지우므로, 오늘 안 받은 날짜는 나중에 사라진다.
 
 ```bash
 python -m scripts.etl.sync.usage --dry-run   # 받아만 보기
