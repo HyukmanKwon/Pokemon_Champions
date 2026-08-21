@@ -20,7 +20,7 @@ import threading
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import (FileResponse, HTMLResponse, StreamingResponse)
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -119,26 +119,59 @@ app.mount("/static", DevStatic(directory=STATIC_DIR), name="static")
 # 그림이 정말 없는 폼(리전폼·메가에 흔하다)은 404 를 준다. 화면은 그
 # 자리를 비워두면 되고, 능력치 조회는 애초에 이 경로를 타지 않는다.
 #
-# 브라우저가 매번 다시 받지 않도록 캐시 헤더를 길게 준다. 스프라이트는
-# 한 번 정해지면 안 바뀌는 그림이라 안전하다.
+# 브라우저가 매번 다시 받지 않도록 캐시 헤더를 길게 준다. 저쪽에서 받아온
+# 그림은 한 번 정해지면 안 바뀌므로 안전하다.
 # ─────────────────────────────────────────────────────────────
 
 CACHE_HEADERS = {"Cache-Control": "public, max-age=604800"}
 
+# 타입 배지만 다르다. 받아온 그림이 아니라 우리가 그린 그림이라,
+# make_type_icons 를 다시 돌리면 같은 주소의 내용이 바뀐다.
+#
+# ── 길게 캐시했다가 겪은 일 ──
+#   배지를 좁게 다시 그렸는데 화면에는 옛 배지가 남았다. 강제 새로고침을
+#   해도 일부만 바뀐다 — 배지는 loading="lazy" 라 화면 밖에 있는 것은
+#   새로고침이 요청하지 않고, 나중에 스스로 부를 때 캐시에서 꺼내 쓴다.
+#   그래서 "비행·고스트만 안 바뀐다" 처럼 보인다.
+#
+#   no-cache 는 "받지 마라" 가 아니라 "쓰기 전에 물어봐라" 다. 위 DevStatic
+#   이 css/js 에 쓰는 것과 같은 결이다.
+#
+#   다만 FileResponse 는 StaticFiles 와 달리 If-None-Match 를 스스로 보지
+#   않는다. 그대로 두면 물어볼 때마다 본문이 통째로 다시 온다 — 화면
+#   하나에 배지가 백 장 넘게 깔리는 자리가 있어서 그냥 두기 아깝다.
+#   그래서 아래 sprite_type 이 직접 견주고 304 로 끊는다.
+DRAWN_HEADERS = {"Cache-Control": "no-cache"}
 
-def _sprite(path):
+
+def _sprite(path, headers=CACHE_HEADERS):
+    """파일 하나를 PNG 로 내준다. 없으면 404.
+
+    stat_result 를 미리 넘기는 이유는 ETag 때문이다. 안 넘기면 FileResponse
+    가 응답을 보낼 때(비동기)에야 헤더를 채워서, 그 전에 res.headers["etag"]
+    를 읽으면 None 이 나온다. 그걸 If-None-Match 와 견주면 헤더가 없는 첫
+    요청까지 None == None 으로 걸려 304 를 주게 된다 — 본문을 한 번도 못
+    받은 브라우저에게 "안 바뀌었다" 고 답하는 셈이라 그림이 아예 안 뜬다.
+    """
     if path is None:
         raise HTTPException(404, "이미지가 없습니다.")
-    return FileResponse(path, media_type="image/png", headers=CACHE_HEADERS)
+    return FileResponse(path, media_type="image/png", headers=headers,
+                        stat_result=path.stat())
 
 
 @app.get("/sprite/type/{type_name}")
-def sprite_type(type_name: str):
+def sprite_type(type_name: str, request: Request):
     """한국어 타입 배지. 아직 안 그렸으면 404 — 화면이 글자로 대신 쓴다.
 
         python -m scripts.make_type_icons
+
+    다시 그리면 같은 주소의 내용이 바뀌므로 브라우저에게 매번 물어보게
+    한다(DRAWN_HEADERS). 안 바뀌었으면 여기서 304 로 끊는다.
     """
-    return _sprite(assets.type_icon(type_name))
+    res = _sprite(assets.type_icon(type_name), DRAWN_HEADERS)
+    if request.headers.get("if-none-match") == res.headers.get("etag"):
+        return Response(status_code=304, headers=DRAWN_HEADERS)
+    return res
 
 
 @app.get("/sprite/pokemon/{pokemon_id}")
