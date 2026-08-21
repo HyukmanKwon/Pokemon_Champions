@@ -30,7 +30,7 @@
   않는다. COLUMNS 에 있는 칼럼이 DB 에 없으면 그 자리에서 멈춘다.
 
 ── 행 순서는 기본키순 ──
-  생성기들은 입력 목록 순서(moves_M_B 등)로 찍지만, 여기서는 기본키로
+  구축 단계들은 입력 목록 순서(moves_M_B 등)로 찍지만, 여기서는 기본키로
   정렬한다. 두 번 돌렸을 때 같은 파일이 나와야 diff 로 변화를 볼 수 있다.
   enum 칼럼은 선언 순서로 정렬되므로 타입 상성표는 원래 순서와 같다.
 """
@@ -38,12 +38,12 @@
 import argparse
 import sys
 
+from pokemon_champions.config import SQL_DIR
 from pokemon_champions.db import connect
 
-from . import paths
 from . import schema
-from .build import STEPS
-from .parse_utils import sql_of
+from .build import table_columns
+from .schema import sql_of
 
 
 def primary_key(cur, table):
@@ -96,28 +96,13 @@ def db_columns(cur, table):
     return [r[0] for r in cur.fetchall()]
 
 
-def table_columns():
-    """{테이블: COLUMNS}. 생성기들이 선언한 것을 한 곳에 모은다.
-
-    DB 에서 칼럼을 읽어오지 않는 이유는, 그러면 schema.py 와 DB 가 어긋나도
-    조용히 지나가기 때문이다. 생성기가 적어 둔 목록과 대조해야 그 어긋남이
-    table_sql 에서 그 자리에 멈춘다.
-    """
-    out = {}
-    for step in STEPS:
-        out[step.TABLE] = step.COLUMNS
-        for table, columns in getattr(step, "EXTRA", []):
-            out[table] = columns
-    return out
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--dry-run", action="store_true",
                         help="파일을 쓰지 않고 달라지는 것만 보고한다")
     args = parser.parse_args()
 
-    paths.SQL_DIR.mkdir(exist_ok=True)
+    SQL_DIR.mkdir(exist_ok=True)
     conn = connect()
     cur = conn.cursor()
 
@@ -126,7 +111,7 @@ def main():
     for table in schema.CONTENT_ORDER:
         columns = columns_of.get(table)
         if columns is None:
-            raise SystemExit(f"{table}: 어느 생성기도 COLUMNS 를 선언하지 않았다.")
+            raise SystemExit(f"{table}: 어느 단계도 COLUMNS 를 선언하지 않았다.")
         sql, n = rows_sql(cur, table, columns)
         if sql:
             body.append(sql)
@@ -139,7 +124,7 @@ def main():
 
     changed = 0
     for name, text in files.items():
-        path = paths.SQL_DIR / name
+        path = SQL_DIR / name
         old = path.read_text(encoding="utf-8") if path.exists() else None
         mark = "그대로" if old == text else ("새 파일" if old is None else "바뀜")
         if mark != "그대로":
@@ -153,7 +138,7 @@ def main():
         print(f"    {table:<22}{n:>8,}행")
 
     conn.close()
-    where = "확인만 했다" if args.dry_run else f"기록: {paths.SQL_DIR}"
+    where = "확인만 했다" if args.dry_run else f"기록: {SQL_DIR}"
     print(f"\n2개 중 {changed}개가 파일과 다르다. {where}")
     return 0
 

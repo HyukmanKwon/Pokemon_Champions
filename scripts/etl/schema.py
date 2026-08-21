@@ -1,3 +1,20 @@
+"""SQL 을 만드는 곳. 표를 만드는 쪽(DDL)과 넣는 쪽(INSERT) 둘 다.
+
+── DDL 은 여기 말고 어디에도 없다 ──
+  CREATE TABLE 을 다른 파일에 적지 않고, 살아 있는 DB 에서 역으로 뽑지도
+  않는다. 뽑으면 주석이 전부 날아간다. 표를 하나 늘리면 아래 두 목록에
+  같이 넣어야 한다.
+
+    CREATE_ORDER   (표, DDL) 짝. 부모가 먼저다. 00_schema.sql 이 된다
+    CONTENT_ORDER  INSERT 순서. 빈 채로 나가는 표(usage_*)는 뺀다
+
+── INSERT 조립이 왜 같이 있나 ──
+  pokeapi.py 와 build.py 가 둘 다 "값 목록 -> INSERT 문" 을 필요로 한다.
+  둘 중 한쪽에 두면 나머지가 그쪽을 import 하게 되는데, build.py 는 이미
+  pokeapi.py 를 import 하고 있어서 방향이 서로 물린다. 만들어 내는 SQL 이
+  라는 점에서 DDL 과 같은 성질이라 여기 둔다.
+"""
+
 TYPES_ENUM = "pokemon_types_enum"
 NATURES_ENUM = "pokemon_natures_enum"
 
@@ -191,7 +208,7 @@ ABILITIES = """CREATE TABLE abilities (
 # "포챔스에서 지닐 수 있는가" 를 칸으로 두지 않는다.
 #
 # 전에는 usable BOOLEAN 과 그것을 사람이 확인했는지를 적는 reviewed 가
-# 있었다. 그런데 거르는 자리가 이미 앞에 있다 — get_items.py 의
+# 있었다. 그런데 거르는 자리가 이미 앞에 있다 — pokeapi.py 의
 # ITEM_CATEGORIES 3개 + EXTRA_ITEMS 낱개 지정이 애초에 좁게 받아서, 이 표에
 # 들어온 168개는 전부 지닐 수 있는 도구다. 뒤쪽 칸은 168개 전부 true 라
 # 아무것도 거르지 않으면서 읽는 쪽마다 "이 행을 써도 되나" 를 묻게 만들었다.
@@ -506,3 +523,41 @@ CONTENT_ORDER = [
 
 ALL_TABLES = [name for name, _ in CREATE_ORDER]
 ALL_ENUMS = [TYPES_ENUM, NATURES_ENUM, "pokemon_type", "nature_name"]
+
+
+# ─────────────────────────────────────────────────────────────
+# INSERT 조립
+# ─────────────────────────────────────────────────────────────
+
+def render(table, columns, rows):
+    """INSERT 문 하나를 만든다.
+
+    rows 는 cur.mogrify 로 만든 "    (...)" 문자열들의 리스트.
+    """
+    body = f"INSERT INTO {table}\n    ({', '.join(columns)})\nVALUES\n"
+    return body + ",\n".join(rows) + ";\n"
+
+
+def mogrify_rows(cur, values_list, width):
+    """값 튜플 리스트를 SQL 리터럴 행 문자열 리스트로 바꾼다."""
+    placeholder = "    (" + ", ".join(["%s"] * width) + ")"
+    return [cur.mogrify(placeholder, v).decode("utf-8") for v in values_list]
+
+
+def sql_of(cur, table, columns, values):
+    """값 튜플 목록을 INSERT 문으로. 생성기 build() 의 마지막 줄.
+
+    render 와 mogrify_rows 를 따로 부르면 len(columns) 를 두 번 적게 되고,
+    그 둘이 어긋나면 mogrify 가 "not enough arguments" 로 터진다 — 칼럼을
+    하나 늘렸을 때 실제로 겪는 실수다. 여기서 한 번만 적는다.
+    """
+    return render(table, columns, mogrify_rows(cur, values, len(columns)))
+
+
+def to_values(rows, columns):
+    """parse 가 돌려준 dict 목록에서 COLUMNS 순서의 튜플 목록을 뽑는다.
+
+    dict 에 COLUMNS 에 없는 키가 있어도 된다. parse_move 의 _source 처럼
+    통계에만 쓰고 DB 에는 안 넣는 값이 그렇다.
+    """
+    return [tuple(r[c] for c in columns) for r in rows]

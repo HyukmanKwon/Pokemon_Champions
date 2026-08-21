@@ -28,7 +28,7 @@
   않지만, 한국어 이름이 안 붙고 계산기에서도 못 고른다. --fill-missing 을
   주면 PokeAPI 에서 받아 채운다.
 
-  채운 것은 get_moves.moves_M_B / get_items.EXTRA_ITEMS 에도 손으로
+  채운 것은 pokeapi.moves_M_B / pokeapi.EXTRA_ITEMS 에도 손으로
   넣어야 한다. 그 목록이 재구축의 출처라서, 안 넣으면 다시 지어질 때
   사라진다. 무엇을 넣어야 하는지는 끝에 출력한다.
 """
@@ -44,11 +44,11 @@ from pokemon_champions.usecases import usage, usage_source
 
 from . import usage_csv
 
-from ..get.items import COLUMNS as ITEM_COLUMNS
-from ..get.items import fetch_item, parse_item
-from ..get.moves import COLUMNS as MOVE_COLUMNS
-from ..get.moves import (STAT_COLUMNS, STAT_TABLE, fetch_move, parse_move,
-                        parse_stat_changes)
+from ..pokeapi import (ITEMS_COLUMNS as ITEM_COLUMNS, MOVES_COLUMNS as MOVE_COLUMNS,
+                       MOVE_STAT_COLUMNS as STAT_COLUMNS,
+                       MOVE_STAT_TABLE as STAT_TABLE,
+                       fetch_item, fetch_move, parse_item, parse_move,
+                       parse_stat_changes)
 
 # 저쪽 갈래 -> 이름을 맞춰볼 우리 표. teammate 는 pokemons 지만 이름 규칙이
 # 달라 여기 넣지 않는다 (resolve_pokemon 이 따로 한다).

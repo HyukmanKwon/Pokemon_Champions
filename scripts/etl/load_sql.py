@@ -47,10 +47,9 @@ import sys
 
 import psycopg2
 
-from pokemon_champions.config import DB_CONFIG
+from pokemon_champions.config import DB_CONFIG, SQL_DIR
 from pokemon_champions.db import connect
 
-from . import paths
 from . import schema
 
 def sql_files():
@@ -60,10 +59,10 @@ def sql_files():
     가른 이유는 출처가 다르기 때문이다. 00 은 schema.py 에서 나오고,
     01 은 지금 DB 에서 나온다. (dump_sql)
     """
-    files = sorted(paths.SQL_DIR.glob("*.sql"))
+    files = sorted(SQL_DIR.glob("*.sql"))
     if not files:
         raise SystemExit(
-            f"{paths.SQL_DIR} 에 SQL 파일이 없다.\n"
+            f"{SQL_DIR} 에 SQL 파일이 없다.\n"
             "  저장소에서 받았다면 data/sql/ 이 같이 왔어야 한다.\n"
             "  직접 만들려면: python -m scripts.etl.build"
         )
@@ -104,7 +103,7 @@ def main(argv=None):
 
     files = sql_files()
     print(f"대상 DB  : {DB_CONFIG['dbname']} @ {DB_CONFIG['host']}")
-    print(f"SQL 폴더 : {paths.SQL_DIR}")
+    print(f"SQL 폴더 : {SQL_DIR}")
 
     if args.dry_run:
         for path in files:
