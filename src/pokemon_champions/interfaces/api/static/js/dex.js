@@ -16,9 +16,13 @@ const numCol = (key, label) => ({
   cell: r => dash(r[key]), sort: r => r[key] ?? -Infinity,
 });
 
-const nameCell = r => j(
-  `<div>${esc(r.ko_name || r.name)}</div>`,
-  r.ko_name ? `<div class="sub">${esc(r.name)}</div>` : "");
+// 한국어 이름만 보인다. 영문 슬러그를 아래에 같이 깔면 한 줄 안에서
+// 한글과 영문이 섞여 목록이 시끄러워진다. 영문으로 찾는 길은 남아 있다 —
+// 각 표의 search 가 r.name 을 그대로 보고 있다.
+//
+// ko_name 이 없으면 영문이 나온다. 그건 섞인 것이 아니라 그 항목에
+// 한국어 이름이 아직 없다는 뜻이고, 빈칸으로 두면 무엇인지 알 수 없다.
+const nameCell = r => `<div>${esc(r.ko_name || r.name)}</div>`;
 
 const DEX = {
   // ── 포켓몬 ───────────────────────────────────────────────
