@@ -90,9 +90,9 @@ CREATE TABLE pokemon_natures (
 #
 # 둘 다 mega_evolutions 에서 그대로 나온다 — 그 표에 base_id 로 있으면
 # 메가가 가능하고, mega_id 로 있으면 그 자체가 메가폼이다. 칸으로 두면
-# 관계표와 갈라질 수 있고, 실제로 갈리지 않게 하려고 migrate_roster 가
-# "전부 껐다가 다시 켜는" 함수(sync_can_mega)를 들고 있었다. 다시 칠해야
-# 하는 값이라면 애초에 저장할 값이 아니다.
+# 관계표와 갈라질 수 있고, 실제로 갈리지 않게 하려고 "전부 껐다가 다시
+# 켜는" 함수를 따로 들고 있어야 했다. 다시 칠해야 하는 값이라면 애초에
+# 저장할 값이 아니다.
 #
 # 읽는 쪽은 repositories 가 EXISTS 로 만들어 준다. 응답 모양은 그대로다.
 POKEMONS = f"""CREATE TABLE pokemons (
@@ -234,9 +234,9 @@ POKEMON_ABILITIES = """CREATE TABLE pokemon_abilities (
 # 습득 정보(레벨업/기술머신/유전)는 아직 없다. 포챔스가 그 구분을 룰로
 # 쓰는지 정한 뒤에 넣는다 — PokeAPI 의 version_group_details 에 값은 있다.
 #
-# ON DELETE CASCADE 는 migrate_roster 때문이다. 로스터에서 빠진 포켓몬을
-# DELETE 하는데, 기본값(RESTRICT)이면 기술이 연결된 포켓몬은 안 지워져
-# 그 스크립트가 통째로 롤백된다.
+# ON DELETE CASCADE 는 로스터 정리 때문이다. 빠진 포켓몬을 DELETE 할 때
+# 기본값(RESTRICT)이면 기술이 연결된 포켓몬은 안 지워져 트랜잭션이
+# 통째로 롤백된다.
 POKEMON_MOVES = """CREATE TABLE pokemon_moves (
     pokemon_id  INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
     move_id     INT NOT NULL REFERENCES moves(id),
