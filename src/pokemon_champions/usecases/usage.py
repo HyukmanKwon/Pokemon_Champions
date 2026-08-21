@@ -26,7 +26,7 @@ usage 로 맞춰 두고, 받아오는 쪽만 _source 를 붙여 가른다.
 import re
 
 from . import usage_source
-from ..db.repositories import (lookup_repo, nature_repo, pokemon_repo,
+from ..db.repositories import (lookup_repo, mega_repo, nature_repo, pokemon_repo,
                                usage_repo)
 
 CATEGORY_KEY = {
@@ -479,6 +479,10 @@ def detail_from_db(conn, en_name, ko_name=None, fmt="Singles", top=10):
         "pokemon_id": pokemon_id,
         "types": types,
         "base": base,
+        # 저쪽은 메가를 원종에 합쳐 준다(usage_source 첫머리). 그래서 이
+        # 줄의 도구 칸에는 나이트가 올라와 있는데 정작 그 모습이 없다.
+        # 무엇으로 메가진화하는지 이미 화면에 있으니 모습도 같이 낸다.
+        "megas": mega_repo.fetch_forms(conn, ko_name) if ko_name else [],
         "format": fmt,
         "season": first["season"],
         "date": first["snapshot_date"].isoformat(),

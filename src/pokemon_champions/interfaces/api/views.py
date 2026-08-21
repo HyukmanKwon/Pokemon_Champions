@@ -218,6 +218,16 @@ def usage_detail(got):
         "meta_rank": got["meta_rank"],
         "sprite": assets.url_pokemon_sprite(got["pokemon_id"]),
         "types": type_badges(*got["types"]),
+        # 메가폼. 화면이 머리에서 원종과 갈아 끼운다.
+        "megas": [{"ko_name": m["ko_name"],
+                   "item_ko_name": m["item_ko_name"],
+                   "sprite": assets.url_pokemon_sprite(m["id"]),
+                   "types": type_badges(m["type1"], m["type2"]),
+                   # fetch_forms 는 Stats 가 아니라 칸을 그대로 준다.
+                   # 원종 쪽 stats_dict 와 같은 모양으로 맞춘다.
+                   "base": {k: m[k] for k in
+                            ("h", "a", "b", "c", "d", "s", "total")}}
+                  for m in got.get("megas", [])],
         # 한국어 이름이 없는 폼은 종족값을 못 읽는다. 칸은 남기고 null 로
         # 둔다 — 빼 버리면 읽는 쪽이 그 칸이 있다는 것을 잊는다.
         "base": stats_dict(got["base"]) if got.get("base") else None,

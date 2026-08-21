@@ -556,40 +556,81 @@
 
    왼쪽 칸의 너비는 그림이 정한다(auto). 고정 폭을 주면 그림이 없는 폼에서
    오른쪽이 통째로 밀린다. */
+/* 날짜와 모습 고르기. 머리 위에 얹는 얇은 줄이다. */
+.usage-when {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.usage-when .sub {
+  margin-left: auto; color: var(--muted); font-size: 0.75rem;
+  white-space: nowrap;
+}
+.form-tabs { display: flex; gap: 4px; }
+.form-tab {
+  padding: 2px 10px; font-size: 0.75rem; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: transparent; color: var(--muted); font-family: inherit;
+}
+.form-tab.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* 윗줄에 그림·이름·타입, 아랫줄에 종족값을 전폭으로 깐다.
+   아래 usage-cols 가 폭을 꽉 쓰는데 머리만 왼쪽에 뭉쳐 있으면 같은 판에
+   두 폭이 생겨 눈이 두 번 움직인다. 종족값을 전폭으로 내려 오른쪽 끝을
+   맞춘다.
+
+   넷을 한 줄에 펴 봤다가 되돌렸다. 그림이 168px 을 먹어서 일곱 칸에
+   130px 밖에 안 남고, 칸 이름이 "스피 / 드" 로 접혔다. */
 .usage-head {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center; column-gap: 14px; row-gap: 6px;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center; column-gap: 16px; row-gap: 8px;
   padding-bottom: 10px; border-bottom: 1px solid var(--border);
 }
-/* 세 줄을 걸친다. span 을 안 주면 그림이 첫 줄에만 앉아서 이름 옆에
-   붙고, 아래 두 줄이 그림 밑으로 흘러내린다. */
 .usage-head .sprite {
-  grid-row: 1 / span 3; grid-column: 1;
+  grid-row: 1; grid-column: 1;
   height: 168px; width: 168px; object-fit: contain;
   margin: -8px 0;              /* 그림 파일의 빈 테두리를 걷어낸다 */
 }
-.usage-head .who { display: flex; align-items: baseline; gap: 6px; }
-.usage-head .what { display: flex; align-items: center; gap: 8px; }
+/* 이름은 세로로 쌓는다. 한 줄에 넷을 펴면서 이름까지 옆으로 늘어놓으면
+   메가폼 이름(메가리자몽X)에서 줄이 넘친다. */
+.usage-head .who {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+}
+.usage-head .who { grid-row: 1; grid-column: 2; }
+.usage-head .what {
+  grid-row: 1; grid-column: 3; justify-self: start;
+  display: flex; align-items: center; gap: 8px;
+}
 .usage-head h3 { margin: 0; font-size: 1.15rem; white-space: nowrap; }
 .usage-head .rank {
   background: var(--accent); color: #fff; border-radius: 10px;
   padding: 1px 8px; font-size: 0.78rem;
 }
-.usage-head .sub {
-  color: var(--muted); font-size: 0.75rem; margin-left: auto;
-  white-space: nowrap;
+/* 무슨 스톤으로 그 모습이 되는지. 메가를 골랐을 때만 나온다. */
+.usage-head .stone {
+  color: var(--muted); font-size: 0.72rem; white-space: nowrap;
+}
+
+/* 좁아지면 이름과 타입도 한 줄에 못 앉는다. 그림 옆에 둘을 쌓는다. */
+@media (max-width: 1200px) {
+  .usage-head { grid-template-columns: auto minmax(0, 1fr); row-gap: 6px; }
+  .usage-head .sprite { grid-row: 1 / span 2; grid-column: 1; }
+  .usage-head .who  { grid-row: 1; grid-column: 2; }
+  .usage-head .what { grid-row: 2; grid-column: 2; }
 }
 
 /* 종족값 여섯 칸 + 합계. 도감처럼 막대로 그리면 여섯 줄이 되는데, 그러면
    머리의 세 줄이 그림 높이를 넘겨서 그림 옆이 아니라 아래로 밀린다.
    머리에서는 숫자만 본다. */
-/* 폭을 26rem 에서 끊는다. 화면이 좁아 상세가 아래로 내려오면 오른쪽 칸이
-   700px 이 되는데, 그때 일곱 칸을 늘리면 숫자 사이가 멀어져 한 덩어리로
-   안 읽힌다. */
+/* 머리의 남는 폭을 이 칸이 먹는다. 그래야 오른쪽 끝이 아래 usage-cols 와
+   맞는다. 전에는 26rem 에서 끊고 왼쪽에 붙였는데, 그러면 머리와 아래 칸의
+   오른쪽 끝이 어긋나 같은 판에 폭이 둘로 보였다.
+
+   숫자가 너무 벌어지지는 않는다 — 일곱 칸이 남는 폭을 나눠 갖고, 좁은
+   화면에서는 위 media 규칙이 머리를 두 칸으로 되돌린다. */
 .usage-base {
+  grid-column: 1 / -1;         /* 전폭. 오른쪽 끝이 아래 칸과 맞는다 */
   display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 2px; text-align: center; max-width: 26rem; justify-self: start;
+  gap: 2px; text-align: center;
   background: var(--bg); border-radius: 6px; padding: 6px 2px;
 }
 .usage-base .cap { display: block; font-size: 0.68rem; color: var(--muted); }

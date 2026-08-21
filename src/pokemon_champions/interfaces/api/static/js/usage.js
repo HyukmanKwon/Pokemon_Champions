@@ -175,20 +175,37 @@ const Usage = (() => {
     }
     const d = await res.json();
 
+    // 머리에 걸 모습들 — 원종이 0번, 메가가 그 뒤. 저쪽 자료는 메가를
+    // 원종에 합쳐 주므로 채용률 수치는 어느 쪽을 골라도 같다. 바뀌는 것은
+    // 그림·타입·종족값뿐이라, 아래 칸은 다시 그리지 않고 머리만 갈아 끼운다.
+    const forms = [
+      {ko_name: d.ko_name, sprite: d.sprite, types: d.types, base: d.base},
+      ...(d.megas || []),
+    ];
+
+    const formTab = (f, i) => forms.length < 2 ? "" :
+      `<button class="form-tab${i === 0 ? " on" : ""}" data-form="${i}">${
+        esc(i === 0 ? "원종" : f.ko_name)}</button>`;
+
+    const headInner = f => `
+      ${iconImg(f.sprite, f.ko_name, "sprite")}
+      <div class="who">
+        <h3>${esc(f.ko_name)}</h3>
+        <span class="rank">${d.meta_rank}위</span>
+        ${f.item_ko_name ? `<span class="stone">${esc(f.item_ko_name)}</span>` : ""}
+      </div>
+      <div class="what">
+        <span class="type-badges">${(f.types || []).map(t =>
+          iconImg(t.icon, typeKo(t.name), "")).join("")}</span>
+      </div>
+      ${baseStats(f.base)}`;
+
     box.innerHTML = `
-      <header class="usage-head">
-        ${iconImg(d.sprite, d.ko_name, "sprite")}
-        <div class="who">
-          <h3>${esc(d.ko_name)}</h3>
-          <span class="rank">${d.meta_rank}위</span>
-          <span class="sub">${esc(d.date)} · ${esc(d.format)}</span>
-        </div>
-        <div class="what">
-          <span class="type-badges">${(d.types || []).map(t =>
-            iconImg(t.icon, typeKo(t.name), "")).join("")}</span>
-        </div>
-        ${baseStats(d.base)}
-      </header>
+      <div class="usage-when">
+        <span class="form-tabs">${forms.map(formTab).join("")}</span>
+        <span class="sub">${esc(d.date)} · ${esc(d.format)}</span>
+      </div>
+      <header class="usage-head">${headInner(forms[0])}</header>
       <div class="usage-cols">
         <section><h4>기술</h4>${bars(d.moves)}</section>
         <section><h4>도구</h4>${bars(d.items)}</section>
@@ -199,6 +216,16 @@ const Usage = (() => {
         <section><h4>같이 쓰는 포켓몬</h4>${bars(d.teammates)}</section>
       </div>
       <p class="usage-source">${esc(d.source)}</p>`;
+
+    // 모습 전환. 머리만 다시 그린다 — 아래 칸의 수치는 원종·메가가 같다.
+    const head = box.querySelector(".usage-head");
+    box.querySelectorAll(".form-tab").forEach(b => {
+      b.addEventListener("click", () => {
+        box.querySelectorAll(".form-tab").forEach(x => x.classList.remove("on"));
+        b.classList.add("on");
+        head.innerHTML = headInner(forms[+b.dataset.form]);
+      });
+    });
   }
 
   return {init, openDetail};

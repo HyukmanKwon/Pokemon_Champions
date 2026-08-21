@@ -9,6 +9,7 @@
 
 from ...domain import Stats
 from ...text import normalize
+from ._rows import rows
 
 
 def fetch_form(conn, base_ko_name, item_ko_name):
@@ -106,3 +107,38 @@ def fetch_required_item(conn, mega_ko_name):
     )
     row = cur.fetchone()
     return row[0] if row else None
+
+
+def fetch_forms(conn, base_ko_name):
+    """이 포켓몬의 메가폼들. 그림·타입·종족값까지 한 벌로.
+
+    fetch_stones 와 무엇이 다른가 — 저쪽은 "무슨 스톤이 필요한가" 라
+    이름 둘만 준다. 화면에 메가의 모습과 종족값을 같이 걸려면 그것으로는
+    모자라서, 원종 조회와 같은 칸을 그대로 뽑는다.
+
+    ── 왜 채용률 화면이 이걸 부르나 ──
+      저쪽 자료는 메가를 원종에 합쳐서 준다. 메가갸라도스의 배틀 이름이
+      Gyarados 다. 그래서 채용률은 원종 한 줄뿐인데, 정작 그 줄의 도구
+      칸에는 갸라도스나이트가 올라와 있다. 무엇으로 메가진화하는지 이미
+      화면에 있는데 그 모습만 없는 셈이라, 여기서 같이 낸다.
+
+    X/Y 가 둘 다 있으면 두 행이다. 이름순이 아니라 스톤 이름순으로
+    정렬해 X 가 Y 앞에 오게 한다.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT mp.id, mp.name, mp.ko_name, mp.type1, mp.type2,
+               mp.h, mp.a, mp.b, mp.c, mp.d, mp.s,
+               (mp.h + mp.a + mp.b + mp.c + mp.d + mp.s) AS total,
+               i.ko_name AS item_ko_name
+        FROM mega_evolutions me
+        JOIN pokemons bp ON bp.id = me.base_id
+        JOIN pokemons mp ON mp.id = me.mega_id
+        LEFT JOIN items i ON i.id = me.item_id
+        WHERE bp.ko_name = %s
+        ORDER BY i.name NULLS FIRST, mp.ko_name
+        """,
+        (normalize(base_ko_name),),
+    )
+    return rows(cur)
