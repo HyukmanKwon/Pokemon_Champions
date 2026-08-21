@@ -302,7 +302,7 @@ function fill(el, slot) {
       ${slot.moves.length ? slot.moves.map(m => `
         <div class="move-row">
           <span>${m.name}</span>
-          ${m.icon ? `<img src="${m.icon}" alt="${m.type}">` : `<span>${m.type}</span>`}
+          ${typeBadge({name: m.type, icon: m.icon})}
         </div>
       `).join("") : `<div class="move-row">없음</div>`}
     </div>
