@@ -1,54 +1,208 @@
-"""채용률 하루치를 받아 DB 에 쌓는다.
+"""채용률을 받아 DB 에 쌓는다. 날마다 도는 유일한 수집 지점.
 
-    python -m scripts.etl.sync.usage --live           저쪽 오늘 값 (기본 수집 경로)
-    python -m scripts.etl.sync.usage --rankings-only  순위만. 요청 1회, 몇 초
-    python -m scripts.etl.sync.usage --dry-run        받아만 보고 넣지 않는다
-    python -m scripts.etl.sync.usage --date 30_07_2026
-    python -m scripts.etl.sync.usage --format Doubles
-    python -m scripts.etl.sync.usage --fill-missing   처음 보는 기술·도구를 채운다
-    python -m scripts.etl.sync.usage --backfill       안 받은 날짜를 전부 (자동 실행용)
+    python -m scripts.etl.sync_usage --live           저쪽 오늘 값 (기본 경로)
+    python -m scripts.etl.sync_usage --backfill       안 받은 날짜를 전부 (자동 실행용)
+    python -m scripts.etl.sync_usage --rankings-only  순위만. 요청 1회, 몇 초
+    python -m scripts.etl.sync_usage --dry-run        받아만 보고 넣지 않는다
+    python -m scripts.etl.sync_usage --date 30_07_2026
+    python -m scripts.etl.sync_usage --fill-missing   처음 보는 기술·도구를 채운다
+    python -m scripts.etl.sync_usage --check-names    317마리가 어디에 붙는지 훑는다
 
 ── 왜 build.py 에 안 들어가나 ──
   PokeAPI 가 아니고, 한 번 만들고 끝이 아니다. build.py 는 빈 DB 에 한 번
-  도는 물건이고 이것은 매일 도는 물건이다. 성질이 달라서 STEPS 에 넣지
-  않는다. migrate_roster · fill_moves 와 같은 자리다. (README §2)
+  도는 물건이고 이것은 매일 도는 물건이다. data/sql/ 에도 안 들어간다 —
+  날마다 붙는 것을 파일로 굳히면 그 파일이 매일 바뀐다.
 
 ── 왜 서두르나 ──
   저쪽은 일자별 자료를 16일치만 남긴다. 오늘 안 받은 날짜는 16일 뒤에
-  사라지고 다시 받을 방법이 없다.
+  사라지고 다시 받을 방법이 없다. 그래서 자동 실행은 "오늘 것만" 이
+  아니라 --backfill 로 "안 받은 것 전부" 를 부른다.
+
+── 받는 길이 둘인 이유 ──
+    --live      저쪽 '오늘 값'. 날짜가 안 붙어 오므로 받은 날로 우리가 찍는다
+    --backfill  저쪽이 보관한 날짜별 CSV. 우리가 못 돈 날을 메운다
+
+  저쪽이 오늘 값은 언제든 주지만 날짜별 보관은 거른다(8-05~8-17 열사흘이
+  색인에 없다). 그래서 우리 시계열은 --live 로 이어 두고, 저쪽이 남긴
+  날짜는 --backfill 로 주워 담는다.
 
 ── 이어받기 ──
   이미 있는 (시즌·날짜·포맷·이름) 은 건너뛴다. 중간에 끊겨도 다시 돌리면
   남은 것부터 이어간다. 같은 날을 다시 받으면 행을 갈아끼운다 —
   두 벌이 되면 추세가 조용히 틀어진다. (usage_repo.save)
 
-── 처음 보는 기술·도구 ──
-  우리 moves · items 는 사람이 고른 목록이다. 저쪽에는 그 목록에 없는 것이
-  나올 수 있다(요정의깃털). 이름은 텍스트로 저장하므로 적재는 막히지
-  않지만, 한국어 이름이 안 붙고 계산기에서도 못 고른다. --fill-missing 을
-  주면 PokeAPI 에서 받아 채운다.
+── 왜 한 파일인가 ──
+  전에는 sync/usage.py · sync/usage_csv.py · scripts/check_usage.py 셋이었다.
+  셋 다 저쪽 서버에서 채용률을 가져오는 일이고, 이름 맞추는 규칙을 함께
+  본다. 갈라 두면 "이름이 안 붙는다" 를 쫓을 때 세 파일을 오가야 한다.
 
-  채운 것은 pokeapi.moves_M_B / pokeapi.EXTRA_ITEMS 에도 손으로
-  넣어야 한다. 그 목록이 재구축의 출처라서, 안 넣으면 다시 지어질 때
-  사라진다. 무엇을 넣어야 하는지는 끝에 출력한다.
+  앱이 요청마다 쓰는 쪽은 여기가 아니다 — usecases/usage_source.py 다.
+  그쪽은 배포판에 들어가고 이 파일은 안 들어간다. 생명주기가 달라서
+  합치지 않는다.
 """
 
 import argparse
+import csv
+import io
+import json
 import sys
 import time
-from datetime import date
+import urllib.parse
+from datetime import date, datetime
+
+import requests
 
 from pokemon_champions.db import connect
 from pokemon_champions.db.repositories import lookup_repo, pokemon_repo, usage_repo
 from pokemon_champions.usecases import usage, usage_source
+from pokemon_champions.usecases.usage_source import BASE, fetch_index
 
-from . import usage_csv
+from .pokeapi import (ITEMS_COLUMNS as ITEM_COLUMNS,
+                      MOVES_COLUMNS as MOVE_COLUMNS,
+                      MOVE_STAT_COLUMNS as STAT_COLUMNS,
+                      MOVE_STAT_TABLE as STAT_TABLE,
+                      fetch_item, fetch_move, parse_item, parse_move,
+                      parse_stat_changes)
 
-from ..pokeapi import (ITEMS_COLUMNS as ITEM_COLUMNS, MOVES_COLUMNS as MOVE_COLUMNS,
-                       MOVE_STAT_COLUMNS as STAT_COLUMNS,
-                       MOVE_STAT_TABLE as STAT_TABLE,
-                       fetch_item, fetch_move, parse_item, parse_move,
-                       parse_stat_changes)
+
+# ─────────────────────────────────────────────────────────────
+# 지난 날짜 — 색인이 가리키는 CSV 를 받는다
+# /api/battle/{fmt}/{key} 는 date 를 줘도 무시하고 늘 최신 하루치를
+# 준다. 없는 날짜를 물어도 에러로 안 걸린다. 지난 날짜는 색인이
+# 알려주는 원본 CSV 경로로 받는 수밖에 없다.
+#
+# 돌려주는 rows 는 usage_source.fetch_battle() 과 모양을 맞춘다 —
+# 같은 자료를 읽는 코드가 받아온 경로에 따라 갈리지 않게 한다.
+# ─────────────────────────────────────────────────────────────
+
+SP_COLUMNS = ("hp_points", "attack_points", "defense_points",
+              "sp_atk_points", "sp_def_points", "speed_points")
+
+
+def _int(text):
+    text = (text or "").strip()
+    return int(text) if text.lstrip("-").isdigit() else None
+
+
+def _percent(text):
+    """'99.4%' -> 99.4. 빈 칸(함께 쓰는 포켓몬)은 None."""
+    text = (text or "").strip().rstrip("%")
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def parse_csv(text):
+    """CSV 한 장을 fetch_battle() 의 rows 와 같은 모양으로. 아니면 None.
+
+    없는 날짜나 이름을 물으면 404 가 아니라 화면 HTML 이 200 으로 온다.
+    상태 코드로는 못 거르므로 내용을 본다.
+    """
+    if not text or text.lstrip().startswith("<"):
+        return None
+
+    rows = []
+    for r in csv.DictReader(io.StringIO(text)):
+        if not r.get("category"):
+            continue
+        # 날짜마다 칸이 조금씩 다르다. 25_07 에는 source_time_seconds 가
+        # 하나 더 붙어 있었다. 아는 칸만 집어서 그 차이를 여기서 흡수한다.
+        row = {
+            "category": r["category"],
+            "rank": _int(r.get("rank")),
+            "name": (r.get("name") or "").strip(),
+            "percentage_value": _percent(r.get("percentage")),
+            "stat_up": (r.get("stat_up") or "").strip(),
+            "stat_down": (r.get("stat_down") or "").strip(),
+            # 그 포켓몬의 메타 순위. 줄마다 같은 값이 되풀이돼 오지만
+            # 버리지 않는다 — 이것이 "가장 많이 쓰이는 포켓몬" 의 답이다.
+            # 예전에는 파싱에서 떨어뜨려서, 받아놓고도 못 쓰고 있었다.
+            "column_position": _int(r.get("column_position")),
+        }
+        row.update({c: _int(r.get(c)) for c in SP_COLUMNS})
+        rows.append(row)
+    return rows or None
+
+
+def fetch_csv(path):
+    """색인이 준 CSV 경로 하나를 rows 로. 못 받으면 None.
+
+    경로에 공백이 들어간다 (.../Singles/Alolan Raichu.csv). 인코딩해야 한다.
+    캐시하지 않는다 — 지난 날짜를 두는 곳은 DB 다.
+    """
+    try:
+        res = requests.get(f"{BASE}/{urllib.parse.quote(path)}", timeout=15)
+        res.raise_for_status()
+    except requests.RequestException:
+        return None
+    return parse_csv(res.text)
+
+
+def to_date(folder):
+    """저쪽 폴더 이름 '04_08_2026' -> date. 모양이 다르면 None."""
+    try:
+        return datetime.strptime(folder, "%d_%m_%Y").date()
+    except (ValueError, TypeError):
+        return None
+
+
+def daily_dates(season=None):
+    """일자별 자료가 있는 날짜들. 최신이 뒤로 오게 정렬해서 돌려준다.
+
+    돌려주는 값은 (season, 폴더이름) 이다. 폴더 이름은 그대로 둔다 —
+    URL 을 만들 때 쓰는 것이 날짜가 아니라 이 문자열이기 때문이다.
+    """
+    index = fetch_index()
+    if not index:
+        return []
+
+    out = []
+    for folder in index.get("dailyDataFolders", []):
+        head, _, tail = folder.partition("/")
+        if season and head != season:
+            continue
+        if to_date(tail):
+            out.append((head, tail))
+    return sorted(out, key=lambda sd: to_date(sd[1]))
+
+
+def csv_entries(fmt="Singles", season=None, date=None):
+    """그 날짜에 받을 수 있는 CSV 목록. [{battle_name, season, date, path}]
+
+    date 를 안 주면 가장 최근 하루를 고른다. 경로를 우리가 조립하지 않고
+    색인이 적어둔 것을 그대로 쓴다 — 어떤 폼이 어느 파일에 들어 있는지는
+    저쪽 사정이라, 규칙으로 짐작하면 조용히 어긋난다.
+    """
+    index = fetch_index()
+    if not index:
+        return []
+
+    if date is None:
+        dates = daily_dates(season)
+        if not dates:
+            return []
+        season, date = dates[-1]
+
+    out = []
+    for entry in index.get("pokemon", []):
+        name = entry.get("battleName") or entry.get("name")
+        if not name:
+            continue
+        for csv_info in entry.get("battleDataCsvs") or []:
+            if (csv_info.get("date") == date
+                    and csv_info.get("format") == fmt
+                    and (season is None or csv_info.get("season") == season)):
+                out.append({"battle_name": name,
+                            "season": csv_info.get("season"),
+                            "date": date,
+                            "path": csv_info["path"]})
+                break
+    return out
+
+# ─────────────────────────────────────────────────────────────
+# 받은 것을 우리 표로
+# ─────────────────────────────────────────────────────────────
 
 # 저쪽 갈래 -> 이름을 맞춰볼 우리 표. teammate 는 pokemons 지만 이름 규칙이
 # 달라 여기 넣지 않는다 (resolve_pokemon 이 따로 한다).
@@ -94,7 +248,7 @@ def to_rows(raw_rows):
             out.append({"category": cat, "rank": raw["rank"],
                         "source_name": None,
                         "percent": raw["percentage_value"],
-                        **{c: raw.get(c) for c in usage_csv.SP_COLUMNS}})
+                        **{c: raw.get(c) for c in SP_COLUMNS}})
         elif en is not None:
             out.append({"category": cat, "rank": raw["rank"],
                         "source_name": en,
@@ -127,14 +281,14 @@ def resolve_names(conn, picks, maps, index):
 
 def collect(conn, fmt, season, date, sleep, limit, dry_run, refetch=False):
     """하루치를 받아 넣는다. (넣음, 건너뜀, 실패) 를 돌려준다."""
-    entries = usage_csv.csv_entries(fmt=fmt, season=season, date=date)
+    entries = csv_entries(fmt=fmt, season=season, date=date)
     if not entries:
         print("받을 것이 없습니다. 색인을 못 받았거나 그 날짜가 없습니다.")
         return 0, 0, 0
 
     season = entries[0]["season"]
     date = entries[0]["date"]
-    day = usage_csv.to_date(date)
+    day = to_date(date)
     print(f"{season} · {date} · {fmt} — 대상 {len(entries)}마리")
 
     have = (usage_repo.known_keys(conn, season, fmt)
@@ -153,7 +307,7 @@ def collect(conn, fmt, season, date, sleep, limit, dry_run, refetch=False):
             skipped += 1
             continue
 
-        rows = usage_csv.fetch_csv(entry["path"])
+        rows = fetch_csv(entry["path"])
         if rows is None:
             failed += 1
             print(f"  ✗ {name} — 못 받았습니다")
@@ -374,8 +528,8 @@ def missing_dates(conn, fmt, season=None, since=None):
                 "WHERE format = %s", (fmt,))
     have = {r[0] for r in cur.fetchall()}
     out = []
-    for s, d in usage_csv.daily_dates(season):
-        day = usage_csv.to_date(d)
+    for s, d in daily_dates(season):
+        day = to_date(d)
         if day in have or (since and day < since):
             continue
         out.append((s, d))
@@ -397,8 +551,8 @@ def backfill(conn, fmt, season, sleep, limit, dry_run, refetch=False,
     ── 오래된 것부터 ──
       중간에 끊기면 사라지기 직전의 것부터 남아 있어야 한다.
     """
-    todo = ([(s, d) for s, d in usage_csv.daily_dates(season)
-             if not since or usage_csv.to_date(d) >= since] if refetch
+    todo = ([(s, d) for s, d in daily_dates(season)
+             if not since or to_date(d) >= since] if refetch
             else missing_dates(conn, fmt, season, since))
     if not todo:
         print(f"{fmt}: 받을 수 있는 날짜를 전부 받았습니다.")
@@ -412,6 +566,60 @@ def backfill(conn, fmt, season, sleep, limit, dry_run, refetch=False,
         total = [a + b for a, b in zip(total, got)]
     return tuple(total)
 
+# ─────────────────────────────────────────────────────────────
+# 붙음 점검 — DB 를 건드리지 않는다
+# ─────────────────────────────────────────────────────────────
+
+def check_names(conn, fmt, miss_only=False):
+    """317마리가 채용률 자료의 어느 이름에 붙는지 한 번에 훑는다.
+
+    ── 왜 필요한가 ──
+      이름 맞추기를 표로 적지 않고 색인에서 자동으로 한다. 자동이라
+      조용히 틀릴 수 있다 — 엉뚱한 포켓몬에 붙어도 에러가 안 난다.
+      그래서 317줄을 눈으로 훑을 수 있게 뽑아준다.
+
+      특히 볼 것: 메가폼이 원종으로 접히는지, 지역폼이 제 이름으로
+      붙는지, 펌킨인·킬가르도·모르페코처럼 저쪽이 안 나누는 폼이 한
+      곳으로 모이는지.
+    """
+    if usage_source.fetch_index() is None:
+        print("색인을 못 받았습니다. 네트워크를 확인하세요.")
+        return 1
+
+    rows = pokemon_repo.fetch_list(conn)
+    hit = miss = mega = 0
+    for r in sorted(rows, key=lambda r: r["name"]):
+        name, was_mega = usage_source.battle_name(r["name"])
+        if name is None:
+            miss += 1
+            print(f"  ✗ {r['ko_name'] or r['name']:<18} {r['name']}")
+            continue
+        hit += 1
+        mega += bool(was_mega)
+        if not miss_only:
+            tag = " (메가→원종)" if was_mega else ""
+            print(f"  · {r['ko_name'] or r['name']:<18} -> {name}{tag}")
+
+    print(f"\n붙음 {hit} · 못 붙음 {miss} · 그중 메가 접힘 {mega}")
+    print("못 붙은 것은 랭크배틀 표본이 적어 자료에 안 실린 경우가 많습니다.")
+    return 0 if miss == 0 else 1
+
+
+def check_one(conn, ko_name, fmt):
+    """한 마리만 실제로 받아 무엇이 오는지 그대로 찍는다."""
+    cur = conn.cursor()
+    cur.execute("SELECT name FROM pokemons WHERE ko_name = %s", (ko_name,))
+    row = cur.fetchone()
+    if row is None:
+        print(f"'{ko_name}' 은(는) DB 에 없습니다.")
+        return 1
+    print(json.dumps(usage.usage_of(conn, row[0], ko_name, fmt),
+                     ensure_ascii=False, indent=2))
+    return 0
+
+# ─────────────────────────────────────────────────────────────
+# 실행
+# ─────────────────────────────────────────────────────────────
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -441,10 +649,27 @@ def main(argv=None):
     ap.add_argument("--limit", type=int, help="앞의 N 마리만 (시험용)")
     ap.add_argument("--sleep", type=float, default=0.3,
                     help="요청 간격(초). 남의 서버다 (기본 0.3)")
+
+    # 넣지 않고 보기만 하는 갈래. 이름이 조용히 어긋나는 것을 잡는다.
+    ap.add_argument("--check-names", action="store_true",
+                    help="317마리가 저쪽 어느 이름에 붙는지 훑는다. DB 를 안 건드린다")
+    ap.add_argument("--check-miss", action="store_true",
+                    help="--check-names 중 못 붙은 것만 찍는다")
+    ap.add_argument("--check-one", metavar="한국어이름",
+                    help="한 마리만 실제로 받아 응답을 그대로 찍는다")
+    ap.add_argument("--clear-cache", action="store_true",
+                    help="받아둔 채용률 캐시를 비우고 시작한다")
     args = ap.parse_args(argv)
 
     conn = connect()
     try:
+        if args.clear_cache:
+            print(f"캐시 {usage_source.clear()}개 삭제")
+        if args.check_one:
+            return check_one(conn, args.check_one, args.format)
+        if args.check_names or args.check_miss:
+            return check_names(conn, args.format, args.check_miss)
+
         # 순위는 늘 같이 받는다. 요청 한 번이라 공짜에 가깝고, 이게 없으면
         # "가장 많이 쓰이는 포켓몬" 에 답할 자료가 아예 없다.
         sync_rankings(conn, args.format, dry_run=args.dry_run)
@@ -471,9 +696,9 @@ def main(argv=None):
         total, rows, first, last = usage_repo.counts(conn)
         print(f"쌓인 것: 스냅샷 {total}장 · {rows}행 · {first} ~ {last}")
 
-        entries = usage_csv.csv_entries(
+        entries = csv_entries(
             fmt=args.format, season=args.season, date=args.date)
-        day = usage_csv.to_date(entries[0]["date"]) if entries else None
+        day = to_date(entries[0]["date"]) if entries else None
         gaps = find_missing(conn, day, args.format)
         if not gaps:
             print("\n우리 표에 없는 기술·도구는 없습니다.")
@@ -494,7 +719,7 @@ def main(argv=None):
             print("\n도구 채우기")
             added["EXTRA_ITEMS"] = fill_items(conn, gaps["held_item"])
 
-        print("\n재구축 때 사라지지 않게 아래 목록에도 넣으세요.")
+        print("\n재구축 때 사라지지 않게 pokeapi.py 의 아래 목록에도 넣으세요.")
         for where, names in added.items():
             if names:
                 print(f"  {where}: {', '.join(repr(n) for n in names)}")
