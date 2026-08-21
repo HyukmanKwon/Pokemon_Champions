@@ -46,14 +46,15 @@ Pokemon_Champions/
 ├── pyproject.toml
 │
 ├── data/                    ▸ 실행되지 않는 것
-│   ├── sql/                     DB 배포본 12개              (git 커밋)
-│   ├── overrides/               사람이 확정한 값 4개          (git 커밋)
+│   ├── sql/                     DB 배포본 2개               (git 커밋)
 │   ├── cache/ images/           다시 만들 수 있는 것          (git 제외)
 │   └── decks.json               개인 데이터                  (git 제외)
 │
 ├── scripts/                 ▸ 손으로 가끔 돌리는 것. 배포 안 됨
-│   ├── check_*.py               계산 결과를 알려진 값과 대조
-│   └── etl/                     PokeAPI -> SQL -> DB
+│   ├── chat.py                  LLM 도우미와 대화
+│   ├── make_type_icons.py       타입 배지를 한국어로
+│   └── etl/                     데이터베이스 — schema · pokeapi ·
+│                                build · sync_usage · load_sql · dump_sql
 │
 ├── tests/
 │

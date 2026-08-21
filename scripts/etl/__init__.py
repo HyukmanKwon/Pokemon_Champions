@@ -1,4 +1,4 @@
-"""PokeAPI -> SQL -> DB 구축 파이프라인.
+"""데이터베이스 — 짓고, 넣고, 받아 적고, 채용률을 이어 받는다.
 
 ── 왜 src/ 밖에 있나 ──
   ETL 은 몇 달에 한 번 손으로 돌리는 코드고, src/pokemon_champions 는 요청마다
@@ -9,13 +9,22 @@
   scripts/etl -> pokemon_champions  (O)  접속 설정·도메인 모델 재사용
   pokemon_champions -> scripts/etl  (X)  절대 금지
 
+── 파일 이름이 값의 출처를 말한다 ──
+      schema.py       표를 만드는 SQL 과 넣는 SQL. DDL 의 단일 출처
+      pokeapi.py      남의 서버(PokeAPI)에서 오는 값
+      build.py        코드에 적힌 고정값 + 구축 순서. 유일한 진입점
+      sync_usage.py   날마다 쌓이는 것 (championsbattledata.com)
+      load_sql.py     data/sql/ -> DB
+      dump_sql.py     DB -> data/sql/
+
 ── 실행 ──
-  프로젝트 루트에서 -m 으로 돌린다. 예전처럼 cd 해서 실행하지 않는다.
+  프로젝트 루트에서 -m 으로 돌린다.
 
-      python -m scripts.etl.build                    전체 구축
-      python -m scripts.etl.build --only items       06_items.sql 만 생성
-      python -m scripts.etl.annotator.moves
+      python -m scripts.etl.load_sql                 설치. API 0회, 몇 초
+      python -m scripts.etl.build                    전체 구축. 약 1,900회
+      python -m scripts.etl.build --only items       한 단계만
+      python -m scripts.etl.sync_usage --live        채용률 오늘 값
 
-  get_*.py 는 직접 돌리지 않는다. 그 파일들이 노출하는 것은 build(conn) 과
-  표 이름 몇 개뿐이고, 파일을 만들고 DB 에 올리는 일은 build.py 가 한다.
+  pokeapi.py 는 직접 돌리지 않는다. 노출하는 것은 build_* 함수와 표 이름
+  뿐이고, DB 에 올리는 일은 build.py 가 한다.
 """

@@ -11,6 +11,22 @@ out of the distributed package.
 - Run from the project root with `-m`: `python -m scripts.etl.build`.
   Never `sys.path.append` — that makes the working directory part of the code.
 - These files may `print()` freely. That is the point of them.
+- Nothing lives here that does not participate in serving the app. A tool you
+  would run once and forget belongs in the commit message, not the tree.
+
+## What is here
+
+| | What |
+|---|---|
+| `etl/` | the database — build it, load it, dump it, keep usage flowing |
+| `chat.py` | talk to the helper from a terminal. The LLM path |
+| `make_type_icons.py` | redraw type badges in Korean |
+| `daily_usage.sh` + `.plist` | launchd job that runs `sync_usage` daily |
+
+`make_type_icons.py` looks like a one-off but is not. `data/images/` is
+gitignored and `assets.type_icon()` returns `None` rather than drawing, so
+this script is the only way a fresh clone gets Korean type badges. Deleting
+it silently drops every badge to a 404.
 
 ## etl/ — three directions, do not confuse them
 
@@ -22,10 +38,12 @@ out of the distributed package.
 
 `build.py` needs an empty DB and always re-fetches. **It does not write
 `data/sql/`** — only `dump_sql.py` does. Do not run `build.py` to "fix" a
-database.
+database; fix it in psql and dump.
 
-`data/sql/` is two files and is the seed for rebuilding (new machine, disaster
-recovery, CI):
+`data/sql/` is two files and is the only home for values a rebuild cannot
+reproduce — Korean names PokeAPI does not have, move flags its CSV does not
+cover. There is no second copy; `data/overrides/` used to be one and was
+removed because keeping two in sync was the only work it created.
 
 | | From | What |
 |---|---|---|
@@ -35,13 +53,13 @@ recovery, CI):
 After any change that alters DB contents, run `dump_sql.py` and commit the
 result, or a rebuild will not match your database.
 
-`sync/usage.py` is the exception: usage snapshots accumulate daily and are
+`sync_usage.py` is the exception: usage snapshots accumulate daily and are
 **not** part of `data/sql/`. `daily_usage.sh` runs it under launchd.
-Always use `--backfill`, never "today only" — a missed day is gone once the
-source drops it. Already-fetched dates are skipped, so running it daily
-costs nothing.
+Always use `--live` and `--backfill`, never "today only" — a missed day is
+gone once the source drops it. Already-fetched dates are skipped, so running
+it daily costs nothing.
 
-`--since` defaults to `SEASON_START` in `sync/usage.py`. The source's folder
+`--since` defaults to `SEASON_START` in `sync_usage.py`. The source's folder
 names keep the old season label (2026-08-18 data still sits under `M4/`), so
 the season boundary is a **date**, not the label. Bump `SEASON_START` when a
 new regulation begins.
@@ -58,23 +76,27 @@ Two lists carry the order, and adding a table means adding it to both:
 - `CONTENT_ORDER` — table names in FK-safe insert order. Tables that ship
   empty (the `usage_*` family) are left out.
 
-## Generators — the folder is the data source
+INSERT assembly (`sql_of`, `to_values`) lives here too. Both `pokeapi.py` and
+`build.py` need it, and `build.py` already imports `pokeapi.py`, so putting it
+in either one would make the two import each other.
 
-| Folder | Source | Cost |
+## The file name says where the values come from
+
+| File | Source | Cost |
 |---|---|---|
-| `etl/make/` | values written in the code, or derived from the DB | no API calls |
-| `etl/get/` | PokeAPI | ~1,900 calls for a full build |
-| `etl/sync/` | championsbattledata.com | accumulates daily |
-| `etl/tools/` | — | not part of a build |
+| `build.py` | values written in the code, or derived from the DB | no API calls |
+| `pokeapi.py` | PokeAPI | ~1,900 calls for a full build |
+| `sync_usage.py` | championsbattledata.com | accumulates daily |
 
-Put a new generator in the folder its values come from, not the one named
-after what it builds. The listing should answer "what does a rebuild cost?".
+Put a new generator in the file its values come from, not the one named after
+what it builds. A reader should be able to answer "what does a rebuild cost?"
+from the listing alone.
 
-`sync/` is the odd one: it is not a build step and never enters `data/sql/`
-or `build.py`, because usage snapshots accumulate instead of being rebuilt.
+`sync_usage.py` is the odd one: it is not a build step and never enters
+`data/sql/` or `build.py`, because usage snapshots accumulate instead of
+being rebuilt.
 
-Each module in `make/` and `get/` exposes `TABLE`, `COLUMNS`, and
-`build(conn)`. A generator that fills a second table from the same API
-response declares `EXTRA = [(table, columns)]` so `dump_sql` knows its
-columns. `build(conn)` returns **`INSERT` statements only** — no DDL.
-Literal tables build through `parse_utils.literal_build`.
+`build.py` drives everything through `STEPS`, a list of `Step(name, table,
+columns, build, extra)`. `build` returns **`INSERT` statements only** — no
+DDL. A step that fills a second table from the same API response lists it in
+`extra` so `dump_sql` knows its columns.

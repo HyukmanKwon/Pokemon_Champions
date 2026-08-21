@@ -68,8 +68,7 @@ Pokemon_Champions/
 ├── .env.example
 │
 ├── data/                       코드가 아닌 것. 전부 여기
-│   ├── sql/                    DB 를 만드는 SQL 12개       (git 커밋)
-│   ├── overrides/              사람이 확정한 값 4개         (git 커밋)
+│   ├── sql/                    DB 를 만드는 SQL 2개        (git 커밋)
 │   ├── cache/                                            (git 제외)
 │   │   ├── move_flag_map.csv   PokeAPI 기술 플래그 원본
 │   │   └── usage/              배틀 데이터(채용률) 응답
@@ -79,31 +78,17 @@ Pokemon_Champions/
 │
 ├── scripts/                    손으로 돌리는 것. 런타임 아님
 │   ├── chat.py                 LLM 도우미와 대화
-│   ├── check_damage.py         계산 결과를 알려진 값과 대조
 │   ├── make_type_icons.py      타입 배지를 한국어로 다시 그린다
-│   ├── check_usage.py          채용률을 대조
 │   ├── daily_usage.sh          채용률 수집 (launchd 가 부른다)
 │   ├── com.hyukman.pokemon-usage.plist   launchd 설정
-│   ├── fetch_assets.py         스프라이트 내려받기
 │   │
-│   └── etl/                    PokeAPI -> SQL -> DB
+│   └── etl/                    데이터베이스
+│       ├── schema.py           표를 만드는 SQL + 넣는 SQL. DDL 단일 출처
+│       ├── pokeapi.py          PokeAPI 에서 오는 값 (약 1,900회 호출)
+│       ├── build.py            코드에 적힌 고정값 + 구축 순서. 진입점
+│       ├── sync_usage.py       채용률. 날마다 쌓인다
 │       ├── load_sql.py         data/sql/ 을 빈 DB 에 넣기 (설치하는 쪽)
-│       ├── build.py            PokeAPI 에서 새로 구축 (약 1,900회 호출)
 │       ├── dump_sql.py         반대 방향 — 지금 DB 를 data/sql/ 로
-│       ├── schema.py           모든 DDL의 단일 출처
-│       ├── get_*.py            단계별 생성기 12개
-│       ├── tools/fill_moves.py    기술만 추가 (전체 재구축 없이)
-│       ├── sync/usage.py       채용률 하루치를 DB 에 쌓기 (매일)
-│       ├── sync/usage_csv.py   지난 날짜를 CSV 로 (usage.py 만 쓴다)
-│       ├── tools/migrate_roster.py  로스터 증감만 반영
-│       ├── tools/pin_ko_names.py    DB 의 한국어 표기를 override 로 고정
-│       ├── tools/check_moves.py     외부 목록과 기술 대조
-│       ├── overrides.py        사람이 확정한 값 읽기/쓰기
-│       ├── move_flags.py       기술 플래그 (CSV + 이름 규칙)
-│       ├── translation.py      이름 한↔영, 폼 이름 조립
-│       ├── parse_utils.py      PokeAPI 파싱 + SQL 조립
-│       ├── paths.py            data/ 경로 (config.py 재사용)
-│       ├── annotator/          브라우저로 손수 확정하는 도구
 │       └── README.md
 │
 ├── src/pokemon_champions/      실제로 배포되는 패키지
@@ -163,7 +148,7 @@ Pokemon_Champions/
 │                               decks · calc · agent
 │
 └── tests/                      계산 테스트는 DB 없이, 도구·라우트는 DB 로
-    ├── conftest.py             overrides 격리 · db 픽스처 · 덱 격리
+    ├── conftest.py             db 픽스처 · 덱 격리
     ├── golden/                 도구·라우트 응답을 통째로 박아둔 것
     ├── test_damage.py          61개 (데미지 · 턴 끝 정산 · 내구력)
     ├── test_roster.py          8개 — 덱 상한과 삭제 규칙
@@ -172,17 +157,17 @@ Pokemon_Champions/
 ```
 
 `data/sql/` 을 커밋하는 이유가 여기 있다. 이 파일들을 처음 만드는 것은 `build.py`
-지만, DB 는 빌드 이후로도 애노테이터 · `tools/fill_moves` · `migrate_roster` 로 계속
-움직인다. 그 손댄 결과는 **PokeAPI 를 다시 불러도 나오지 않는다.** 그러니 이건
-재생성 가능한 부산물이 아니라 다시 만들 수 없는 결과물이고, `data/overrides/` 와
-같은 취급을 받아야 한다.
+지만, DB 는 빌드 이후로도 계속 움직인다 — PokeAPI 에 없는 한국어 이름을 채우고,
+CSV 가 못 채우는 기술 플래그를 확인해 고치고, 로스터를 갈아끼운다. 그 손댄
+결과는 **PokeAPI 를 다시 불러도 나오지 않는다.** 그러니 이건 재생성 가능한
+부산물이 아니라 다시 만들 수 없는 결과물이고, 저장소 안에서 유일한 보관처다.
 
 세 스크립트가 그 왕복을 나눠 맡는다.
 
 | | 언제 | 무엇을 |
 |---|---|---|
 | `load_sql.py` | 설치할 때마다 | `data/sql/` -> DB. API 호출 0회, 몇 초 |
-| `build.py` | 새 레귤레이션 | PokeAPI -> `data/sql/` -> DB. 1,900회, 몇 분 |
+| `build.py` | 새 레귤레이션 | PokeAPI -> DB. 1,900회, 몇 분 |
 | `dump_sql.py` | DB 를 손본 뒤 | DB -> `data/sql/`. 그리고 커밋한다 |
 
 `dump_sql.py` 는 행을 기본키순으로 정렬하므로 두 번 돌리면 같은 파일이 나온다.
@@ -190,7 +175,7 @@ Pokemon_Champions/
 
 채용률 세 표(`usage_names` · `usage_snapshots` · `usage_rows`)는 `data/sql/`
 에 없다. PokeAPI 가 아니라 하루 한 벌씩 쌓이는 것이라 배포할 내용이 없다.
-`load_sql.py` 가 빈 표만 만들고, `sync/usage.py` 가 채운다.
+`load_sql.py` 가 빈 표만 만들고, `sync_usage.py` 가 채운다.
 
 셋이 답하는 질문이 다르다.
 
@@ -296,7 +281,7 @@ ETL은 몇 달에 한 번 손으로 돌리는 코드고 `src/`는 요청마다 �
 Python은 "현재 실행 위치"를 기준으로 모듈을 찾는다. 파일이 평평하게 놓여 있으면
 `python get_moves.py`는 되는데 `python scripts/get_moves.py`는 ImportError가 난다.
 그래서 초보 프로젝트에 `sys.path.append('..')`가 생기는데, 이게 붙는 순간 **실행 위치가
-코드의 일부**가 된다. (실제로 옮기기 전 `annotator/_common.py`가 이 조작을 하고 있었다.)
+코드의 일부**가 된다. (실제로 옮기기 전 이 조작을 하는 파일이 있었다.)
 
 `pip install -e .` 이후에는 어디서 실행하든 `import pokemon_champions`가 통한다. 나중에
 앱으로 배포하거나 컨테이너에 올릴 때 이 차이가 결정적이다. `src/`로 한 겹 감싸는 것은
@@ -338,14 +323,13 @@ Python은 "현재 실행 위치"를 기준으로 모듈을 찾는다. 파일이 
 
 | 폴더 | git | 이유 |
 |---|---|---|
-| `overrides/` | 커밋 | 사람이 눈으로 확인해 확정한 값. 다시 만들 수 없다 |
-| `sql/` | 커밋 | 그 확정한 값이 반영된 DB 자체. 이게 배포물이다 |
+| `sql/` | 커밋 | 사람이 확정한 값이 반영된 DB 자체. 이게 배포물이다 |
 | `cache/` `images/` | 제외 | 스크립트가 언제든 다시 만든다 |
 | `decks.json` | 제외 | 개인 데이터 |
 | `my_team.json` | 제외 | 개인 데이터. decks.json 이 없을 때 한 번 옮겨온다 |
 
 가르는 기준은 **"지우고 스크립트를 돌리면 똑같은 것이 나오는가"** 다. `cache/` 와
-`images/` 는 나온다. `sql/` 은 안 나온다 — 애노테이터로 손본 것이 들어 있다.
+`images/` 는 나온다. `sql/` 은 안 나온다 — 사람이 눈으로 확인해 손본 값이 들어 있다.
 
 내려받은 이미지를 패키지 폴더가 아니라 `data/images/`에 두는 이유도 같다. wheel로
 설치하면 패키지 폴더에 쓰기 권한이 없어 깨진다.
@@ -453,11 +437,6 @@ n/16 으로 세지므로 곱셈으로는 영영 안 나온다.
 `analyze_ko`가 아직 방어자에게만 부른다. 둘 중 무엇이 먼저 필요한지는 실제로
 써 보고 정한다.
 
-**도구 `reviewed` 채우기** — `items.reviewed`가 0/166이다. 수집 범위를 좁히는
-쪽(`get/items.py`의 `ITEM_CATEGORIES` + `EXTRA_ITEMS`)이 먼저 걸러 주고 있어서 지금
-아프지는 않지만, 화면에는 166개가 전부 "미확인"으로 뜬다. `annotator.items`를
-돌리거나, 이 방식을 접기로 하고 지우거나 — 둘 중 하나로 정해야 한다.
-
 ### 작업 규칙
 
 리팩터링과 기능 추가를 같은 커밋에 넣지 않는다. 뭐 때문에 깨졌는지 영원히 못 찾는다.
@@ -488,7 +467,7 @@ n/16 으로 세지므로 곱셈으로는 영영 안 나온다.
 | `core/assets.py` | `assets.py` | 저장 위치가 `data/images/` |
 | `core/database/db.py` | `config.py` + `db/connection.py` | 설정과 접속을 분리 |
 | `core/database/*.py` | `scripts/etl/*.py` | `main.py` → `build.py` |
-| `core/database/{sql,overrides,cache}/` | `data/{sql,overrides,cache}/` | |
+| `core/database/{sql,overrides,cache}/` | `data/{sql,cache}/` | `overrides/` 는 나중에 DB 로 접었다 |
 | — | `pyproject.toml`, `tests/`, `.env.example` | 신규 |
 
 그 뒤 `services/` 가 둘로 갈렸다. 순수 계산과 조립이 한 폴더에 섞여 있어서
@@ -506,7 +485,6 @@ n/16 으로 세지므로 곱셈으로는 영영 안 나온다.
 ```bash
 python -m scripts.etl.build                 # 이전: cd database && python main.py
 python -m scripts.etl.build --only items    # 이전: python get_items.py
-python -m scripts.etl.annotator.moves       # 이전: python annotator/moves.py
 ```
 
 DB 스키마와 데이터는 건드리지 않았다. 재구축 없이 그대로 쓸 수 있다.

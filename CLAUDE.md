@@ -38,10 +38,13 @@ python -m scripts.etl.load_sql   # set up the DB from data/sql/ (seconds, no API
 pytest                            # 103 tests; 93 need no DB
 python main.py                    # CLI
 python web.py                     # http://127.0.0.1:8000
+python -m scripts.chat            # talk to the helper (LLM)
 ```
 
 Do **not** run `scripts.etl.build` casually — it makes ~1,900 PokeAPI calls
-and requires an empty DB.
+and requires an empty DB. To fix data, edit the DB in psql and freeze it with
+`python -m scripts.etl.dump_sql`. `data/sql/` is the only home for values a
+rebuild cannot reproduce.
 
 ## Commits
 
