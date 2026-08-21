@@ -374,7 +374,16 @@ def fetch_rank_delta(conn, fmt="Singles", days=7):
       한 마리도 안 달랐다. 직전과만 견주면 화면이 늘 "변화 없음" 이 되어
       쓸모가 없다. 대신 days 일 전과 견준다.
 
-    비교할 앞날이 없으면 delta 가 None 이다.
+    ── 그만큼 오래된 날이 없으면 가장 가까운 앞날과 견준다 ──
+      days 일을 채우는 날짜만 찾으면, 쌓기 시작한 지 얼마 안 됐을 때
+      기준일이 아예 없어서 235마리가 전부 None 이 된다. 화면에는 "순위
+      변동" 칸이 통째로 비어 나오는데, 그게 "변동이 없다" 인지 "비교할
+      자료가 없다" 인지 구분되지 않는다. 실제로 그렇게 비어 있었다.
+
+      그래서 못 채우면 그냥 바로 앞 날짜와 견준다. 무엇과 견줬는지는
+      compared_to 로 같이 나가고 화면이 그 날짜를 밝힌다.
+
+    앞날이 하나도 없으면(첫 수집일) 그때는 delta 가 None 이다.
     """
     cur = conn.cursor()
     cur.execute(
@@ -383,10 +392,16 @@ def fetch_rank_delta(conn, fmt="Singles", days=7):
             SELECT max(snapshot_date) AS d FROM usage_snapshots WHERE format = %(fmt)s
         ),
         base AS (
-            -- days 일 전에 가장 가까운 날. 그날이 없으면 그 앞의 것.
-            SELECT max(snapshot_date) AS d FROM usage_snapshots
-            WHERE format = %(fmt)s
-              AND snapshot_date <= (SELECT d FROM latest) - %(days)s::int
+            -- days 일 전에 가장 가까운 날. 그만큼 오래된 날이 없으면
+            -- 바로 앞 날짜. 둘 다 없으면(첫 수집일) NULL 이다.
+            SELECT COALESCE(
+                (SELECT max(snapshot_date) FROM usage_snapshots
+                  WHERE format = %(fmt)s
+                    AND snapshot_date <= (SELECT d FROM latest) - %(days)s::int),
+                (SELECT max(snapshot_date) FROM usage_snapshots
+                  WHERE format = %(fmt)s
+                    AND snapshot_date < (SELECT d FROM latest))
+            ) AS d
         )
         SELECT now.battle_name, p.name AS pokemon_name,
                now.position AS usage_rank,
