@@ -73,8 +73,8 @@ CREATE TABLE moves (
     max_hits        INT,          -- 연속기 최대 타수. 단타는 NULL
 
     -- 기술 플래그. PokeAPI에 없어서 이름 규칙으로 추측하고 사람이 확인한다.
-    -- 확정값과 확인 여부는 overrides/move_flags.json 에 쌓인다.
-    -- (annotator/moves.py) 확인 여부는 큐레이션 작업 상태라 표에 두지 않는다.
+    -- 추측이 틀린 것은 DB 에서 직접 고치고 dump_sql 로 굳힌다.
+    -- 확인 여부는 큐레이션 작업 상태라 표에 두지 않는다.
     is_contact  BOOLEAN NOT NULL DEFAULT FALSE,  -- 까칠한피부, 정전기, 철가시
     is_punch    BOOLEAN NOT NULL DEFAULT FALSE,  -- 철주먹 +20%
     is_bite     BOOLEAN NOT NULL DEFAULT FALSE,  -- 옹골찬턱 +50%
@@ -157,7 +157,6 @@ CREATE TABLE usage_snapshots (
     battle_name    VARCHAR(50) NOT NULL REFERENCES usage_names(source_name)
                        ON UPDATE CASCADE,
     position       INT,                    -- 1 이 1위. 순위를 못 받았으면 NULL
-    source         VARCHAR(10) NOT NULL,   -- live · index · csv
     fetched_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (season, snapshot_date, format, battle_name)
 );
@@ -219,7 +218,7 @@ LEFT JOIN pokemons tpk       ON tpk.id = n.pokemon_id
 
 CREATE VIEW usage_rank AS
 SELECT s.snapshot_date, s.season, s.format, s.position,
-       pk.ko_name AS pokemon, s.battle_name, s.source
+       pk.ko_name AS pokemon, s.battle_name
 FROM usage_snapshots s
 JOIN usage_names b    ON b.source_name = s.battle_name
 LEFT JOIN pokemons pk ON pk.id = b.pokemon_id

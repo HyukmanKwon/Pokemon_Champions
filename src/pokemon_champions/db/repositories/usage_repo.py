@@ -53,9 +53,8 @@ def link_battle_name(conn, battle_name, pokemon_name):
 def save(conn, meta, rows_):
     """스냅샷 한 장을 넣거나 갈아끼운다. snapshot_id 를 돌려준다.
 
-    meta 는 season · snapshot_date · format · battle_name · pokemon_name ·
-    source 여섯이다. pokemon_name 은 usage_snapshots 가 아니라 usage_names
-    로 간다.
+    meta 는 season · snapshot_date · format · battle_name · pokemon_name
+    다섯이다. pokemon_name 은 usage_snapshots 가 아니라 usage_names 로 간다.
 
     position 은 순위다. 본문 없이 순위만 아는 줄이 생길 수 있어서
     NULL 이 허용된다. (save_rankings 참고)
@@ -74,12 +73,12 @@ def save(conn, meta, rows_):
     cur.execute(
         """
         INSERT INTO usage_snapshots
-            (season, snapshot_date, format, battle_name, position, source)
+            (season, snapshot_date, format, battle_name, position)
         VALUES (%(season)s, %(snapshot_date)s, %(format)s,
-                %(battle_name)s, %(position)s, %(source)s)
+                %(battle_name)s, %(position)s)
         ON CONFLICT (season, snapshot_date, format, battle_name) DO UPDATE
             SET position = COALESCE(EXCLUDED.position, usage_snapshots.position),
-                source = EXCLUDED.source, fetched_at = now()
+                fetched_at = now()
         RETURNING id
         """,
         {"position": None, **meta},
@@ -214,16 +213,16 @@ def fetch_top_build(conn, pokemon_name, fmt="Singles", moves=4):
     return rows(cur)
 
 
-def save_rankings(conn, taken_on, fmt, season, source, rows):
+def save_rankings(conn, taken_on, fmt, season, rows):
     """순위 한 벌을 스냅샷에 넣거나 갈아끼운다. 넣은 줄 수를 돌려준다.
 
     rows 는 [{position, battle_name, pokemon_name}] 다. 본문 없이 순위만
     아는 줄이 생길 수 있다 — 색인은 235마리를 한 번에 주지만 CSV 는 하루
     235번이라, 순위만 먼저 받아두는 길이 있다.
 
-    시즌과 출처는 한 벌이 통째로 같은 값이라 줄이 아니라 인자다. 저쪽
-    응답에도 season 이 있는데 "Current" 라고만 하지 우리 시즌을 말해 주지
-    않는다 — 줄에서 받았더니 그 값이 섞여 들어왔다.
+    시즌은 한 벌이 통째로 같은 값이라 줄이 아니라 인자다. 저쪽 응답에도
+    season 이 있는데 "Current" 라고만 하지 우리 시즌을 말해 주지 않는다 —
+    줄에서 받았더니 그 값이 섞여 들어왔다.
     """
     cur = conn.cursor()
     for r in rows:
@@ -231,15 +230,14 @@ def save_rankings(conn, taken_on, fmt, season, source, rows):
     cur.executemany(
         """
         INSERT INTO usage_snapshots
-            (season, snapshot_date, format, battle_name, position, source)
+            (season, snapshot_date, format, battle_name, position)
         VALUES (%(season)s, %(taken_on)s, %(format)s,
-                %(battle_name)s, %(position)s, %(source)s)
+                %(battle_name)s, %(position)s)
         ON CONFLICT (season, snapshot_date, format, battle_name) DO UPDATE
-            SET position = EXCLUDED.position, source = EXCLUDED.source,
-                fetched_at = now()
+            SET position = EXCLUDED.position, fetched_at = now()
         """,
         [{"taken_on": taken_on, "format": fmt, "season": season,
-          "source": source, "position": r["position"],
+          "position": r["position"],
           "battle_name": r["battle_name"]} for r in rows],
     )
     return len(rows)

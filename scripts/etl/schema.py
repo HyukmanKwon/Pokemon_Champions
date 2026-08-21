@@ -363,6 +363,13 @@ USAGE_NAMES = """CREATE TABLE usage_names (
 #   position 만 찬 줄이 생긴다. "어느 날짜를 이미 받았나" 는 그래서
 #   이 표가 아니라 usage_rows 가 있는지로 답한다. (known_keys)
 #
+# ── 어느 길로 받았는지는 안 적는다 ──
+#   live · index · csv 를 적는 source 칸이 있었다. 읽는 곳이 없었고,
+#   순위를 다시 받을 때마다 덮여서 결국 "마지막에 순위를 찍은 경로" 를
+#   뜻하게 됐다 — 본문을 --live 로 받아둔 줄이 index 로 바뀌었다.
+#   무엇을 받았는지는 usage_rows 가 있는지로 알면 되고, 언제 받았는지는
+#   fetched_at 이 답한다.
+#
 # ── 왜 본문과는 따로인가 ──
 #   본문이 한 마리에 50줄쯤 된다. 이 머리를 없애면 시즌·날짜·포맷·이름·
 #   출처 다섯 칸이 235줄이 아니라 12,076줄에 따라붙고(하루치), 기본키가
@@ -380,7 +387,6 @@ USAGE_SNAPSHOTS = """CREATE TABLE usage_snapshots (
     battle_name    VARCHAR(50) NOT NULL REFERENCES usage_names(source_name)
                        ON UPDATE CASCADE,
     position       INT,                    -- 1 이 1위. 순위를 못 받았으면 NULL
-    source         VARCHAR(10) NOT NULL,   -- live · index · csv
     fetched_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (season, snapshot_date, format, battle_name)
 );
@@ -469,7 +475,7 @@ LEFT JOIN pokemons tpk       ON tpk.id = n.pokemon_id
 # 전체 순위. 조인이 하나뿐이라 창이 얇다.
 USAGE_RANK_VIEW = """CREATE VIEW usage_rank AS
 SELECT s.snapshot_date, s.season, s.format, s.position,
-       pk.ko_name AS pokemon, s.battle_name, s.source
+       pk.ko_name AS pokemon, s.battle_name
 FROM usage_snapshots s
 JOIN usage_names b    ON b.source_name = s.battle_name
 LEFT JOIN pokemons pk ON pk.id = b.pokemon_id
