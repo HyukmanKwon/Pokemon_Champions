@@ -1,7 +1,7 @@
 """채용률 기록 — 하루 한 벌씩 쌓이는 스냅샷.
 
 다른 repo 와 달리 쓰기가 있다. 이 표만 ETL 이 만들고 끝나는 것이 아니라
-계속 자라기 때문이다. (scripts/etl/sync/usage.py)
+계속 자라기 때문이다. (scripts/etl/sync_usage.py)
 
 ── 같은 날을 두 번 받아도 한 벌이어야 한다 ──
   받다가 끊기면 이어서 다시 돌리게 된다. 그때 이미 넣은 것이 두 벌이 되면
@@ -59,6 +59,15 @@ def save(conn, meta, rows_):
 
     position 은 순위다. 본문 없이 순위만 아는 줄이 생길 수 있어서
     NULL 이 허용된다. (save_rankings 참고)
+
+    ── meta 에 position 이 없어도 된다 ──
+      부르는 쪽 둘 다 본문을 넣는 길이고, 순위는 그 직후 save_rankings 가
+      따로 채운다. 그래서 여기 자리를 비워 둔다. %(position)s 는 키가
+      없으면 NULL 이 되는 것이 아니라 KeyError 로 터진다 — 기본값을
+      먼저 깔고 meta 로 덮는다.
+
+      비워 두어도 값을 잃지 않는다. 위 ON CONFLICT 가 COALESCE 라서
+      이미 들어 있던 순위를 NULL 이 지우지 못한다.
     """
     cur = conn.cursor()
     link_battle_name(conn, meta["battle_name"], meta.get("pokemon_name"))
@@ -73,7 +82,7 @@ def save(conn, meta, rows_):
                 source = EXCLUDED.source, fetched_at = now()
         RETURNING id
         """,
-        meta,
+        {"position": None, **meta},
     )
     snapshot_id = cur.fetchone()[0]
 
