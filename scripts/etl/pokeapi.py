@@ -251,7 +251,7 @@ def _load_flag_map():
 
 
 def resolve_flags(move_id, name, category):
-    """플래그 최종값과 출처를 돌려준다. -> (dict, "csv" 또는 "guess_flags")
+    """플래그 최종값과 출처를 돌려준다. -> (dict, "csv" 또는 "guess")
 
     CSV 에 그 기술이 있으면 9개 플래그를 CSV 값으로 채우고, 나머지 3개는
     추측한다. CSV 에 없으면 12개 전부 추측한다.
@@ -259,7 +259,7 @@ def resolve_flags(move_id, name, category):
     guessed = guess_flags(name, category)
     entry = _load_flag_map().get(move_id)
     if entry is None:
-        return guessed, "guess_flags"
+        return guessed, "guess"
 
     # CSV 에 등장하면, 그 기술에 안 적힌 flag 는 '없음'이 확정이다
     flags = {col: entry.get(col, False) for col in CSV_FLAG_IDS.values()}

@@ -72,7 +72,7 @@ def literal_build(conn, table, columns, values, echo=None):
 # ─────────────────────────────────────────────────────────────
 
 TYPES_TABLE = "pokemon_types"
-TYPES_COLUMNS = ["attack_type", "defense_type", "type_multiplier"]
+TYPES_COLUMNS = ["attack_type", "defense_type", "multiplier"]
 
 TYPE_LIST = schema.TYPE_NAMES
 
