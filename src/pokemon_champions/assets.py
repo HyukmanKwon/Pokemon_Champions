@@ -135,7 +135,34 @@ def ensure_item_sprite(item_name):
 # ─────────────────────────────────────────────────────────────
 
 def url_type_icon(type_name):
-    return f"/sprite/type/{type_name}" if type_name in TYPE_IDS else None
+    """타입 배지 주소. 다시 그린 날이 주소에 붙는다.
+
+    ── 왜 ?v= 를 붙이나 ──
+      이 배지만은 우리가 그리는 그림이라, make_type_icons 를 다시 돌리면
+      같은 주소의 내용이 바뀐다. 그런데 브라우저는 한 번 받아둔 그림을
+      만료 전까지 서버에 물어보지도 않고 쓴다. 헤더를 고쳐도 소용이
+      없다 — 이미 캐시에 박힌 것에는 옛 헤더가 붙어 있다.
+
+      실제로 겪었다. 배지를 한국어로 바꾸고 좁게 다시 그렸는데도 화면에는
+      몇 달 전 영문 배지가 그대로 떴다. 서버는 새 그림을 주고 있었고
+      파일도 새것이었다. 브라우저가 묻지를 않았다.
+
+      주소가 바뀌면 그럴 수가 없다. 캐시는 주소로 찾으므로 처음 보는
+      주소는 반드시 받아온다. 지우라고 부탁하지 않아도 된다.
+
+    ── 왜 파일 시각인가 ──
+      다시 그리면 바뀌고 안 그리면 안 바뀐다. 그래서 주소가 필요할 때만
+      바뀐다. 배포 번호를 쓰면 그림을 안 고친 배포에도 전부 다시 받는다.
+
+    stat 은 한 요청에 수백 번 돌지만 디스크를 읽지 않는 호출이라 싸다.
+    값을 들고 있으면 다시 그렸을 때 서버를 껐다 켜야 하는데, 그건 지금
+    고치려는 함정을 그대로 되살리는 것이다.
+    """
+    if type_name not in TYPE_IDS:
+        return None
+    path = TYPES_DIR / f"{type_name}.png"
+    stamp = int(path.stat().st_mtime) if path.exists() else 0
+    return f"/sprite/type/{type_name}?v={stamp}"
 
 
 def url_pokemon_sprite(pokemon_id):

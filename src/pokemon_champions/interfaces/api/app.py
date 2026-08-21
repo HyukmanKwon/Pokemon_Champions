@@ -20,7 +20,7 @@ import threading
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import (FileResponse, HTMLResponse, StreamingResponse)
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -125,23 +125,14 @@ app.mount("/static", DevStatic(directory=STATIC_DIR), name="static")
 
 CACHE_HEADERS = {"Cache-Control": "public, max-age=604800"}
 
-# 타입 배지만 다르다. 받아온 그림이 아니라 우리가 그린 그림이라,
-# make_type_icons 를 다시 돌리면 같은 주소의 내용이 바뀐다.
+# 타입 배지도 길게 캐시한다. 우리가 그리는 그림이라 내용이 바뀔 수 있지만,
+# 바뀌면 주소가 같이 바뀐다 — assets.url_type_icon 이 파일 시각을 ?v= 로
+# 붙인다. 주소가 다르면 캐시가 가로채지 못하므로 길게 두어도 낡지 않는다.
 #
-# ── 길게 캐시했다가 겪은 일 ──
-#   배지를 좁게 다시 그렸는데 화면에는 옛 배지가 남았다. 강제 새로고침을
-#   해도 일부만 바뀐다 — 배지는 loading="lazy" 라 화면 밖에 있는 것은
-#   새로고침이 요청하지 않고, 나중에 스스로 부를 때 캐시에서 꺼내 쓴다.
-#   그래서 "비행·고스트만 안 바뀐다" 처럼 보인다.
-#
-#   no-cache 는 "받지 마라" 가 아니라 "쓰기 전에 물어봐라" 다. 위 DevStatic
-#   이 css/js 에 쓰는 것과 같은 결이다.
-#
-#   다만 FileResponse 는 StaticFiles 와 달리 If-None-Match 를 스스로 보지
-#   않는다. 그대로 두면 물어볼 때마다 본문이 통째로 다시 온다 — 화면
-#   하나에 배지가 백 장 넘게 깔리는 자리가 있어서 그냥 두기 아깝다.
-#   그래서 아래 sprite_type 이 직접 견주고 304 로 끊는다.
-DRAWN_HEADERS = {"Cache-Control": "no-cache"}
+# 헤더로 풀려다 실패한 적이 있다. no-cache 로 바꿔도 이미 캐시에 박힌
+# 것에는 옛 헤더가 붙어 있어서 브라우저가 묻지를 않는다. 몇 달 전 영문
+# 배지가 그대로 뜨는데 서버도 파일도 새것이라 원인을 찾기 어려웠다.
+# 고칠 곳은 헤더가 아니라 주소였다.
 
 
 def _sprite(path, headers=CACHE_HEADERS):
@@ -160,18 +151,15 @@ def _sprite(path, headers=CACHE_HEADERS):
 
 
 @app.get("/sprite/type/{type_name}")
-def sprite_type(type_name: str, request: Request):
+def sprite_type(type_name: str):
     """한국어 타입 배지. 아직 안 그렸으면 404 — 화면이 글자로 대신 쓴다.
 
         python -m scripts.make_type_icons
 
-    다시 그리면 같은 주소의 내용이 바뀌므로 브라우저에게 매번 물어보게
-    한다(DRAWN_HEADERS). 안 바뀌었으면 여기서 304 로 끊는다.
+    ?v= 가 붙어 오지만 여기서는 안 본다. 그 값은 브라우저 캐시를 가르는
+    데만 쓰이고, 어느 파일을 줄지는 이름이 정한다.
     """
-    res = _sprite(assets.type_icon(type_name), DRAWN_HEADERS)
-    if request.headers.get("if-none-match") == res.headers.get("etag"):
-        return Response(status_code=304, headers=DRAWN_HEADERS)
-    return res
+    return _sprite(assets.type_icon(type_name))
 
 
 @app.get("/sprite/pokemon/{pokemon_id}")
