@@ -17,7 +17,6 @@ PROJECT_ROOT = Path(
 
 DATA_DIR = PROJECT_ROOT / "data"
 SQL_DIR = DATA_DIR / "sql"            # ETL 이 생성한 SQL (재생성 가능)
-OVERRIDE_DIR = DATA_DIR / "overrides"  # 사람이 확정한 값 (git 커밋 대상)
 CACHE_DIR = DATA_DIR / "cache"        # 내려받은 원본 (재생성 가능)
 IMAGES_DIR = DATA_DIR / "images"      # 스프라이트·타입 아이콘 캐시
 DECKS_PATH = DATA_DIR / "decks.json"  # 덱 여러 벌 + 지금 보고 있는 덱

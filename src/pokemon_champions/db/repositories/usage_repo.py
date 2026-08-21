@@ -108,7 +108,7 @@ def link_names(conn, category, mapping):
         f"""
         INSERT INTO usage_names (category, source_name, {column})
         VALUES (%s, %s, %s)
-        ON CONFLICT (category, source_name) DO UPDATE
+        ON CONFLICT (source_name) DO UPDATE
             SET {column} = COALESCE(EXCLUDED.{column}, usage_names.{column})
         """,
         [(category, name, ref) for name, ref in mapping.items()],

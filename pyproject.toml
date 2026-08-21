@@ -32,8 +32,8 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# scripts/ 는 설치되지 않으므로(where = ["src"]) 테스트에서 import 하려면
-# 프로젝트 루트가 경로에 있어야 한다. conftest.py 의 overrides 격리 픽스처가
-# scripts.etl.overrides 를 쓴다. 코드 안에서 sys.path 를 손대지 않으려고
-# 여기에 적는다 — 실행 위치가 코드의 일부가 되는 것을 막는 편이 낫다.
+# scripts/ 는 설치되지 않으므로(where = ["src"]) 프로젝트 루트가 경로에
+# 있어야 python -m scripts.* 가 어디서든 같은 것을 본다. 코드 안에서
+# sys.path 를 손대지 않으려고 여기에 적는다 — 실행 위치가 코드의 일부가
+# 되는 것을 막는 편이 낫다.
 pythonpath = ["."]

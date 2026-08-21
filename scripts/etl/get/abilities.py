@@ -20,7 +20,6 @@ from ..parse_utils import (collect, endpoint, korean, pick_english_effect,
                           sql_of, to_values)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/ability"
-KO_OVERRIDE_KEY = "ability_ko_names"
 
 TABLE = "abilities"
 COLUMNS = ["id", "name", "ko_name", "description", "effect"]
@@ -39,7 +38,7 @@ def parse_ability(data):
     # PokeAPI 에 한국어가 없는 신규 특성이 있고, flavor text 도 옛 표현이거나
     # 잘려 있는 경우가 있다. annotator 로 손본 값을 덮어씌워서 재구축해도
     # 사라지지 않게 한다.
-    ko = korean(data, KO_OVERRIDE_KEY)
+    ko = korean(data)
 
     return {
         "id": data["id"],

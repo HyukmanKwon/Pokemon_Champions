@@ -16,7 +16,6 @@ from ..parse_utils import (collect, endpoint, get_json, korean,
                           pick_english_effect, sql_of, to_values)
 
 POKEAPI_BASE = "https://pokeapi.co/api/v2/item"
-KO_OVERRIDE_KEY = "item_ko_names"
 POKEAPI_CATEGORY = "https://pokeapi.co/api/v2/item-category"
 
 TABLE = "items"
@@ -122,7 +121,7 @@ fetch_item = endpoint(POKEAPI_BASE)
 def parse_item(data):
     # 신규 메가스톤 등 PokeAPI 에 한국어가 없는 도구가 많다. annotator 로
     # 손본 이름·설명을 덮어씌운다. 도구만 본문 키가 "text" 다.
-    ko = korean(data, KO_OVERRIDE_KEY, flavor_key="text")
+    ko = korean(data, flavor_key="text")
 
     return {
         "id": data["id"],

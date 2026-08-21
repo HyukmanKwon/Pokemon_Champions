@@ -1,5 +1,4 @@
 from .. import move_flags
-from .. import overrides
 from .. import schema
 from ..parse_utils import (collect, endpoint, korean, pick_english_effect,
                           sql_of, to_values)
@@ -14,17 +13,6 @@ COLUMNS = ["id", "name", "ko_name", "type", "power", "accuracy",
            "stat_chance", "min_hits", "max_hits",
            *move_flags.FLAGS,
            "description", "effect"]
-
-# annotator.py 가 쓰는 override 파일 이름
-OVERRIDE_KEY = "move_flags"
-
-# PokeAPI 의 한국어 이름은 옛 세대 번역이라 포챔스 표기와 다른 것이 있다.
-# /move 의 names 배열은 언어당 하나뿐이고 갱신되지 않아서, API 로는 최신
-# 표기를 얻을 방법이 없다. 그래서 손으로 고친 값을 여기에 쌓는다.
-#   깨뜨리다 -> 깨트리기 (brick-break)
-#   독실     -> 독독실   (toxic-thread)
-# 목록 대조는 check_moves.py 가 한다. (README §6)
-KO_OVERRIDE_KEY = "move_ko_names"
 
 # 한 파일 안에 두 번째 테이블도 같이 만든다. 같은 응답에서 나오므로
 # API를 다시 부르지 않으려고 04 단계에 합쳤다.
@@ -167,14 +155,15 @@ def parse_move(data):
     if ailment == "none":               # 상태이상 없음을 NULL 로 통일
         ailment = None
 
-    # 플래그는 API에 없다. PokeAPI CSV -> 이름 추측 -> 사람이 확정한 값 순으로
-    # 덮어쓴다. flag_source 는 CSV 를 썼는지 추측했는지 (통계용).
+    # 플래그는 API 에 없다. PokeAPI CSV 로 채우고, 없는 것은 이름으로
+    # 추측한다. flag_source 는 둘 중 어느 쪽이었는지 (통계용).
+    # 추측이 틀린 것은 DB 에서 직접 고치고 dump_sql 로 굳힌다.
     category = data["damage_class"]["name"]
     flags, source = move_flags.resolve(data["id"], data["name"], category)
-    overrides.apply(OVERRIDE_KEY, data["name"], flags)
 
-    # 한국어 이름·설명도 override 를 태운다. PokeAPI 값이 옛 번역인 경우가 있다.
-    ko = korean(data, KO_OVERRIDE_KEY)
+    # PokeAPI 의 한국어 이름은 옛 세대 번역이라 포챔스 표기와 다른 것이
+    # 있다(깨뜨리다 -> 깨트리기). 그 교정도 DB 쪽에 있다.
+    ko = korean(data)
 
     return {
         "id": data["id"],

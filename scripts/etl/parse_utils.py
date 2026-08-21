@@ -7,8 +7,6 @@
 
 import requests
 
-from . import overrides
-
 
 def get_json(url):
     """GET 후 JSON을 돌려준다. 200이 아니면 None."""
@@ -62,25 +60,25 @@ def pick_english_effect(entries):
     return None
 
 
-def korean(data, override_key, flavor_key="flavor_text"):
-    """한국어 이름·설명을 뽑고 override 를 덮어씌운다. -> dict
+def korean(data, flavor_key="flavor_text"):
+    """한국어 이름·설명을 뽑는다. -> dict
 
-    기술·특성·도구 셋이 같은 다섯 줄을 적고 있었다. PokeAPI 의 한국어는
-    옛 세대 번역이거나 아예 없는 경우가 있어서, annotator 로 손본 값이
-    항상 마지막에 온다.
+    기술·특성·도구 셋이 같은 다섯 줄을 적고 있었다.
 
-        python -m scripts.etl.annotator.ko_names moves
+    ── 여기 값이 최종이 아니다 ──
+      PokeAPI 의 한국어는 옛 세대 번역이거나 아예 없는 경우가 있다. 손본
+      값은 DB 에 직접 넣고 dump_sql 로 data/sql/ 에 굳힌다. 예전에는
+      data/overrides/ 에 따로 쌓아 여기서 덮어씌웠는데, 그 파일이 결국
+      DB 의 사본이라 두 벌을 맞춰 두는 일만 남아서 걷어냈다.
 
     flavor_key 가 인자인 이유는 본문 키가 자료마다 다르기 때문이다 —
     기술·특성은 "flavor_text", 도구는 "text".
     """
-    ko = {
+    return {
         "ko_name": pick_korean(data["names"]),
         "description": pick_korean_flavor(data["flavor_text_entries"],
                                           key=flavor_key),
     }
-    overrides.apply(override_key, data["name"], ko)
-    return ko
 
 
 def render(table, columns, rows):
