@@ -8,7 +8,7 @@
 
 
 ── 여기가 세 벌이던 자리다 ──
-  웹 라우트도, LLM 도구도, check_damage 도 같은 순서를 각자 적고 있었다:
+  웹 라우트도, LLM 도구도, 대조용 CLI 도 같은 순서를 각자 적고 있었다:
   이름을 찾고 → 안 준 칸을 무보정으로 채우고 → Pokemon 을 세우고 →
   BattleContext 를 엮고 → calc_damage 와 analyze_ko 를 같은 인자로 부른다.
 

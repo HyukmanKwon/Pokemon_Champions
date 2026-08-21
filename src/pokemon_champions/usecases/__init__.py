@@ -11,14 +11,14 @@
 안 만지면 calc/ 로 간다. 판정이 시그니처만 보면 끝나야 한다.
 
 ── 왜 이 층이 필요한가 ──
-  calc/damage.py 는 DB 를 안 본다. 그건 옳다 — 계산이 순수해야
-  scripts/check_damage.py 로 실제 게임과 대조할 수 있고 tests/ 에 박아둘
-  수 있다. 대신 "DB 에서 읽어 계산에 넘길 모양으로 만드는 일" 을 누군가는
-  해야 하는데, 그 자리가 없어서 어댑터가 각자 떠맡고 있었다.
+  calc/damage.py 는 DB 를 안 본다. 그건 옳다 — 계산이 순수해야 실제
+  게임과 대조할 수 있고 tests/ 에 박아둘 수 있다. 대신 "DB 에서 읽어
+  계산에 넘길 모양으로 만드는 일" 을 누군가는 해야 하는데, 그 자리가
+  없어서 어댑터가 각자 떠맡고 있었다.
 
   결과는 같은 결정이 세 벌:
 
-    무보정 성격 "성실"     app.py · tools.py · check_damage.py
+    무보정 성격 "성실"     app.py · tools.py · 대조용 CLI
     SP 기본 [0] * 6       셋 다
     allow_mega=True       셋 다
     스펙 -> Pokemon        _side_pokemon · _build · build

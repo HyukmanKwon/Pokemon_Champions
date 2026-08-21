@@ -163,7 +163,7 @@ MOVES = f"""CREATE TABLE moves (
 
     -- 기술 플래그. PokeAPI에 없어서 이름 규칙으로 추측하고 사람이 확인한다.
     -- 추측이 틀린 것은 DB 에서 직접 고치고 dump_sql 로 굳힌다.
-    -- (annotator/moves.py) 확인 여부는 큐레이션 작업 상태라 표에 두지 않는다.
+    -- 확인 여부는 큐레이션 작업 상태라 표에 두지 않는다.
     is_contact  BOOLEAN NOT NULL DEFAULT FALSE,  -- 까칠한피부, 정전기, 철가시
     is_punch    BOOLEAN NOT NULL DEFAULT FALSE,  -- 철주먹 +20%
     is_bite     BOOLEAN NOT NULL DEFAULT FALSE,  -- 옹골찬턱 +50%
@@ -312,7 +312,7 @@ MEGA_EVOLUTIONS = """CREATE TABLE mega_evolutions (
 #   전에 옮겨 두는 수밖에 없다.
 #
 #   폴더의 시즌 이름은 갱신되지 않는다. 2026-08-18 자료도 M4/ 아래 있다.
-#   그래서 시즌을 가르는 것은 이름이 아니라 날짜다 (sync.usage.SEASON_START).
+#   그래서 시즌을 가르는 것은 이름이 아니라 날짜다 (sync_usage.SEASON_START).
 # ─────────────────────────────────────────────────────────────
 
 # 저쪽 표기 -> 우리 것. 한 벌만 둔다.

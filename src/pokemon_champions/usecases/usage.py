@@ -419,7 +419,7 @@ def detail_from_db(conn, en_name, ko_name=None, fmt="Singles", top=10):
     if not got:
         return {"error": f"'{ko_name or en_name}' 의 {fmt} 채용률이 "
                          "DB 에 아직 없습니다. "
-                         "python -m scripts.etl.sync.usage --backfill"}
+                         "python -m scripts.etl.sync_usage --backfill"}
 
     # 그 포켓몬 자신의 그림과 타입과 종족값. 상세 머리에 크게 건다.
     # 채용률은 "무엇을 들려 어떻게 굴리나" 인데, 그 선택의 이유가 대개

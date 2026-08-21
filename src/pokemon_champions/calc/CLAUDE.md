@@ -32,4 +32,6 @@ Take it as an argument. The caller in `usecases/` does the fetching.
 - Table keys are Korean names. A typo does not raise — it silently yields
   "no modifier applied".
 
-Verify against known game values: `python -m scripts.check_damage`
+Verify against known game values by hand in the Pokemon Champions damage
+calculator. The point of `calc/` being pure is that any case can be replayed
+with no DB and pinned in `tests/`.

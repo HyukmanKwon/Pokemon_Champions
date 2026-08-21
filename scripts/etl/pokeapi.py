@@ -675,7 +675,7 @@ def parse_pokemon(data):
         # 같은 응답에서만 나오는 값이라 여기서 같이 들고 나간다.
         #
         # 특성은 아직 이름이다 — abilities 가 05 단계라 이 시점에 id 를 모른다.
-        # 이름 -> id 는 넣기 직전에 옮긴다. (build_pokemons / migrate_roster)
+        # 이름 -> id 는 넣기 직전에 옮긴다. (build_abilities 가 한다)
         "_abilities": [(data["id"], en, slot)
                        for slot, en in sorted(abilities.items())],
     }

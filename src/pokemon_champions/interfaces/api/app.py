@@ -497,8 +497,7 @@ def patch_team(index: int, edit: SlotEdit, deck: Optional[str] = None):
 # 데미지 계산기
 #
 # calc/damage.py 는 DB 를 안 본다. 여기서 조회해서 숫자만 넘긴다.
-# 그 경계 덕에 CLI(scripts/check_damage.py)와 이 라우트가 같은 함수를
-# 쓰고, 값이 갈라지지 않는다.
+# 그 경계 덕에 CLI 와 이 라우트가 같은 함수를 쓰고, 값이 갈라지지 않는다.
 # ─────────────────────────────────────────────────────────────
 
 # 무보정 성격·SP 기본값·메가 허용은 usecases/battle.py 가 한 벌로 들고 있다.

@@ -160,7 +160,7 @@ def usage_ranking(got):
     if not got:
         return {"ranking": [], "total": 0,
                 "note": "채용률 자료가 아직 없습니다. "
-                        "python -m scripts.etl.sync.usage --backfill"}
+                        "python -m scripts.etl.sync_usage --backfill"}
     return {
         "format": got["format"],
         "date": got["date"],
