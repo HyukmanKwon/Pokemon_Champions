@@ -60,6 +60,13 @@ FONT_SIZE = 21
 MIN_FONT_SIZE = 13
 
 # 굵은 고딕. 앞에 있는 것부터 찾아 쓴다. 리눅스·맥 순.
+#
+# ── .ttc 는 한 파일에 여러 굵기가 들어 있다 ──
+#   맥의 AppleSDGothicNeo.ttc 에는 Thin 부터 Bold 까지 열두 벌이 있고
+#   index 를 안 주면 0번(Regular)이 나온다. 그래서 "굵은 고딕" 이라고
+#   적어 놓고 몇 달 동안 보통 굵기로 그리고 있었다.
+#
+#   index 번호는 기계마다 다를 수 있으니 박아두지 않고 이름으로 찾는다.
 FONT_CANDIDATES = [
     "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
     "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf",
@@ -74,11 +81,46 @@ WHITE_MIN = 210
 ALPHA_MIN = 80
 
 
+# 파일마다 "굵은 얼굴이 몇 번인가" 를 한 번만 찾아 기억한다. 글꼴 크기를
+# 한 단계씩 줄여 보는 fit_font 가 이 함수를 여러 번 부르기 때문이다.
+_bold_index_cache = {}
+
+
+def bold_index(path):
+    """그 글꼴 파일에서 굵은 얼굴의 번호. 못 찾으면 0(첫 얼굴).
+
+    이탤릭을 거르는 이유는 맥의 .ttc 가 굵기마다 곧은 것과 기운 것을
+    나란히 담기 때문이다. 이름이 점으로 시작하는 쪽이 기운 것이다.
+    """
+    if path in _bold_index_cache:
+        return _bold_index_cache[path]
+
+    exact = semi = None
+    for i in range(16):
+        try:
+            family, style = ImageFont.truetype(path, 12, index=i).getname()
+        except OSError:
+            break
+        if (family or "").startswith("."):      # 기운 얼굴
+            continue
+        name = (style or "").strip().lower()
+        if name == "bold" and exact is None:
+            exact = i
+        elif "bold" in name and semi is None:   # SemiBold · DemiBold
+            semi = i
+
+    # SemiBold 도 "bold" 를 이름에 담고 있어서, 먼저 걸리는 것을 쓰면
+    # 진짜 Bold 를 놓친다. 정확히 Bold 인 것을 앞에 둔다.
+    found = exact if exact is not None else (semi if semi is not None else 0)
+    _bold_index_cache[path] = found
+    return found
+
+
 def find_font(size):
     """굵은 한글 폰트. 하나도 없으면 어디에 무엇을 깔아야 하는지 말한다."""
     for path in FONT_CANDIDATES:
         try:
-            return ImageFont.truetype(path, size)
+            return ImageFont.truetype(path, size, index=bold_index(path))
         except OSError:
             continue
     raise SystemExit(
