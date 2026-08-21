@@ -42,6 +42,18 @@ from pokemon_champions.db.repositories import rules_repo
 ICON_RIGHT = 50          # 이 왼쪽까지가 심볼. 여기부터 글자 자리
 TEXT_PAD_RIGHT = 16      # 오른쪽 여백. 알약 끝에 글자가 붙지 않게
 
+# 내보낼 알약 너비. 원본 200 에서 30% 줄인 값이다.
+#
+# ── 왜 CSS 로 안 줄이나 ──
+#   화면에서 폭만 줄이면 그림이 눌려 찌그러지고, 비율을 지켜 줄이면
+#   글자까지 같이 작아져 못 읽는다. 원본은 알약이 200×40 을 꽉 채워
+#   잘라낼 여백도 없다.
+#
+#   대신 알약의 곧은 가운데를 잘라낸다. 심볼도 글자도 원래 크기 그대로고
+#   줄어드는 것은 빈 알약뿐이다. 본가 배지는 영문 세 낱말(FIGHTING)까지
+#   담으려고 긴 것이라, 두세 자짜리 한국어에는 그 폭이 남는다.
+PLATE_WIDTH = 140
+
 # 글자는 두 자(불꽃)에서 세 자(에스퍼)까지다. 세 자가 넘치지 않는 크기로
 # 잡고, 그래도 넘치면 아래 fit_font 가 한 단계씩 줄인다.
 FONT_SIZE = 21
@@ -131,6 +143,31 @@ def plate(source):
     return out
 
 
+def narrow(image, target_w):
+    """알약의 곧은 가운데를 잘라내 좁힌다. 둥근 끝과 심볼은 그대로 둔다.
+
+    자르는 자리를 가운데로 잡는 이유는 양 끝이 둥글기 때문이다. 반지름이
+    높이의 절반이라 그 안쪽은 색도 알파도 한결같고, 거기서 잘라 붙이면
+    이음매가 보이지 않는다. 끝을 건드리면 둥근 모서리가 잘려 네모가 된다.
+    """
+    w, h = image.size
+    if target_w >= w:
+        return image
+
+    cut = w - target_w
+    keep_right = h // 2 + 2          # 오른쪽 둥근 끝 + 여유
+    start = w - keep_right - cut
+    if start <= ICON_RIGHT:
+        raise ValueError(
+            f"{target_w}px 로는 심볼과 둥근 끝이 겹칩니다. "
+            f"PLATE_WIDTH 를 {ICON_RIGHT + keep_right + 1}px 이상으로 잡으세요.")
+
+    out = Image.new("RGBA", (target_w, h), (0, 0, 0, 0))
+    out.paste(image.crop((0, 0, start, h)), (0, 0))
+    out.paste(image.crop((start + cut, 0, w, h)), (start, 0))
+    return out
+
+
 def draw_label(image, text):
     """알약 오른쪽에 한국어 이름을 흰 글씨로 얹는다."""
     w, h = image.size
@@ -149,7 +186,7 @@ def render(source_path, ko_name):
     """원본 배지 한 장 -> 한국어 배지 한 장."""
     with Image.open(source_path) as im:
         source = im.convert("RGBA")
-    return draw_label(plate(source), ko_name)
+    return draw_label(narrow(plate(source), PLATE_WIDTH), ko_name)
 
 
 def main(argv=None):
