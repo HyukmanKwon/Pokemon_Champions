@@ -33,24 +33,38 @@ _NAME_DESC = ("Korean name or English slug. "
 _MOVE_DESC = ("Korean name or English slug. "
               "Both 지진 and earthquake work")
 
+# 빈 칸을 무엇으로 메우는지가 이 설명의 전부다. 예전에는 "SP 0 · 성실 ·
+# 첫 특성 · 도구 없음" 이라고 적혀 있었는데, build_side 는 그러지 않고
+# 채용률 1위 한 벌로 메운다. 그 어긋남 때문에 모델이 "생략하면 허수아비가
+# 나온다" 고 읽고 SP 를 직접 적어 넣었다 — 32/32 로 두 점을 버리는 식이다.
+# 여기 적힌 것이 곧 모델의 행동이라, 코드와 다르면 조용히 틀린 답이 된다.
 _SIDE = {
     "type": "object",
-    "description": "A single Pokemon. Only name is required; the rest fall "
-                   "back to defaults (SP 0 · Serious nature · first ability "
-                   "· no item).",
+    "description": "A single Pokemon. Only name is required. LEAVE THE REST "
+                   "OUT unless the user stated them: every omitted field is "
+                   "filled from the most-used real set for that Pokemon "
+                   "(usage data), which is almost always what you want. "
+                   "Guessing your own values makes the answer describe a "
+                   "build nobody plays.",
     "properties": {
         "name": {"type": "string",
                  "description": f"{_NAME_DESC}. Mega forms work too"},
         "ability": {"type": "string", "description":
-                    "Ability name. Both 까칠한피부 and rough-skin work"},
+                    "Ability name. Both 까칠한피부 and rough-skin work. "
+                    "Omit for the most-used one"},
         "item": {"type": "string", "description":
-                 "Item name. Both 기합의띠 and focus-sash work"},
+                 "Item name. Both 기합의띠 and focus-sash work. "
+                 "Omit for the most-used one"},
         "nature": {"type": "string", "description":
                    "Nature name. Both 고집 and adamant work. "
-                   "Defaults to Serious"},
+                   "Omit for the most-used one"},
         "sp": {"type": "array", "items": {"type": "integer"},
                "description": "6 values in hp, atk, def, spa, spd, spe order. "
-                              "66 total"},
+                              "Omit for the most-used spread — do that unless "
+                              "the user gave numbers. If you do fill it in, "
+                              "spend all 66: the cap is 32 per stat, so two "
+                              "maxed stats leave 2 points that must go "
+                              "somewhere (2/32/0/0/0/32, not 0/32/0/0/0/32)"},
         "rank": {"type": "object",
                  "description": 'Stat stage changes. e.g. {"a": 2} is +2 Atk'},
         "condition": {"type": "string", "description":
