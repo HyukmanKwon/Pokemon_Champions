@@ -52,7 +52,8 @@ class OpenAICompat:
     있다. 필요한 모델에만 붙인다.
     """
 
-    def __init__(self, model, label, env_key, base_url=None, effort=None):
+    def __init__(self, model, label, env_key, base_url=None, effort=None,
+                 no_temperature_with_effort=False):
         self.model = model
         self.label = label
         # 회사마다 키 이름이 하나로 정해져 있지 않다. 구글은 자기 도구에서
@@ -62,6 +63,9 @@ class OpenAICompat:
         self.env_keys = (env_key,) if isinstance(env_key, str) else tuple(env_key)
         self.base_url = base_url
         self.effort = effort
+        # gpt-5.6 만의 제약이다. Gemini 는 effort 와 temperature 를 같이
+        # 받는다 — 받아서 확인했다. 회사 사정을 모델 표에 적어 둔다.
+        self.no_temperature_with_effort = no_temperature_with_effort
         self._client = None
         # 이 백엔드가 만들어진 뒤로 쓴 토큰. runner.ask 가 질문마다 새로
         # 만들므로(pick) 곧 "이번 질문이 쓴 양" 이다.
@@ -114,8 +118,9 @@ class OpenAICompat:
         kwargs = {"model": self.model, "messages": messages}
         if self.effort is not None:
             kwargs["reasoning_effort"] = self.effort
-        if self.effort in (None, "none"):
-            # effort 가 none 일 때만 허용된다. 파일 첫머리 참고.
+        if self.no_temperature_with_effort and self.effort not in (None, "none"):
+            pass        # gpt-5.6 은 effort 와 temperature 를 같이 못 받는다
+        else:
             kwargs["temperature"] = 0.2
         if use_tools:
             kwargs["tools"] = schemas.as_array()

@@ -102,6 +102,13 @@ Rules you must follow:
    types with the tools. Champions uses different data from the mainline games
    in some places.
 
+   Ask for every tool you already know you need IN ONE MESSAGE, not one per
+   turn. Checking six Pokemon against one attacker is six calc_damage calls
+   in a single message, not six rounds of asking. Each round trip costs the
+   user four seconds no matter how small the request is, and a question that
+   takes five rounds runs out of time before it is answered. Only wait for a
+   result when the next call genuinely depends on it.
+
 3. If a tool returns an error, report it to the user as-is. Do not fabricate to
    fill the gap. In particular, there is no data yet for usage-rate or metagame
    questions.
@@ -209,6 +216,14 @@ def ask(question, session, model=None, history=None, on_tool=None):
     # 여기까지 왔으면 바퀴나 시간을 다 쓴 것이다. 도구를 떼고 한 번 더
     # 물어본다 — 그동안 모은 결과가 messages 에 그대로 있으므로, 그것만으로
     # 답이 나온다. 안내 문장을 돌려주고 끝내면 그 시간이 통째로 버려진다.
+    # 한 번도 응답을 못 받았으면 마지막 한 번도 안 부른다. 모을 것이
+    # 없어서 물어봐야 답할 거리가 없고, 방금 늦은 것과 같은 조건이라
+    # 또 늦는다 — 실제로 요청 0번에 25초를 쓴 적이 있다. 그 10초를
+    # 사람에게 돌려주는 편이 낫다.
+    if llm.usage.requests == 0:
+        return ("저쪽 응답이 늦어 답을 만들지 못했습니다. 잠시 뒤 다시 "
+                "물어봐 주세요.", messages, llm.usage)
+
     messages.append({"role": "user", "content": LAST_CALL})
     try:
         msg = llm.chat(compact(messages), use_tools=False,

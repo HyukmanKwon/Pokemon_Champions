@@ -54,12 +54,19 @@ PROVIDERS = {
 #
 #   effort 는 필요한 모델에만 붙인다. 무엇이고 왜인지는
 #   openai_compat.py 첫머리에 있다 — 취향이 아니라 조건이다.
+# ── effort 는 시간을 사는 손잡이다 ──
+#   생각(thinking) 토큰은 출력이라 시간에 그대로 얹힌다. 입력은 아무리
+#   커도 시간이 거의 안 늘지만(6 토큰 3.2초 vs 17,642 토큰 2.9초) 출력은
+#   늘어난다. 같은 도구 4개를 부르는데 13.9초에서 6.2초가 됐다.
+#
+#   Gemini 는 "none" 을 400 으로 거부한다. 그건 OpenAI 쪽 값이다.
 MODELS = {
-    "gpt-5.6-luna": {"provider": "openai", "effort": "none"},
+    "gpt-5.6-luna": {"provider": "openai", "effort": "none",
+                     "no_temperature_with_effort": True},
     # 견줘 보려고 같이 둔다. 이 seam 을 만든 이유가 이것이다.
     # 이름은 짐작하지 않고 저쪽 목록에서 그대로 옮겼다 (models.list).
-    "gemini-3.6-flash": {"provider": "gemini"},
-    "gemini-3.7-flash": {"provider": "gemini"},
+    "gemini-3.6-flash": {"provider": "gemini", "effort": "minimal"},
+    "gemini-3.7-flash": {"provider": "gemini", "effort": "minimal"},
 }
 
 # 화면(agent.js)은 모델을 안 보낸다. 그래서 이 값이 곧 웹에서 쓰는
@@ -76,11 +83,13 @@ def pick(model=None):
         return ollama.Ollama(model)
 
     provider = PROVIDERS[spec["provider"]]
-    return OpenAICompat(model=model,
-                        label=provider["label"],
-                        env_key=provider["env_key"],
-                        base_url=provider["base_url"],
-                        effort=spec.get("effort"))
+    return OpenAICompat(
+        model=model,
+        label=provider["label"],
+        env_key=provider["env_key"],
+        base_url=provider["base_url"],
+        effort=spec.get("effort"),
+        no_temperature_with_effort=spec.get("no_temperature_with_effort", False))
 
 
 def env_keys(provider):
