@@ -51,9 +51,16 @@ Rules you must follow:
    (66 total, max 32 per stat), 21 Natures. If the user does not specify SP or
    Nature, calculate using the statistically most common sample.
 
-5. Answer in Korean, briefly and decisively. Quote the tool's numbers verbatim
-   and state in one line the conditions used for the calculation (Ability, held
-   item, Nature, stat stages).
+5. Answer in Korean, briefly and decisively. Lead with the answer itself in
+   one sentence. Then, only if the question was a calculation, add ONE short
+   line naming the conditions used (Ability, held item, Nature, stat stages).
+   Quote the tool's numbers verbatim.
+
+   Keep it to three lines or fewer. Do not restate the question, do not lay
+   the tool result out as a bullet list, do not explain what you are about to
+   do, and do not add caveats nobody asked for. If the user wants the full
+   spread they will ask. A wall of bullets buries the one number they came
+   for.
 
 6. Copy names from tool results exactly as they appear in the ko_name field. Do
    not translate the English name field yourself. If ko_name is null, use the
@@ -90,7 +97,7 @@ LAST_CALL = ("The tool budget is used up and no more tool calls are available. "
 
 
 def ask(question, session, model=None, history=None, on_tool=None):
-    """질문 하나에 답한다. 돌려주는 값은 (답변, 갱신된 history).
+    """질문 하나에 답한다. 돌려주는 값은 (답변, 갱신된 history, 쓴 토큰).
 
     session 은 도구가 쓸 커넥션·참조표·덱이다(tools.Session). 부르는 쪽이
     만들어 넘긴다 — CLI 는 자기 커넥션으로, 웹은 요청마다 하나씩.
@@ -101,6 +108,12 @@ def ask(question, session, model=None, history=None, on_tool=None):
 
     history 는 그 대화를 시작한 백엔드의 메시지 모양이다. 도중에 모델을
     바꾸면 짝이 안 맞는다 (backends/__init__.py 참고).
+
+    ── 토큰은 왜 백엔드가 세나 ──
+      요청마다 저쪽이 돌려주는 값이고 그 이름이 회사마다 다르다. 여기서
+      세려면 runner 가 응답 원본을 알아야 하는데, 그러면 백엔드가 감추는
+      것이 하나 늘어난다. pick 이 질문마다 새 백엔드를 만들므로 그 위에
+      쌓인 값이 곧 이번 질문이 쓴 양이다.
     """
     llm = pick(model)
     messages = list(history
@@ -113,7 +126,7 @@ def ask(question, session, model=None, history=None, on_tool=None):
 
         calls = llm.calls(msg)
         if not calls:
-            return llm.text(msg), messages
+            return llm.text(msg), messages, llm.usage
 
         for c in calls:
             result = tools.call(session, c.name, c.args)
@@ -129,8 +142,9 @@ def ask(question, session, model=None, history=None, on_tool=None):
     messages.append(msg)
 
     answer = llm.text(msg).strip()
-    return answer or ("도구를 너무 여러 번 불러서 멈췄습니다. "
-                      "질문을 좀 더 좁혀서 다시 물어봐 주세요."), messages
+    return (answer or "도구를 너무 여러 번 불러서 멈췄습니다. "
+                      "질문을 좀 더 좁혀서 다시 물어봐 주세요.",
+            messages, llm.usage)
 
 
 def explain_error(exc, model=None):

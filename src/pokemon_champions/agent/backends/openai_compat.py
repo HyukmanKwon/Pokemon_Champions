@@ -40,7 +40,7 @@ import json
 import os
 
 from .. import schemas
-from ._base import Call
+from ._base import Call, Usage
 
 
 class OpenAICompat:
@@ -63,6 +63,9 @@ class OpenAICompat:
         self.base_url = base_url
         self.effort = effort
         self._client = None
+        # 이 백엔드가 만들어진 뒤로 쓴 토큰. runner.ask 가 질문마다 새로
+        # 만들므로(pick) 곧 "이번 질문이 쓴 양" 이다.
+        self.usage = Usage()
 
     # ── 클라이언트를 왜 늦게 만드나 ──
     #   app.py 는 뜰 때 agent 를 import 한다. 여기서 바로 클라이언트를
@@ -110,6 +113,10 @@ class OpenAICompat:
             kwargs["tools"] = schemas.as_array()
 
         res = self._ready().chat.completions.create(**kwargs)
+        u = res.usage
+        if u is not None:
+            self.usage = self.usage.plus(
+                u.prompt_tokens, u.completion_tokens, u.total_tokens)
         return res.choices[0].message.model_dump(exclude_none=True)
 
     def calls(self, msg):

@@ -54,7 +54,7 @@ import random
 import requests
 
 from .. import schemas
-from ._base import Call
+from ._base import Call, Usage
 
 URL = "http://127.0.0.1:11434/api/chat"
 DEFAULT_MODEL = "qwen3.5:9b"
@@ -106,6 +106,9 @@ class Ollama:
     def __init__(self, model=DEFAULT_MODEL, url=URL):
         self.model = model
         self.url = url
+        # 이번 질문이 쓴 토큰. 로컬이라 돈은 안 나가지만 같은 자리에
+        # 같은 모양으로 담는다 — 부르는 쪽이 백엔드를 가리지 않게.
+        self.usage = Usage()
 
     def chat(self, messages, use_tools=True):
         """한 번 물어본다. 돌려주는 값은 message 하나.
@@ -140,7 +143,13 @@ class Ollama:
             if res.status_code == 500 and attempt < RETRIES - 1:
                 continue
             res.raise_for_status()
-            return res.json()["message"]
+            body = res.json()
+            # 저쪽 이름이 다르다. total 은 안 주므로 둘을 더해 쓴다 —
+            # 로컬은 생각 토큰을 따로 세지 않는다.
+            p_n = body.get("prompt_eval_count") or 0
+            c_n = body.get("eval_count") or 0
+            self.usage = self.usage.plus(p_n, c_n, p_n + c_n)
+            return body["message"]
 
     def calls(self, msg):
         """assistant 메시지에서 도구 호출을 꺼낸다.

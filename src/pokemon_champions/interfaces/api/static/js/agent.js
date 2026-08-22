@@ -125,6 +125,9 @@ async function askAgent(question) {
           done();
           chatHistory = data.history;
           bubble("bot", answerHtml(data.text));
+          // 이번 질문이 쓴 토큰. 돈으로 안 바꾼다 — 가격표를 화면에 박으면
+          // 저쪽이 바꿨을 때 조용히 틀린 금액을 보게 된다.
+          if (data.usage) bubble("usage", esc(data.usage));
         } else if (ev === "error") {
           done();
           bubble("err", esc(data.message));

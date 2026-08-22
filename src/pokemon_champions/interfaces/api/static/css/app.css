@@ -425,6 +425,13 @@
   .bubble.waiting { align-self: flex-start; color: var(--muted); font-size: 0.85rem; }
   /* 대화 흐름이 아니라 화면이 알리는 말. 양쪽 어디에도 안 붙이고
      가운데에 얇게 둔다 — 사람의 말도 모델의 말도 아니다. */
+  /* 이번 질문이 쓴 토큰. 답 밑에 얇게 붙는다 — 읽을거리가 아니라
+     "얼마나 썼나" 를 곁눈으로 보는 값이다. */
+  .bubble.usage {
+    align-self: flex-start; background: transparent; color: var(--muted);
+    font-size: 0.7rem; padding: 0 4px; margin-top: -4px;
+    font-variant-numeric: tabular-nums;
+  }
   .bubble.note {
     align-self: center; background: transparent; color: var(--muted);
     font-size: 0.75rem; text-align: center; max-width: 34rem;

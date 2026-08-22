@@ -87,7 +87,7 @@ def main():
         started = time.monotonic()
         try:
             with waiting():
-                answer, history = runner.ask(
+                answer, history, usage = runner.ask(
                     q, sess, args.model, history, on_tool)
         # 무엇이 잘못됐는지는 백엔드가 안다. 여기서 회사별 예외를 잡으면
         # 백엔드를 하나 더할 때마다 이 자리가 같이 늘어난다.
@@ -95,8 +95,11 @@ def main():
             print(runner.explain_error(e, args.model))
             return 1
         print(answer)
-        # 몇 초 걸렸는지 남긴다. 도구를 고칠 때마다 나아졌는지 눈으로 본다.
-        print(f"\033[90m({time.monotonic() - started:.1f}초)\033[0m")
+        # 몇 초 걸렸는지, 토큰을 얼마나 썼는지 남긴다. 도구나 프롬프트를
+        # 고칠 때마다 나아졌는지 눈으로 본다 — 프롬프트가 거의 전부라,
+        # 도구를 한 번 덜 부르는 것이 곧 절반이다.
+        print(f"\033[90m({time.monotonic() - started:.1f}초 · "
+              f"{usage.line()})\033[0m")
         return 0
 
     try:

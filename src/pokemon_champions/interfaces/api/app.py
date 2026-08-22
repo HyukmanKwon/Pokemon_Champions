@@ -282,7 +282,7 @@ def chat(req: ChatRequest):
 
     이벤트는 셋이다.
       tool    {name, args, result}   도구를 부를 때마다
-      answer  {text, history}        다 끝났을 때
+      answer  {text, history, usage} 다 끝났을 때. usage 는 쓴 토큰 한 줄
       error   {message}              키가 없거나 저쪽이 죽었을 때
     """
     # ── 왜 스레드인가 ──
@@ -297,14 +297,15 @@ def chat(req: ChatRequest):
             try:
                 with connection() as conn:
                     sess = agent_tools.session(conn, deck_id=req.deck)
-                    answer, history = runner.ask(
+                    answer, history, usage = runner.ask(
                         req.question, sess,
                         model=req.model,
                         history=req.history,
                         on_tool=lambda name, args, result: box.put(
                             ("tool", {"name": name, "args": args,
                                       "result": result})))
-                    box.put(("answer", {"text": answer, "history": history}))
+                    box.put(("answer", {"text": answer, "history": history,
+                                       "usage": usage.line()}))
             # 무엇이 잘못됐는지는 백엔드가 안다. 여기서 회사별 예외를 잡으면
             # 백엔드를 하나 더할 때마다 이 자리가 같이 늘어난다.
             except Exception as e:      # noqa: BLE001 - 화면이 멎으면 안 된다
