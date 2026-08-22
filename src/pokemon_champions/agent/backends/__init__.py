@@ -40,7 +40,8 @@ PROVIDERS = {
     },
     "gemini": {
         "label": "Gemini",
-        "env_key": "GEMINI_API_KEY",
+        # 구글이 자기 도구에서 둘 다 받는다. 앞의 것이 먼저다.
+        "env_key": ("GEMINI_API_KEY", "GOOGLE_API_KEY"),
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
     },
 }
@@ -54,6 +55,8 @@ PROVIDERS = {
 MODELS = {
     "gpt-5.6-luna": {"provider": "openai", "effort": "none"},
     # 견줘 보려고 같이 둔다. 이 seam 을 만든 이유가 이것이다.
+    # 이름은 짐작하지 않고 저쪽 목록에서 그대로 옮겼다 (models.list).
+    "gemini-3.6-flash": {"provider": "gemini"},
     "gemini-3.7-flash": {"provider": "gemini"},
 }
 

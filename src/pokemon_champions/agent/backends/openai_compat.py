@@ -55,7 +55,11 @@ class OpenAICompat:
     def __init__(self, model, label, env_key, base_url=None, effort=None):
         self.model = model
         self.label = label
-        self.env_key = env_key
+        # 회사마다 키 이름이 하나로 정해져 있지 않다. 구글은 자기 도구에서
+        # GEMINI_API_KEY 와 GOOGLE_API_KEY 를 둘 다 받아서, 안내를 보고
+        # 어느 쪽으로 적어도 이상하지 않다. 앞의 것부터 찾고 안내에는
+        # 첫 번째 이름을 쓴다.
+        self.env_keys = (env_key,) if isinstance(env_key, str) else tuple(env_key)
         self.base_url = base_url
         self.effort = effort
         self._client = None
@@ -71,10 +75,12 @@ class OpenAICompat:
         if self._client is not None:
             return self._client
 
-        key = os.environ.get(self.env_key)
+        key = next((os.environ[k] for k in self.env_keys
+                    if os.environ.get(k)), None)
         if not key:
             raise RuntimeError(
-                f"{self.label} 키가 없습니다. .env 에 {self.env_key} 를 넣거나 "
+                f"{self.label} 키가 없습니다. .env 에 "
+                f"{' 또는 '.join(self.env_keys)} 를 넣거나 "
                 f"로컬 모델(예: qwen3.5:9b)로 바꿔 주세요.")
         try:
             from openai import OpenAI
