@@ -27,6 +27,7 @@ from pydantic import BaseModel, Field
 
 from ... import assets
 from ...config import IMAGES_DIR
+from ...agent import backends
 from ...agent import runner
 from ...agent import tools as agent_tools
 from ...db import connect, connection
@@ -255,6 +256,12 @@ def dex_detail(kind: str, name: str):
 #   탭이 도감을 열면 같은 psycopg2 커넥션을 두 스레드가 나눠 쓰게 되고,
 #   그건 안전하지 않다. 대화 하나가 자기 커넥션을 열고 끝나면 닫는다.
 # ─────────────────────────────────────────────────────────────
+
+@app.get("/api/models")
+def get_models():
+    """고를 수 있는 모델과 기본값. 도우미 탭의 고르개가 읽는다."""
+    return {"default": runner.DEFAULT_MODEL, "models": backends.available()}
+
 
 class ChatRequest(BaseModel):
     question: str

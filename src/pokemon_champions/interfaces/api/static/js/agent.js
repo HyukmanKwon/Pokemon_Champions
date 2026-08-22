@@ -9,14 +9,41 @@
 // ── history ──
 //   서버가 돌려준 것을 그대로 되돌려준다. 우리가 손대면 system 프롬프트나
 //   tool 메시지의 짝이 어긋나고, 그건 모델 쪽에서 조용히 이상해진다.
+//
+// ── 모델을 바꾸면 대화를 새로 시작한다 ──
+//   history 는 그 대화를 시작한 백엔드의 메시지 모양이다. OpenAI 는
+//   tool_call_id 로 도구 결과를 짝짓고 Ollama 는 이름으로 짝짓는다.
+//   섞으면 오류가 아니라 "엉뚱한 도구 결과를 보고 쓴 답" 이 나온다.
+//   그래서 바꾸는 순간 비운다. (backends/__init__.py 첫머리)
 // ═════════════════════════════════════════════════════════════
 
 const chatLog = document.getElementById("chat-log");
 const chatForm = document.getElementById("chat-form");
 const chatInput = document.getElementById("chat-input");
+const chatModel = document.getElementById("chat-model");
 
 let chatHistory = null;
 let asking = false;
+
+// 목록은 서버에서 받는다. 여기 적어두면 모델을 하나 더할 때 두 군데를
+// 고치게 되고, 한쪽만 고치면 "고를 수는 있는데 없는 모델" 이 된다.
+fetch("/api/models")
+  .then(r => r.json())
+  .then(d => {
+    chatModel.innerHTML = d.models.map(m => {
+      const tail = m.ready ? m.label : `${m.label} · 키 없음`;
+      return `<option value="${esc(m.name)}"${m.name === d.default ? " selected" : ""}
+                      ${m.ready ? "" : " disabled"}>${esc(m.name)} (${esc(tail)})</option>`;
+    }).join("");
+  })
+  .catch(() => { chatModel.innerHTML = `<option value="">(목록을 못 받았습니다)</option>`; });
+
+chatModel?.addEventListener("change", () => {
+  if (chatHistory === null) return;      // 아직 아무것도 안 물어봤다
+  chatHistory = null;
+  bubble("note", `모델을 <strong>${esc(chatModel.value)}</strong> 로 바꿔 대화를 새로 시작합니다. `
+                 + `앞의 대화는 그 모델의 메시지 모양이라 이어 붙일 수 없습니다.`);
+});
 
 function bubble(cls, html) {
   const el = document.createElement("div");
@@ -67,6 +94,8 @@ async function askAgent(question) {
         question,
         // 화면이 보고 있는 덱을 묶어 보낸다. 모델은 이 값을 못 고른다.
         deck: ACTIVE_DECK,
+        // 빈 값이면 서버의 기본 모델로 간다.
+        model: chatModel?.value || null,
         history: chatHistory,
       }),
     });

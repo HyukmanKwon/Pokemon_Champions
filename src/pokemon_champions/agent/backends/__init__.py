@@ -25,11 +25,13 @@ runner.ask 의 루프는 어느 백엔드를 쓰든 똑같다. 백엔드가 감�
   "그런 모델이 없다" 를 보는 편이 낫다.
 """
 
+import os
+
 from . import ollama
 from .openai_compat import OpenAICompat
 from ._base import Call
 
-__all__ = ["Call", "DEFAULT_MODEL", "MODELS", "pick"]
+__all__ = ["Call", "DEFAULT_MODEL", "MODELS", "available", "pick"]
 
 # 회사별로 다른 것은 키와 주소뿐이다.
 PROVIDERS = {
@@ -79,3 +81,32 @@ def pick(model=None):
                         env_key=provider["env_key"],
                         base_url=provider["base_url"],
                         effort=spec.get("effort"))
+
+
+def env_keys(provider):
+    """그 회사가 찾는 환경변수 이름들. 하나일 수도 여럿일 수도 있다."""
+    key = PROVIDERS[provider]["env_key"]
+    return (key,) if isinstance(key, str) else tuple(key)
+
+
+def available():
+    """고를 수 있는 모델. [{name, label, ready}]
+
+    ready 는 그 회사 키가 지금 잡혀 있는가다. 키가 없는 것도 목록에서
+    빼지 않고 그대로 두되 그렇다고 알린다 — 빼 버리면 왜 안 보이는지
+    알 길이 없고, .env 를 고치면 되는 일이다.
+
+    로컬 모델(Ollama)은 안 들어온다. MODELS 에 적는 것은 돈이 나가는
+    쪽뿐이고 나머지 이름은 무엇이든 로컬로 간다(pick).
+
+    ── 왜 화면이 아니라 여기서 만드나 ──
+      키 이름이 회사마다 다르다는 것도, 어느 모델이 어느 회사인지도 이
+      파일이 안다. 화면이 그것을 다시 알면 모델을 하나 더할 때 두 군데를
+      고치게 된다.
+    """
+    return [
+        {"name": name,
+         "label": PROVIDERS[spec["provider"]]["label"],
+         "ready": any(os.environ.get(k) for k in env_keys(spec["provider"]))}
+        for name, spec in MODELS.items()
+    ]

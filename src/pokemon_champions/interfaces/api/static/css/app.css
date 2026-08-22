@@ -423,6 +423,12 @@
   .bubble.bot { align-self: flex-start; background: var(--bg); }
   .bubble.err { align-self: flex-start; background: var(--bg); color: var(--error); }
   .bubble.waiting { align-self: flex-start; color: var(--muted); font-size: 0.85rem; }
+  /* 대화 흐름이 아니라 화면이 알리는 말. 양쪽 어디에도 안 붙이고
+     가운데에 얇게 둔다 — 사람의 말도 모델의 말도 아니다. */
+  .bubble.note {
+    align-self: center; background: transparent; color: var(--muted);
+    font-size: 0.75rem; text-align: center; max-width: 34rem;
+  }
   /* 도구 호출은 대화가 아니라 근거다. 폭을 다 쓰고 글자를 줄인다 */
   .bubble.tool {
     align-self: stretch;
@@ -845,3 +851,17 @@
 .home-rank .nm { font-size: 0.85rem; }
 .home-rank .type-badges { margin-left: auto; }
 .home-rank .type-badges img { height: 14px; }
+
+
+/* ── 도우미 모델 고르개 ─────────────────────────────────────── */
+.chat-bar {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  font-size: 0.78rem; color: var(--muted);
+}
+.chat-bar select {
+  font-family: inherit; font-size: 0.78rem; padding: 3px 8px;
+  border: 1px solid var(--border); border-radius: 7px;
+  background: var(--card-bg); color: var(--text);
+}
+/* 키가 없는 모델도 목록에 남긴다. 빼 버리면 왜 안 보이는지 알 길이 없다. */
+.chat-bar select option:disabled { color: var(--muted); }

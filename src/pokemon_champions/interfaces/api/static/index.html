@@ -51,6 +51,13 @@
 <section class="panel" id="panel-usage" hidden></section>
 <section class="panel" id="panel-calc" hidden></section>
 <section class="panel" id="panel-agent" hidden>
+  <!-- 어느 회사에 물어볼지. 대화 도중에 바꾸면 대화가 새로 시작된다 —
+       history 가 그 대화를 시작한 백엔드의 메시지 모양이라 섞이면
+       도구 결과의 짝이 어긋난다. -->
+  <div class="chat-bar">
+    <label for="chat-model">모델</label>
+    <select id="chat-model"></select>
+  </div>
   <div id="chat-log" class="chat-log"></div>
   <form id="chat-form" class="chat-form">
     <input id="chat-input" autocomplete="off"
