@@ -12,17 +12,76 @@
   으로 6마리를 받고, 그중 몇에 대해 calc_damage 를 부르고, 그 결과를 모아
   답한다. 모델이 도구를 그만 부를 때까지 돌린다.
 
-── 한 바퀴 제한 ──
-  MAX_TURNS 가 없으면 모델이 같은 도구를 무한히 부르는 일이 실제로 생긴다.
-  막히면 멈추고, 지금까지 받은 것으로 답하게 한다 — 여덟 번을 다 쓰면
-  도구를 떼고 한 번 더 물어본다. 그동안 모은 것을 버리지 않는다.
+── 두 가지 제한 ──
+  MAX_TURNS   같은 도구를 무한히 부르는 것을 막는다
+  TIME_BUDGET 오래 걸리는 것을 막는다
+
+  둘 다 걸리면 도구를 떼고 한 번 더 물어본다. 그동안 모은 것을 버리지
+  않는다 — 안내 문장만 돌려주고 끝내면 그 시간이 통째로 버려진다.
+
+  바퀴 수만으로는 모자랐다. 대화가 길어지면 한 요청이 통째로 느려져서,
+  여덟 바퀴를 안 채우고도 90초가 넘는다. 사람이 기다릴 수 있는 것은
+  시간이지 바퀴가 아니다.
 """
+
+import time
 
 from . import tools
 from .backends import DEFAULT_MODEL, pick          # noqa: F401 - 밖에서 쓴다
 from ..usecases import naming
 
 MAX_TURNS = 8
+
+# 한 질문에 쓰는 전체 시간. 넘기면 도구를 그만 부르고 지금까지 받은
+# 것으로 답한다.
+#
+# ── 새 바퀴만 막아서는 안 됐다 ──
+#   처음에는 바퀴를 시작할지만 봤는데 41초가 나왔다. 대화가 길어지면
+#   프롬프트가 수만 토큰이 되어 한 요청이 십수 초씩 걸리는데, 이미
+#   시작한 요청도 마지막 한 번도 그 검사에 안 걸린다.
+#
+#   그래서 요청마다 남은 시간을 시한으로 준다. 저쪽이 늦으면 그 자리에서
+#   끊고 다음으로 넘어간다.
+TIME_BUDGET = 25.0
+
+# 마지막 한 번에 남겨 두는 몫. 도구를 아무리 많이 불렀어도 답은 내야
+# 한다 — 여기까지 다 써 버리면 그때까지 모은 도구 결과가 통째로 버려진다.
+FINAL_RESERVE = 10.0
+
+# history 에 온전히 남길 도구 결과의 개수.
+#
+# ── 왜 줄이나 ──
+#   도구 결과 하나가 200~1,200 토큰인데 그대로 쌓인다. 네 턴을 주고받으면
+#   프롬프트가 9천에서 2만 7천이 되고, 그러면 한 요청이 십수 초가 되어
+#   시한 안에 도구를 한 번도 못 부르는 일이 생긴다. 실제로 겪었다.
+#
+#   글로 된 답과 질문은 그대로 둔다. 부피는 도구 결과가 만들고, 그건
+#   그 턴이 지나면 대개 답 안에 이미 녹아 있다.
+#
+#   지운 자리에 짧은 쪽지를 남긴다. 통째로 빼면 tool_call_id 의 짝이
+#   어긋나서, 오류가 아니라 "엉뚱한 도구 결과를 보고 쓴 답" 이 된다.
+KEEP_TOOL_RESULTS = 6
+
+STALE_TOOL = ("(앞 턴의 도구 결과입니다. 길어서 접었습니다. "
+              "이 값이 다시 필요하면 그 도구를 다시 부르세요.)")
+
+
+def compact(messages):
+    """오래된 도구 결과를 쪽지로 바꾼 새 목록. 원본은 안 건드린다.
+
+    최근 KEEP_TOOL_RESULTS 개만 온전히 남긴다. 순서를 지키려고 뒤에서부터
+    세되, 돌려줄 때는 원래 차례 그대로다.
+    """
+    kept = 0
+    out = []
+    for m in reversed(messages):
+        if m.get("role") == "tool" and m.get("content"):
+            kept += 1
+            if kept > KEEP_TOOL_RESULTS:
+                m = {**m, "content": STALE_TOOL}
+        out.append(m)
+    out.reverse()
+    return out
 
 SYSTEM = """You are a battle assistant for Pokémon Champions (Regulation M-B).
 
@@ -92,8 +151,9 @@ def system_prompt(session):
 # 시키는 이유는, 안 그러면 빈칸을 기억으로 메우기 때문이다.
 LAST_CALL = ("The tool budget is used up and no more tool calls are available. "
              "Answer now in Korean using only the tool results already in this "
-             "conversation. If something is still unverified, say which part "
-             "you could not check rather than filling it in from memory.")
+             "conversation. Keep it to three lines. If something is still "
+             "unverified, say which part you could not check in one short "
+             "clause rather than filling it in from memory.")
 
 
 def ask(question, session, model=None, history=None, on_tool=None):
@@ -120,8 +180,20 @@ def ask(question, session, model=None, history=None, on_tool=None):
                     or [{"role": "system", "content": system_prompt(session)}])
     messages.append({"role": "user", "content": question})
 
+    deadline = time.monotonic() + TIME_BUDGET
     for _ in range(MAX_TURNS):
-        msg = llm.chat(messages)
+        # 새 바퀴를 시작할 시간이 남았나. 마지막 한 번 몫은 빼고 본다.
+        # 첫 바퀴는 언제나 통과한다 — 아무것도 안 물어보고 끝낼 수는 없다.
+        left = deadline - time.monotonic() - FINAL_RESERVE
+        if left <= 0:
+            break
+
+        try:
+            msg = llm.chat(compact(messages), timeout=left)
+        except Exception:       # noqa: BLE001 - 늦은 것도 못 받은 것도 같다
+            # 한 요청이 시한을 넘겼다. 지금까지 모은 것으로 답하러 간다 —
+            # 여기서 올리면 도구를 다섯 번 부른 값이 통째로 사라진다.
+            break
         messages.append(msg)
 
         calls = llm.calls(msg)
@@ -134,11 +206,19 @@ def ask(question, session, model=None, history=None, on_tool=None):
                 on_tool(c.name, c.args, result)
             messages.append(llm.tool_message(c, result))
 
-    # 여기까지 왔으면 여덟 바퀴를 다 쓴 것이다. 도구를 떼고 한 번 더
+    # 여기까지 왔으면 바퀴나 시간을 다 쓴 것이다. 도구를 떼고 한 번 더
     # 물어본다 — 그동안 모은 결과가 messages 에 그대로 있으므로, 그것만으로
     # 답이 나온다. 안내 문장을 돌려주고 끝내면 그 시간이 통째로 버려진다.
     messages.append({"role": "user", "content": LAST_CALL})
-    msg = llm.chat(messages, use_tools=False)
+    try:
+        msg = llm.chat(compact(messages), use_tools=False,
+                       timeout=FINAL_RESERVE)
+    except Exception:       # noqa: BLE001 - 늦은 것도 못 받은 것도 같다
+        # 마지막 한 번까지 늦었다. 여기서 예외를 올리면 화면에는 빨간
+        # 오류만 남고, 그때까지 부른 도구 값이 통째로 사라진다. 무엇이
+        # 일어났는지 말해 주는 편이 낫다.
+        return ("시간 안에 답을 못 만들었습니다. 질문을 좀 더 좁혀서 "
+                "다시 물어봐 주세요.", messages, llm.usage)
     messages.append(msg)
 
     answer = llm.text(msg).strip()

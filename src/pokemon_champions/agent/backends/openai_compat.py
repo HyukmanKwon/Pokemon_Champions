@@ -92,10 +92,18 @@ class OpenAICompat:
                 'openai 패키지가 없습니다. `pip install -e ".[llm]"` 을 '
                 "먼저 하세요.")
 
-        self._client = OpenAI(api_key=key, base_url=self.base_url)
+        # ── 재시도는 우리가 안 맡긴다 ──
+        #   SDK 기본이 2회인데, 재시도마다 timeout 이 새로 시작한다. 그래서
+        #   17초를 줘도 실제로는 51초까지 걸린다 — runner 가 시한을 관리하는
+        #   뜻이 사라진다. 실제로 25초로 묶었는데 57초가 나왔다.
+        #
+        #   한 번 늦으면 그대로 올려 보낸다. runner 가 받아서 그때까지 모은
+        #   도구 결과로 답을 낸다 — 다시 물어보는 것보다 그쪽이 빠르다.
+        self._client = OpenAI(api_key=key, base_url=self.base_url,
+                              max_retries=0)
         return self._client
 
-    def chat(self, messages, use_tools=True):
+    def chat(self, messages, use_tools=True, timeout=None):
         """한 번 물어본다. 돌려주는 값은 message 하나(dict).
 
         객체가 아니라 dict 로 돌려주는 이유는 이 값이 그대로 history 에
@@ -111,6 +119,10 @@ class OpenAICompat:
             kwargs["temperature"] = 0.2
         if use_tools:
             kwargs["tools"] = schemas.as_array()
+        if timeout is not None:
+            # 한 요청이 통째로 늦어지는 것을 막는다. 대화가 길어지면
+            # 프롬프트가 수만 토큰이 되어 한 번에 십수 초씩 걸린다.
+            kwargs["timeout"] = max(timeout, 1.0)
 
         res = self._ready().chat.completions.create(**kwargs)
         u = res.usage

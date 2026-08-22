@@ -110,7 +110,7 @@ class Ollama:
         # 같은 모양으로 담는다 — 부르는 쪽이 백엔드를 가리지 않게.
         self.usage = Usage()
 
-    def chat(self, messages, use_tools=True):
+    def chat(self, messages, use_tools=True, timeout=None):
         """한 번 물어본다. 돌려주는 값은 message 하나.
 
         use_tools=False 면 도구 스키마를 빼고 보낸다. 도구를 못 부르니
@@ -139,7 +139,8 @@ class Ollama:
             # 실패를 그대로 재현한다. temperature 0.2 는 그대로 두고 뽑는
             # 자리만 옮기는 것이라, 인자 정확도에는 영향이 없다.
             payload["options"]["seed"] = random.randrange(2 ** 31)
-            res = requests.post(self.url, timeout=300, json=payload)
+            res = requests.post(self.url, json=payload,
+                                timeout=max(timeout, 1.0) if timeout else 300)
             if res.status_code == 500 and attempt < RETRIES - 1:
                 continue
             res.raise_for_status()
