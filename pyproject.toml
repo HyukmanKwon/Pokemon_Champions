@@ -17,7 +17,7 @@ dependencies = [
 web = ["fastapi>=0.110", "uvicorn>=0.29"]
 # API 도우미(GPT·Gemini)를 쓸 때만. 로컬 Ollama 는 requests 로 붙으므로
 # 이것 없이도 돈다 — 인터넷이 없는 자리에서 도감·계산기가 막히지 않게.
-llm = ["openai>=2.0"]
+llm = ["openai>=2.0", "python-dotenv>=1.0"]
 dev = ["pytest>=8.0"]
 
 [project.scripts]

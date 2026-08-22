@@ -15,6 +15,36 @@ PROJECT_ROOT = Path(
     os.getenv("POKEMON_CHAMPIONS_ROOT", Path(__file__).resolve().parents[2])
 )
 
+
+# ─────────────────────────────────────────────────────────────
+# .env
+#
+# ── 왜 여기서 읽나 ──
+#   환경변수를 읽는 자리가 이 파일 하나다. 진입점(main.py · web.py ·
+#   scripts.chat)마다 부르면 하나를 빠뜨리고, 그러면 "CLI 에서는 되는데
+#   웹에서는 키가 없다" 가 된다. import 되는 순간 한 번만 읽는다.
+#
+# ── 이미 있는 값은 안 덮는다 ──
+#   셸에서 준 값이 파일보다 세다. GEMINI_API_KEY=... python ... 로 한 번만
+#   다르게 돌려보는 길을 막지 않으려는 것이다.
+#
+# ── 없어도 된다 ──
+#   python-dotenv 는 선택 의존성이고 .env 도 없을 수 있다. 배포에서는
+#   진짜 환경변수를 쓰므로 둘 다 없는 것이 정상이다. 조용히 넘어간다.
+# ─────────────────────────────────────────────────────────────
+def _load_dotenv():
+    path = PROJECT_ROOT / ".env"
+    if not path.exists():
+        return
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv(path, override=False)
+
+
+_load_dotenv()
+
 DATA_DIR = PROJECT_ROOT / "data"
 SQL_DIR = DATA_DIR / "sql"            # ETL 이 생성한 SQL (재생성 가능)
 CACHE_DIR = DATA_DIR / "cache"        # 내려받은 원본 (재생성 가능)
