@@ -60,7 +60,10 @@ MODELS = {
     "gemini-3.7-flash": {"provider": "gemini"},
 }
 
-DEFAULT_MODEL = "gpt-5.6-luna"
+# 화면(agent.js)은 모델을 안 보낸다. 그래서 이 값이 곧 웹에서 쓰는
+# 모델이고, 여기 적힌 회사의 키가 없으면 도우미 탭이 통째로 막힌다.
+# 바꿀 때는 .env 에 그쪽 키가 있는지 같이 본다.
+DEFAULT_MODEL = "gemini-3.6-flash"
 
 
 def pick(model=None):
